@@ -1,18 +1,18 @@
-import { useState } from 'react'
-import './App.css'
-import { Button } from '@/components/ui/button'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { lazy } from 'react';
+
+const Dashboard = lazy(() => import('./pages/dashboard/dashboard'))
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div className="min-h-screen ">
-        <Button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </Button>
-      </div>
-    </>
+    <Router future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+      </Routes>
+    </Router>
   )
 }
 
