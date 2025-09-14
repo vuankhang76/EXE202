@@ -1,64 +1,59 @@
 import AdminLayout from "@/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Button } from "@/components/ui/Button"
-import { Plus, Percent, Gift, Users } from "lucide-react"
+import { HeartHandshake, Activity, Users, TrendingUp } from "lucide-react"
 
-export default function Promotions() {
+export default function CMR() {
   return (
-    <AdminLayout breadcrumbTitle="Ưu đãi">
+    <AdminLayout breadcrumbTitle="CMR y tế">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Ưu đãi</h1>
+          <h1 className="text-3xl font-bold tracking-tight">CMR y tế</h1>
           <p className="text-muted-foreground">
-            Quản lý chương trình khuyến mãi và ưu đãi
+            Hệ thống quản lý chăm sóc khách hàng y tế
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Tạo ưu đãi mới
-        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Ưu đãi đang hoạt động
-            </CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
-              Chương trình đang chạy
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Khách hàng tham gia
+              Tổng bệnh nhân
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">456</div>
+            <div className="text-2xl font-bold">1,234</div>
             <p className="text-xs text-muted-foreground">
-              Lượt sử dụng ưu đãi
+              +15% so với tháng trước
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Tổng tiết kiệm
+              Hoạt động chăm sóc
             </CardTitle>
-            <Gift className="h-4 w-4 text-muted-foreground" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12.5M</div>
+            <div className="text-2xl font-bold">456</div>
             <p className="text-xs text-muted-foreground">
-              Tiền tiết kiệm cho khách hàng
+              Hoạt động trong tháng
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Mức độ hài lòng
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">95%</div>
+            <p className="text-xs text-muted-foreground">
+              Mức độ hài lòng trung bình
             </p>
           </CardContent>
         </Card>
@@ -66,11 +61,11 @@ export default function Promotions() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách ưu đãi</CardTitle>
+          <CardTitle>Chương trình chăm sóc khách hàng</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-            Chưa có chương trình ưu đãi nào
+            Chưa có chương trình chăm sóc nào
           </div>
         </CardContent>
       </Card>

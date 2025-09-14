@@ -1,11 +1,12 @@
 import { type LucideIcon } from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/Sidebar"
 
 export function NavMain({
   label,
@@ -18,17 +19,19 @@ export function NavMain({
     icon: LucideIcon
   }[]
 }) {
+  const location = useLocation()
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
+            <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+              <Link to={item.url}>
                 <item.icon />
                 <span>{item.title}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

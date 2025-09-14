@@ -10,7 +10,8 @@ import {
   TicketCheck,
   MessageCirclePlus,
   CalendarDays,
-  Search
+  Search,
+  Home
 } from "lucide-react"
 
 import { NavMain } from "@/components/NavMain"
@@ -22,7 +23,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/Sidebar"
 
 const data = {
   user: {
@@ -50,45 +51,50 @@ const data = {
   navMain: [
     {
       title: "Lịch hẹn và tái khám",
-      url: "#",
+      url: "/appointments",
       icon: CalendarDays,
     },
     {
       title: "Đơn dịch vụ và thanh toán",
-      url: "#",
+      url: "/orders",
       icon: ClipboardList,
     },
     {
       title: "Quản lý hồ sơ bệnh nhân",
-      url: "#",
+      url: "/patients",
       icon: UserRound,
     },
     {
       title: "Giao tiếp và tư vấn từ xa",
-      url: "#",
+      url: "/consultations",
       icon: MessageCirclePlus,
     },
   ],
   
   navServices: [
     {
+      title: "Tổng quan",
+      url: "/dashboard",
+      icon: Home,
+    },
+    {
       title: "CMR y tế",
-      url: "#",
+      url: "/cmr",
       icon: HeartHandshake,
     },
     {
       title: "Ưu đãi",
-      url: "#",
+      url: "/promotions",
       icon: TicketCheck,
     },
     {
       title: "Tài khoản",
-      url: "#",
+      url: "/accounts",
       icon: UserCog,
     },
     {
       title: "Báo cáo & Thống kê",
-      url: "#",
+      url: "/reports",
       icon: UserCog,
     },
   ],
@@ -96,7 +102,7 @@ const data = {
   navAdvanced: [
     {
       title: "Tìm kiếm nâng cao",
-      url: "#",
+      url: "/advanced-search",
       icon: Search,
     }
   ],
