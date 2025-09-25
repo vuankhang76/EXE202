@@ -6,6 +6,9 @@ import {
   LogOut,
 } from "lucide-react"
 
+import { useAuth } from "@/contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import {
   Avatar,
   AvatarFallback,
@@ -25,18 +28,33 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/Sidebar"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const { logout, currentUser } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success(`Đăng xuất thành công!`);
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  if (!currentUser) {
+    return null;
+  }
+
+  // Create display data from currentUser
+  const user = {
+    name: currentUser.fullName || 'User',
+    email: currentUser.email || currentUser.phoneE164 || '',
+    avatar: '' // No avatar from backend, will use fallback
+  }
 
   return (
     <SidebarMenu>
@@ -92,9 +110,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Log out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
