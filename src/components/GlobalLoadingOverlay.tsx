@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLoading } from '@/contexts/LoadingContext';
 import { FullPageLoadingSpinner } from '@/components/ui/LoadingSpinner';
 
