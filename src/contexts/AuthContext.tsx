@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 interface AuthContextType {
   currentUser: AuthUser | null;
-  loading: boolean;
   token: string | null;
   staffLogin: (email: string, password: string) => Promise<void>;
   requestStaffOtp: (phoneNumber: string) => Promise<void>;
@@ -29,9 +28,12 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    return authService.getUser();
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return authService.getToken();
+  });
 
   const staffLogin = async (email: string, password: string) => {
     try {
@@ -56,7 +58,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
 
-  // Request OTP for staff
   const requestStaffOtp = async (phoneNumber: string) => {
     try {
       const result = await authService.requestStaffOtp(phoneNumber);
@@ -64,7 +65,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(result.message || 'Không thể gửi OTP');
       }
       
-      // Show success toast
       toast.success('Mã OTP đã được gửi!', {
         description: `Kiểm tra tin nhắn tại số ${phoneNumber}`
       });
@@ -73,7 +73,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Verify OTP for staff
   const verifyStaffOtp = async (phoneNumber: string, otpCode: string) => {
     try {
       const result = await authService.verifyStaffOtp(phoneNumber, otpCode);
@@ -83,13 +82,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const { token: authToken, user } = result.data!;
       
-      // Save to localStorage and state
       authService.saveToken(authToken);
       authService.saveUser(user);
       setToken(authToken);
       setCurrentUser(user);
       
-      // Show success toast
       toast.success(`Chào mừng ${user.fullName}!`, {
         description: 'Xác thực OTP thành công'
       });
@@ -98,7 +95,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Validate token
   const validateToken = async (): Promise<boolean> => {
     try {
       const currentToken = token || authService.getToken();
@@ -124,35 +120,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const savedToken = authService.getToken();
-        const savedUser = authService.getUser();
-
-        if (savedToken && savedUser) {
-          const isValid = await validateToken();
-          if (isValid) {
-            setToken(savedToken);
-            setCurrentUser(savedUser);
-          } else {
-            authService.removeToken();
-            authService.removeUser();
-          }
+    const backgroundValidation = async () => {
+      if (token) {
+        const isValid = await validateToken();
+        if (!isValid) {
+          authService.removeToken();
+          authService.removeUser();
+          setToken(null);
+          setCurrentUser(null);
         }
-      } catch (error) {
-        authService.removeToken();
-        authService.removeUser();
-      } finally {
-        setLoading(false);
       }
     };
 
-    initializeAuth();
-  }, []);
+    const timeoutId = setTimeout(backgroundValidation, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [token]);
 
   const value: AuthContextType = {
     currentUser,
-    loading,
     token,
     staffLogin,
     requestStaffOtp,

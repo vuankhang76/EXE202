@@ -37,7 +37,6 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    // Decrement on error
     activeRequestsCount = Math.max(0, activeRequestsCount - 1);
     updateLoadingState();
     return Promise.reject(error);
@@ -104,7 +103,7 @@ export const apiUtils = {
    * @param data - Request body
    * @param config - Additional axios config
    */
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise< AxiosResponse<T>> {
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response = await api.post(url, data, config);
     return response as AxiosResponse<T>;
   },
@@ -115,7 +114,7 @@ export const apiUtils = {
    * @param data - Request body
    * @param config - Additional axios config
    */
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise< AxiosResponse<T>>  {
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>  {
     const response = await api.put(url, data, config);
     return response  as AxiosResponse<T>
   },
@@ -125,7 +124,7 @@ export const apiUtils = {
    * @param url - API endpoint
    * @param config - Additional axios config
    */
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise< AxiosResponse<T>>  {
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>  {
     const response = await api.delete(url, config);
     return response as AxiosResponse<T>
   },
