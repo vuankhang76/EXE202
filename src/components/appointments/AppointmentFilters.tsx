@@ -79,33 +79,33 @@ export default function AppointmentFilters({
                     Tất cả trạng thái
                   </div>
                 </SelectItem>
-                <SelectItem value={AppointmentStatus.PENDING}>
+                <SelectItem value={AppointmentStatus.SCHEDULED}>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    {getStatusLabel(AppointmentStatus.PENDING)}
+                    {getStatusLabel(AppointmentStatus.SCHEDULED)}
                   </div>
                 </SelectItem>
-                    <SelectItem value={AppointmentStatus.CONFIRMED}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        {getStatusLabel(AppointmentStatus.CONFIRMED)}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value={AppointmentStatus.BOOKED}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                        {getStatusLabel(AppointmentStatus.BOOKED)}
-                      </div>
-                    </SelectItem>
+                <SelectItem value={AppointmentStatus.CONFIRMED}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    {getStatusLabel(AppointmentStatus.CONFIRMED)}
+                  </div>
+                </SelectItem>
+                <SelectItem value={AppointmentStatus.BOOKED}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    {getStatusLabel(AppointmentStatus.BOOKED)}
+                  </div>
+                </SelectItem>
                 <SelectItem value={AppointmentStatus.IN_PROGRESS}>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
                     {getStatusLabel(AppointmentStatus.IN_PROGRESS)}
                   </div>
                 </SelectItem>
                 <SelectItem value={AppointmentStatus.COMPLETED}>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-2 h-2 rounded-full bg-gray-500" />
                     {getStatusLabel(AppointmentStatus.COMPLETED)}
                   </div>
                 </SelectItem>
@@ -115,12 +115,18 @@ export default function AppointmentFilters({
                     {getStatusLabel(AppointmentStatus.CANCELLED)}
                   </div>
                 </SelectItem>
+                <SelectItem value={AppointmentStatus.NO_SHOW}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    {getStatusLabel(AppointmentStatus.NO_SHOW)}
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
           {(searchTerm || (statusFilter && statusFilter !== 'all')) && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={onClearFilters}
               className="h-10"

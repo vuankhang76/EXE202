@@ -3,6 +3,8 @@ import AdminLayout from "@/layout/AdminLayout";
 import { Button } from "@/components/ui/Button";
 import { RefreshCw } from "lucide-react";
 import CreateAppointmentDialog from "@/components/appointments/CreateAppointmentDialog";
+import ViewAppointmentDialog from "@/components/appointments/ViewAppointmentDialog";
+import EditAppointmentDialog from "@/components/appointments/EditAppointmentDialog";
 import AppointmentStats from "@/components/appointments/AppointmentStats";
 import AppointmentFilters from "@/components/appointments/AppointmentFilters";
 import AppointmentTable from "@/components/appointments/AppointmentTable";
@@ -35,9 +37,14 @@ export default function Appointments() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [loadingToday, setLoadingToday] = useState(false);
+
+  // Dialogs state
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDto | null>(null);
+  const [viewDialogOpen,  setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const loadTodayAppointments = useCallback(async () => {
     try {
@@ -53,7 +60,7 @@ export default function Appointments() {
     }
   }, [currentUser?.tenantId]);
 
-  const loadAllAppointments = useCallback(async (page: number = 1, resetData: boolean = false) => {
+  const loadAllAppointments = useCallback(async (page: number = 1) => {
     try {
       setAllAppointmentsLoading(true);
 
@@ -108,8 +115,6 @@ export default function Appointments() {
           }
         }
 
-
-        // Always replace data for pagination (no more appending)
         setAllAppointments(items);
         setTotalPages(totalPages);
         setTotalCount(totalCount);
@@ -129,8 +134,6 @@ export default function Appointments() {
     }
   }, [statusFilter, pageSize, currentUser?.tenantId]);
 
-  const [confirmingAppointment, setConfirmingAppointment] = useState(false);
-
   const loadStats = useCallback(async () => {
     try {
       const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : undefined;
@@ -149,71 +152,50 @@ export default function Appointments() {
     }
   }, [currentUser?.tenantId]);
 
-  const confirmAppointment = useCallback(async (id: number) => {
+  const [changingStatus, setChangingStatus] = useState(false);
+
+  const handleStatusChange = useCallback(async (id: number, newStatus: string) => {
     try {
-      setConfirmingAppointment(true);
-      await appointmentService.confirmAppointment(id);
-      toast.success('Xác nhận lịch hẹn thành công!');
-      loadTodayAppointments();
-      loadStats();
+      setChangingStatus(true);
+
+      // Call appropriate API based on status change
+      switch (newStatus) {
+        case 'Confirmed':
+          await appointmentService.confirmAppointment(id);
+          toast.success('Xác nhận lịch hẹn thành công!');
+          break;
+        case 'InProgress':
+          await appointmentService.startAppointment(id);
+          toast.success('Bắt đầu khám thành công!');
+          break;
+        case 'Completed':
+          await appointmentService.completeAppointment(id);
+          toast.success('Hoàn thành lịch hẹn thành công!');
+          break;
+        case 'Cancelled':
+          const reason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
+          await appointmentService.cancelAppointment(id, reason || undefined);
+          toast.success('Hủy lịch hẹn thành công!');
+          break;
+        default:
+          toast.info('Trạng thái không thay đổi');
+          return;
+      }
+
+      // Reload data
+      if (viewMode === 'today') {
+        loadTodayAppointments();
+        loadStats();
+      } else {
+        loadAllAppointments(currentPage);
+      }
     } catch (error) {
-      console.error('Error confirming appointment:', error);
-      toast.error('Có lỗi xảy ra khi xác nhận lịch hẹn');
+      console.error('Error changing status:', error);
+      toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
     } finally {
-      setConfirmingAppointment(false);
+      setChangingStatus(false);
     }
-  }, [loadTodayAppointments, loadStats]);
-
-  const [startingAppointment, setStartingAppointment] = useState(false);
-
-  const startAppointment = useCallback(async (id: number) => {
-    try {
-      setStartingAppointment(true);
-      await appointmentService.startAppointment(id);
-      toast.success('Bắt đầu khám thành công!');
-      loadTodayAppointments();
-      loadStats();
-    } catch (error) {
-      console.error('Error starting appointment:', error);
-      toast.error('Có lỗi xảy ra khi bắt đầu khám');
-    } finally {
-      setStartingAppointment(false);
-    }
-  }, [loadTodayAppointments, loadStats]);
-
-  const [completingAppointment, setCompletingAppointment] = useState(false);
-
-  const completeAppointment = useCallback(async (id: number) => {
-    try {
-      setCompletingAppointment(true);
-      await appointmentService.completeAppointment(id);
-      toast.success('Hoàn thành lịch hẹn thành công!');
-      loadTodayAppointments();
-      loadStats();
-    } catch (error) {
-      console.error('Error completing appointment:', error);
-      toast.error('Có lỗi xảy ra khi hoàn thành lịch hẹn');
-    } finally {
-      setCompletingAppointment(false);
-    }
-  }, [loadTodayAppointments, loadStats]);
-
-  const [cancellingAppointment, setCancellingAppointment] = useState(false);
-
-  const cancelAppointment = useCallback(async (id: number, reason?: string) => {
-    try {
-      setCancellingAppointment(true);
-      await appointmentService.cancelAppointment(id, reason);
-      toast.success('Hủy lịch hẹn thành công!');
-      loadTodayAppointments();
-      loadStats();
-    } catch (error) {
-      console.error('Error cancelling appointment:', error);
-      toast.error('Có lỗi xảy ra khi hủy lịch hẹn');
-    } finally {
-      setCancellingAppointment(false);
-    }
-  }, [loadTodayAppointments, loadStats]);
+  }, [viewMode, currentPage, loadTodayAppointments, loadStats, loadAllAppointments]);
 
   useEffect(() => {
     loadTodayAppointments();
@@ -222,7 +204,7 @@ export default function Appointments() {
 
   useEffect(() => {
     if (viewMode === 'all') {
-      loadAllAppointments(1, true);
+      loadAllAppointments(1);
     } else if (viewMode === 'today') {
       loadTodayAppointments();
       loadStats();
@@ -268,34 +250,56 @@ export default function Appointments() {
       loadTodayAppointments();
       loadStats();
     } else {
-      loadAllAppointments(1, true);
+      loadAllAppointments(1);
     }
   }, [viewMode, loadTodayAppointments, loadStats, loadAllAppointments]);
 
   const handlePageChange = useCallback((page: number) => {
     if (page !== currentPage && !allAppointmentsLoading) {
-      loadAllAppointments(page, true); // Reset data for new page
+      loadAllAppointments(page);
     }
   }, [currentPage, allAppointmentsLoading, loadAllAppointments]);
 
-  const handleConfirm = useCallback(async (id: number) => {
-    await confirmAppointment(id);
-  }, [confirmAppointment]);
+  const handleView = useCallback(async (id: number) => {
+    try {
+      const result = await appointmentService.getAppointmentById(id, true);
+      if (result.success && result.data) {
+        setSelectedAppointment(result.data);
+        setViewDialogOpen(true);
+      } else {
+        toast.error('Không thể tải thông tin lịch hẹn');
+      }
+    } catch (error) {
+      console.error('Error loading appointment:', error);
+      toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
+    }
+  }, []);
 
-  const handleStart = useCallback(async (id: number) => {
-    await startAppointment(id);
-  }, [startAppointment]);
+  const handleEdit = useCallback(async (id: number) => {
+    try {
+      const result = await appointmentService.getAppointmentById(id, true);
+      if (result.success && result.data) {
+        setSelectedAppointment(result.data);
+        setEditDialogOpen(true);
+      } else {
+        toast.error('Không thể tải thông tin lịch hẹn');
+      }
+    } catch (error) {
+      console.error('Error loading appointment:', error);
+      toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
+    }
+  }, []);
 
-  const handleComplete = useCallback(async (id: number) => {
-    await completeAppointment(id);
-  }, [completeAppointment]);
+  const handleEditSuccess = useCallback(() => {
+    if (viewMode === 'today') {
+      loadTodayAppointments();
+      loadStats();
+    } else {
+      loadAllAppointments(currentPage);
+    }
+  }, [viewMode, currentPage, loadTodayAppointments, loadStats, loadAllAppointments]);
 
-  const handleCancel = useCallback(async (id: number) => {
-    const reason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
-    await cancelAppointment(id, reason || undefined);
-  }, [cancelAppointment]);
-
-  const isProcessing = confirmingAppointment || startingAppointment || completingAppointment || cancellingAppointment;
+  const isProcessing = changingStatus;
 
   return (
     <AdminLayout breadcrumbTitle="Lịch hẹn và tái khám">
@@ -315,7 +319,7 @@ export default function Appointments() {
             loadTodayAppointments();
             loadStats();
             if (viewMode === 'all') {
-              loadAllAppointments(1, true);
+              loadAllAppointments(1);
             }
           }} />
         </div>
@@ -350,13 +354,24 @@ export default function Appointments() {
         totalPages={totalPages}
         totalCount={totalCount}
         onViewModeChange={setViewMode}
-        onConfirm={handleConfirm}
-        onStart={handleStart}
-        onComplete={handleComplete}
-        onCancel={handleCancel}
-        onView={(id) => toast.info(`Xem chi tiết lịch hẹn #${id}`)}
-        onEdit={(id) => toast.info(`Chỉnh sửa lịch hẹn #${id}`)}
+        onStatusChange={handleStatusChange}
+        onView={handleView}
+        onEdit={handleEdit}
         onPageChange={handlePageChange}
+      />
+
+      {/* Dialogs */}
+      <ViewAppointmentDialog
+        appointment={selectedAppointment}
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+      />
+      
+      <EditAppointmentDialog
+        appointment={selectedAppointment}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={handleEditSuccess}
       />
     </AdminLayout>
   );

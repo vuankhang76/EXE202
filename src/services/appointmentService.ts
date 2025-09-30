@@ -18,8 +18,11 @@ class AppointmentService {
     return response.data;
   }
 
-  async getAppointmentById(id: number): Promise<ApiResponse<AppointmentDto>> {
-    const response = await apiUtils.get<ApiResponse<AppointmentDto>>(`${this.baseUrl}/${id}`);
+  async getAppointmentById(id: number, skipGlobalLoading = false): Promise<ApiResponse<AppointmentDto>> {
+    const response = await apiUtils.get<ApiResponse<AppointmentDto>>(
+      `${this.baseUrl}/${id}`,
+      undefined,
+      { skipGlobalLoading });
     return response.data;
   }
 
@@ -74,20 +77,22 @@ class AppointmentService {
   async checkDoctorAvailability(
     doctorId: number,
     startTime: string,
-    endTime: string
+    endTime: string,
+    skipGlobalLoading = false
   ): Promise<ApiResponse<boolean>> {
     const params = { startTime, endTime };
-    const response = await apiUtils.get<ApiResponse<boolean>>(`${this.baseUrl}/doctor/${doctorId}/availability`, params);
+    const response = await apiUtils.get<ApiResponse<boolean>>(`${this.baseUrl}/doctor/${doctorId}/availability`, params, { skipGlobalLoading });
     return response.data;
   }
 
   async getAvailableTimeSlots(
     doctorId: number,
     date: string,
-    durationMinutes: number = 30
+    durationMinutes: number = 30,
+    skipGlobalLoading = false
   ): Promise<ApiResponse<string[]>> {
     const params = { date, durationMinutes };
-    const response = await apiUtils.get<ApiResponse<string[]>>(`${this.baseUrl}/doctor/${doctorId}/timeslots`, params);
+    const response = await apiUtils.get<ApiResponse<string[]>>(`${this.baseUrl}/doctor/${doctorId}/timeslots`, params, { skipGlobalLoading });
     return response.data;
   }
 
@@ -178,6 +183,16 @@ class AppointmentService {
     return response.data;
   }
 
+  async getAvailableTimeSlotsAsDateTime(
+    doctorId: number,
+    date: string,
+    durationMinutes: number = 30
+  ): Promise<ApiResponse<Date[]>> {
+    const params = { date, durationMinutes };
+    const response = await apiUtils.get<ApiResponse<Date[]>>(`${this.baseUrl}/doctor/${doctorId}/timeslots`, params);
+    return response.data;
+  }
+
   async getAppointmentStats(tenantId?: number): Promise<{
     total: number;
     pending: number;
@@ -196,7 +211,7 @@ class AppointmentService {
       const appointments = result.data;
       return {
         total: appointments.length,
-        pending: appointments.filter(a => a.status === 'Pending').length,
+        pending: appointments.filter(a => a.status === 'Scheduled').length,
         confirmed: appointments.filter(a => a.status === 'Confirmed').length,
         inProgress: appointments.filter(a => a.status === 'InProgress').length,
         completed: appointments.filter(a => a.status === 'Completed').length,

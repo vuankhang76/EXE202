@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/Pagination";
-import { Calendar, Search, CalendarDays, Archive, Eye, Edit, Check, Play, Square, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
+import { Calendar, Search, CalendarDays, Archive, Eye, Edit } from "lucide-react";
 import type { AppointmentDto } from "@/types/appointment";
-import { getStatusColor, getStatusLabel, getTypeLabel } from "@/types/appointment";
+import { getStatusColor, getStatusLabel, getTypeLabel, AppointmentStatus } from "@/types/appointment";
 
 interface AppointmentTableProps {
   viewMode: 'today' | 'all';
@@ -19,10 +20,7 @@ interface AppointmentTableProps {
   totalPages?: number;
   totalCount?: number;
   onViewModeChange: (mode: 'today' | 'all') => void;
-  onConfirm: (id: number) => Promise<void>;
-  onStart: (id: number) => Promise<void>;
-  onComplete: (id: number) => Promise<void>;
-  onCancel: (id: number) => Promise<void>;
+  onStatusChange: (id: number, newStatus: string) => Promise<void>;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onPageChange: (page: number) => void;
@@ -36,12 +34,8 @@ export default function AppointmentTable({
   currentLoading = false,
   currentPage = 1,
   totalPages = 0,
-  totalCount = 0,
   onViewModeChange,
-  onConfirm,
-  onStart,
-  onComplete,
-  onCancel,
+  onStatusChange,
   onView,
   onEdit,
   onPageChange
@@ -129,69 +123,103 @@ export default function AppointmentTable({
     }
   };
 
-  const renderActionButtons = (appointment: AppointmentDto) => {
+  const renderStatusSelect = (appointment: AppointmentDto) => {
     const { status, appointmentId } = appointment;
     
+    const getAvailableStatuses = (currentStatus: string) => {
+      switch (currentStatus) {
+        case AppointmentStatus.SCHEDULED:
+          return [
+            { value: AppointmentStatus.SCHEDULED, label: getStatusLabel(AppointmentStatus.SCHEDULED) },
+            { value: AppointmentStatus.CONFIRMED, label: getStatusLabel(AppointmentStatus.CONFIRMED) },
+            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED) }
+          ];
+        case AppointmentStatus.CONFIRMED:
+        case AppointmentStatus.BOOKED:
+          return [
+            { value: currentStatus, label: getStatusLabel(currentStatus) },
+            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS) },
+            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED) }
+          ];
+        case AppointmentStatus.IN_PROGRESS:
+          return [
+            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS) },
+            { value: AppointmentStatus.COMPLETED, label: getStatusLabel(AppointmentStatus.COMPLETED) }
+          ];
+        case AppointmentStatus.COMPLETED:
+        case AppointmentStatus.CANCELLED:
+        case AppointmentStatus.NO_SHOW:
+        case AppointmentStatus.RESCHEDULED:
+          return [
+            { value: currentStatus, label: getStatusLabel(currentStatus) }
+          ];
+        default:
+          return [
+            { value: currentStatus, label: getStatusLabel(currentStatus) }
+          ];
+      }
+    };
+
+    const availableStatuses = getAvailableStatuses(status);
+    const isDisabled = availableStatuses.length === 1;
+
     return (
-      <div className="flex gap-1">
+      <Select
+        value={status}
+        onValueChange={(newStatus) => onStatusChange(appointmentId, newStatus)}
+        disabled={isDisabled}
+      >
+        <SelectTrigger className={`w-[140px] ${getStatusColor(status)}`}>
+          <SelectValue>
+            {getStatusLabel(status)}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {availableStatuses.map((statusOption) => (
+            <SelectItem 
+              key={statusOption.value} 
+              value={statusOption.value}
+              className="cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(statusOption.value)} variant="outline">
+                  {statusOption.label}
+                </Badge>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const renderActionButtons = (appointment: AppointmentDto) => {
+    const { appointmentId, status } = appointment;
+    
+    // Disable edit cho lịch hẹn đã hoàn thành hoặc đã hủy
+    const isEditDisabled = status === AppointmentStatus.COMPLETED || 
+                          status === AppointmentStatus.CANCELLED ||
+                          status === AppointmentStatus.NO_SHOW;
+    
+    return (
+      <div className="flex gap-1 justify-end">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onView(appointmentId)}
           className="h-8 w-8 p-0"
+          title="Xem chi tiết"
         >
           <Eye className="h-4 w-4" />
         </Button>
-        
-        {status === 'Pending' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onConfirm(appointmentId)}
-            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-          >
-            <Check className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {(status === 'Confirmed' || status === 'Booked') && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onStart(appointmentId)}
-            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-          >
-            <Play className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {status === 'InProgress' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onComplete(appointmentId)}
-            className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
-          >
-            <Square className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {(status === 'Pending' || status === 'Confirmed' || status === 'Booked') && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCancel(appointmentId)}
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
         
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onEdit(appointmentId)}
           className="h-8 w-8 p-0"
+          title={isEditDisabled ? "Không thể chỉnh sửa lịch hẹn đã hoàn thành hoặc đã hủy" : "Chỉnh sửa"}
+          disabled={isEditDisabled}
         >
           <Edit className="h-4 w-4" />
         </Button>
@@ -358,8 +386,8 @@ export default function AppointmentTable({
                     <TableHead className="min-w-[100px]">Ngày</TableHead>
                     <TableHead className="min-w-[120px]">Thời gian</TableHead>
                     <TableHead className="min-w-[80px]">Loại</TableHead>
-                    <TableHead className="min-w-[100px]">Trạng thái</TableHead>
-                    <TableHead className="min-w-[120px]">Thao tác</TableHead>
+                    <TableHead className="min-w-[150px]">Trạng thái</TableHead>
+                    <TableHead className="min-w-[100px] text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -385,11 +413,9 @@ export default function AppointmentTable({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatusColor(appointment.status)}>
-                          {getStatusLabel(appointment.status)}
-                        </Badge>
+                        {renderStatusSelect(appointment)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
                         {renderActionButtons(appointment)}
                       </TableCell>
                     </TableRow>

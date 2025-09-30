@@ -5,16 +5,15 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Plus, Clock, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
-import type { AppointmentFormData } from '@/types/appointment';
+import type { AppointmentDto, AppointmentFormData } from '@/types/appointment';
 import { AppointmentType } from '@/types/appointment';
+import { Clock, AlertCircle } from 'lucide-react';
 import { useApiCall } from '@/hooks/useApiCall';
 import { usePatientSearch } from '@/hooks/usePatientSearch';
 import { useDoctorSearch } from '@/hooks/useDoctorSearch';
@@ -24,12 +23,19 @@ import { SimpleDatePicker } from '@/components/ui/SimpleDatePicker';
 import { Combobox } from '@/components/ui/Combobox';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface CreateAppointmentDialogProps {
+interface EditAppointmentDialogProps {
+  appointment: AppointmentDto | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }
 
-export default function CreateAppointmentDialog({ onSuccess }: CreateAppointmentDialogProps) {
-  const [open, setOpen] = useState(false);
+export default function EditAppointmentDialog({
+  appointment,
+  open,
+  onOpenChange,
+  onSuccess
+}: EditAppointmentDialogProps) {
   const { currentUser } = useAuth();
   const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : 0;
   
@@ -44,7 +50,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     notes: ''
   });
 
-  // Search hooks
   const patientSearch = usePatientSearch(tenantId);
   const doctorSearch = useDoctorSearch(tenantId);
 
@@ -54,106 +59,44 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityMessage, setAvailabilityMessage] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
-  const createAppointmentWrapper = async (formData: AppointmentFormData) => {
-    try {
-      const createDto = appointmentService.convertFormDataToCreateDto(formData);      
-      const result = await appointmentService.createAppointment(createDto);
-      return result;
-    } catch (error: any) {
-      console.error('Error in wrapper:', error);
-      throw error;
-    }
-  };
+  useEffect(() => {
+    if (appointment && open) {
+      const startDate = new Date(appointment.startAt);
+      const endDate = new Date(appointment.endAt);
+      
+      const appointmentDate = startDate.toISOString().split('T')[0];
+      const startTime = startDate.toTimeString().slice(0, 5);
+      const endTime = endDate.toTimeString().slice(0, 5);
 
-  const { execute: createAppointment, isLoading } = useApiCall(
-    createAppointmentWrapper,
-    {
-      successMessage: 'Tạo lịch hẹn thành công!',
-      showSuccessToast: true,
-      showErrorToast: false,
-      onSuccess: () => {
-        setOpen(false);
-        resetForm();
-        onSuccess?.();
-      },
-    }
-  );
+      setFormData({
+        patientId: appointment.patientId,
+        doctorId: appointment.doctorId,
+        tenantId: appointment.tenantId,
+        appointmentDate,
+        startTime,
+        endTime,
+        type: appointment.type,
+        notes: appointment.notes || ''
+      });
 
-  const resetForm = () => {
-    setFormData({
-      patientId: 0,
-      doctorId: 0,
-      tenantId: tenantId,
-      appointmentDate: '',
-      startTime: '',
-      endTime: '',
-      type: AppointmentType.CLINIC,
-      notes: ''
-    });
-    // Reset search states
-    patientSearch.setSearchTerm('');
-    patientSearch.setSelectedPatientId('');
-    doctorSearch.setSearchTerm('');
-    doctorSearch.setSelectedDoctorId('');
-    // Reset availability states
-    setAvailableTimeSlots([]);
-    setAvailabilityMessage(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate patient ID
-    if (!patientSearch.selectedPatientId || patientSearch.selectedPatientId === 'search') {
-      toast.error('Vui lòng chọn bệnh nhân');
-      return;
+      // Set selected IDs and search terms
+      if (appointment.patientId) {
+        patientSearch.setSelectedPatientId(appointment.patientId.toString());
+        patientSearch.setSearchTerm(appointment.patientName || '');
+      }
+      
+      if (appointment.doctorId) {
+        doctorSearch.setSelectedDoctorId(appointment.doctorId.toString());
+        doctorSearch.setSearchTerm(appointment.doctorName || '');
+      }
     }
-    
-    // Validate doctor ID
-    if (!doctorSearch.selectedDoctorId || doctorSearch.selectedDoctorId === 'search') {
-      toast.error('Vui lòng chọn bác sĩ');
-      return;
-    }
-    
-    const selectedPatientId = parseInt(patientSearch.selectedPatientId);
-    const selectedDoctorId = parseInt(doctorSearch.selectedDoctorId);
-    
-    // Validate parsed IDs
-    if (isNaN(selectedPatientId) || selectedPatientId <= 0) {
-      toast.error('ID bệnh nhân không hợp lệ');
-      return;
-    }
-    
-    if (isNaN(selectedDoctorId) || selectedDoctorId <= 0) {
-      toast.error('ID bác sĩ không hợp lệ');
-      return;
-    }
-    
-    if (!formData.appointmentDate || !formData.startTime || !formData.endTime) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
-      return;
-    }
-
-    if (formData.startTime >= formData.endTime) {
-      toast.error('Giờ kết thúc phải sau giờ bắt đầu');
-      return;
-    }
-
-    // Update formData với selected IDs
-    const submitData = {
-      ...formData,
-      patientId: selectedPatientId,
-      doctorId: selectedDoctorId
-    };
-
-    await createAppointment(submitData);
-  };
+  }, [appointment, open]);
 
   // Load available time slots when doctor and date are selected
   useEffect(() => {
     const loadAvailableTimeSlots = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
-      if (!doctorId || isNaN(doctorId) || !formData.appointmentDate) {
+      if (!doctorId || isNaN(doctorId) || !formData.appointmentDate || !open) {
         setAvailableTimeSlots([]);
         setAvailabilityMessage(null);
         return;
@@ -162,9 +105,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       try {
         setLoadingTimeSlots(true);
         setAvailabilityMessage(null);
-        // Reset form times when changing date
-        setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
-        
         const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 30, true);
         
         if (result.success && result.data && result.data.length > 0) {
@@ -193,17 +133,25 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     };
 
     loadAvailableTimeSlots();
-  }, [doctorSearch.selectedDoctorId, formData.appointmentDate]);
+  }, [doctorSearch.selectedDoctorId, formData.appointmentDate, open]);
 
   // Check availability when both start and end times are selected
   useEffect(() => {
     const checkAvailability = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
-      if (!doctorId || !formData.appointmentDate || !formData.startTime || !formData.endTime) {
-        // Clear error when incomplete
-        if (availabilityMessage?.type === 'error') {
-          setAvailabilityMessage(null);
-        }
+      if (!doctorId || !formData.appointmentDate || !formData.startTime || !formData.endTime || !open) {
+        return;
+      }
+
+      // Skip check if times haven't changed from original
+      if (appointment && 
+          formData.appointmentDate === new Date(appointment.startAt).toISOString().split('T')[0] &&
+          formData.startTime === new Date(appointment.startAt).toTimeString().slice(0, 5) &&
+          formData.endTime === new Date(appointment.endAt).toTimeString().slice(0, 5)) {
+        setAvailabilityMessage({
+          type: 'info',
+          message: 'Giữ nguyên thời gian ban đầu'
+        });
         return;
       }
 
@@ -232,7 +180,58 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
 
     const timeoutId = setTimeout(checkAvailability, 500);
     return () => clearTimeout(timeoutId);
-  }, [doctorSearch.selectedDoctorId, formData.appointmentDate, formData.startTime, formData.endTime, availabilityMessage?.type]);
+  }, [doctorSearch.selectedDoctorId, formData.appointmentDate, formData.startTime, formData.endTime, appointment, open]);
+
+  const updateAppointmentWrapper = async (formData: AppointmentFormData) => {
+    if (!appointment) throw new Error('No appointment to update');
+    
+    try {
+      const startAt = appointmentService.buildStartAtISO(formData.appointmentDate, formData.startTime);
+      const endAt = appointmentService.buildEndAtISOFromTime(formData.appointmentDate, formData.endTime);
+      const updateDto = {
+        startAt,
+        endAt,
+        type: formData.type,
+        status: appointment.status
+      };
+      
+      const result = await appointmentService.updateAppointment(appointment.appointmentId, updateDto);
+      return result;
+    } catch (error: any) {
+      console.error('Error in wrapper:', error);
+      throw error;
+    }
+  };
+
+  const { execute: updateAppointment, isLoading } = useApiCall(
+    updateAppointmentWrapper,
+    {
+      successMessage: 'Cập nhật lịch hẹn thành công!',
+      showSuccessToast: true,
+      showErrorToast: false,
+      onSuccess: () => {
+        onOpenChange(false);
+        onSuccess?.();
+      },
+    }
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.appointmentDate || !formData.startTime || !formData.endTime) {
+      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    if (formData.startTime >= formData.endTime) {
+      toast.error('Giờ kết thúc phải sau giờ bắt đầu');
+      return;
+    }
+
+    await updateAppointment(formData);
+  };
 
   const handleInputChange = <K extends keyof AppointmentFormData>(field: K, value: AppointmentFormData[K]) => {
     setFormData(prev => {
@@ -261,31 +260,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         const [day, month, year] = parts;
         const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         handleInputChange('appointmentDate', isoDate);
-        
-        const selectedDate = new Date(isoDate);
-        const now = new Date();
-        const isToday = selectedDate.getDate() === now.getDate() &&
-          selectedDate.getMonth() === now.getMonth() &&
-          selectedDate.getFullYear() === now.getFullYear();
-        
-        if (isToday) {
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          
-          if (formData.startTime) {
-            const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-            if (startHour < currentHour || (startHour === currentHour && startMinute <= currentMinute)) {
-              handleInputChange('startTime', '');
-            }
-          }
-          
-          if (formData.endTime) {
-            const [endHour, endMinute] = formData.endTime.split(':').map(Number);
-            if (endHour < currentHour || (endHour === currentHour && endMinute <= currentMinute)) {
-              handleInputChange('endTime', '');
-            }
-          }
-        }
       }
     } else {
       handleInputChange('appointmentDate', '');
@@ -307,16 +281,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
 
   const generateTimeOptions = (isEndTime: boolean = false) => {
     const options = [];
-    const now = new Date();
-    const selectedDate = formData.appointmentDate ? new Date(formData.appointmentDate) : null;
-    const isToday = selectedDate && 
-      selectedDate.getDate() === now.getDate() &&
-      selectedDate.getMonth() === now.getMonth() &&
-      selectedDate.getFullYear() === now.getFullYear();
     
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
     let minHour = 7;
     let minMinute = 0;
     
@@ -335,19 +300,12 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       availableTimeSlots.map(slot => {
         const date = new Date(slot);
         // Backend trả về local time (không có 'Z'), nên dùng getHours() thay vì getUTCHours()
-        const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-        return timeStr;
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
       })
     );
 
     for (let hour = 7; hour <= 20; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        if (isToday) {
-          if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
-            continue;
-          }
-        }
-
         if (isEndTime) {
           if (hour < minHour || (hour === minHour && minute < minMinute)) {
             continue;
@@ -360,24 +318,28 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           minute: '2-digit'
         });
         
-        // Thêm indicator nếu là khung giờ trống
         let isAvailable = false;
         
         if (!isEndTime) {
           isAvailable = availableTimeSlots.length > 0 && availableTimes.has(timeStr);
         } else if (formData.startTime) {
+          // Giờ kết thúc: Check xem giờ bắt đầu có trong available slots không
           const startTimeAvailable = availableTimes.has(formData.startTime);
           
           if (startTimeAvailable) {
+            // Tính khoảng thời gian từ start đến end (theo phút)
             const [startHour, startMin] = formData.startTime.split(':').map(Number);
             const startMinutes = startHour * 60 + startMin;
             const endMinutes = hour * 60 + minute;
             const durationMinutes = endMinutes - startMinutes;
             
-            if (durationMinutes > 0 && durationMinutes <= 180) {
+            // Check xem có đủ slots liên tục không (mỗi slot 30 phút)
+            // Nếu duration = 30, cần 1 slot. Duration = 60, cần 2 slots liên tục
+            if (durationMinutes > 0 && durationMinutes <= 180) { // Tối đa 3 giờ
               const slotsNeeded = Math.ceil(durationMinutes / 30);
               let allSlotsAvailable = true;
               
+              // Check từng slot 30 phút từ startTime đến endTime
               for (let i = 0; i < slotsNeeded; i++) {
                 const slotMinutes = startMinutes + (i * 30);
                 const slotHour = Math.floor(slotMinutes / 60);
@@ -404,22 +366,17 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
   };
 
   const timeOptions = useMemo(() => generateTimeOptions(), [formData.appointmentDate, availableTimeSlots]);
-  
   const endTimeOptions = useMemo(() => generateTimeOptions(true), [formData.appointmentDate, formData.startTime, availableTimeSlots]);
 
+  if (!appointment) return null;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Tạo lịch hẹn mới
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Tạo lịch hẹn mới</DialogTitle>
+          <DialogTitle>Chỉnh sửa lịch hẹn</DialogTitle>
           <DialogDescription>
-            Điền thông tin chi tiết để tạo lịch hẹn cho bệnh nhân
+            Cập nhật thông tin lịch hẹn #{appointment.appointmentId}
           </DialogDescription>
         </DialogHeader>
         
@@ -427,7 +384,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Bệnh nhân *</Label>
-                            <Combobox
+              <Combobox
                 selectedValue={patientSearch.selectedPatientId}
                 onSelectedValueChange={(value: string) => {
                   patientSearch.setSelectedPatientId(value);
@@ -440,6 +397,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 placeholder="Chọn bệnh nhân..."
                 searchPlaceholder="Tìm kiếm bệnh nhân..."
                 emptyMessage="Không tìm thấy bệnh nhân"
+                disabled
               />
             </div>
             
@@ -458,21 +416,22 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 placeholder="Chọn bác sĩ..."
                 searchPlaceholder="Tìm kiếm bác sĩ..."
                 emptyMessage="Không tìm thấy bác sĩ"
+                disabled
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-            <Label htmlFor="appointmentDate">Ngày hẹn *</Label>
-            <SimpleDatePicker
-              value={getDisplayDate()}
-              onChange={handleDateChange}
-              placeholder="Chọn ngày"
-              minDate={new Date()}
-              className="w-full"
-              disabled={!doctorSearch.selectedDoctorId || doctorSearch.selectedDoctorId === 'search'}
-            />
+              <Label htmlFor="appointmentDate">Ngày hẹn *</Label>
+              <SimpleDatePicker
+                value={getDisplayDate()}
+                onChange={handleDateChange}
+                placeholder="Chọn ngày"
+                minDate={new Date()}
+                className="w-full"
+                disabled={!doctorSearch.selectedDoctorId || doctorSearch.selectedDoctorId === 'search'}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="type">Loại hẹn</Label>
@@ -514,7 +473,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
               </AlertDescription>
             </Alert>
           )}
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="startTime">Giờ bắt đầu *</Label>
@@ -524,7 +482,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 disabled={!formData.appointmentDate || !doctorSearch.selectedDoctorId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn giờ bắt đầu" />
+                  <SelectValue placeholder="Giờ bắt đầu" />
                 </SelectTrigger>
                 <SelectContent>
                   {timeOptions.map((option) => (
@@ -543,7 +501,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 disabled={!formData.appointmentDate || !formData.startTime || !doctorSearch.selectedDoctorId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Chọn giờ kết thúc" />
+                  <SelectValue placeholder="Giờ kết thúc" />
                 </SelectTrigger>
                 <SelectContent>
                   {endTimeOptions.map((option) => (
@@ -557,7 +515,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Ghi chú <span className="text-md text-muted-foreground">(Lưu ý: ghi địa chỉ nhà với loại hẹn khám tại nhà)</span></Label>
+            <Label htmlFor="notes">Ghi chú</Label>
             <Textarea
               id="notes"
               value={formData.notes || ''}
@@ -571,7 +529,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
             >
               Hủy
             </Button>
@@ -579,7 +537,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
               type="submit" 
               disabled={isLoading || checkingAvailability || (availabilityMessage?.type === 'error')}
             >
-              {isLoading ? 'Đang tạo...' : 'Tạo lịch hẹn'}
+              {isLoading ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
           </div>
         </form>

@@ -2,10 +2,20 @@ export interface AppointmentDto {
   appointmentId: number;
   patientId: number;
   patientName?: string;
+  patientPhone?: string;
+  patientGender?: string;
+  patientDateOfBirth?: string;
+  patientAddress?: string;
+  
   doctorId: number;
   doctorName?: string;
+  doctorSpecialty?: string;
+  doctorLicenseNumber?: string;
+  doctorPhone?: string;
+  
   tenantId: number;
   tenantName?: string;
+  
   startAt: string;
   endAt: string;
   type: string;
@@ -13,10 +23,7 @@ export interface AppointmentDto {
   channel?: string;
   address?: string;
   notes?: string;
-  appointmentDate?: string;
-  startTime?: string;
-  endTime?: string;
-  duration?: number;
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -44,10 +51,11 @@ export interface AppointmentFormData {
 }
 
 export interface AppointmentUpdateDto {
-  appointmentDate?: string;
-  startTime?: string;
-  endTime?: string;
+  startAt?: string;
+  endAt?: string;
   type?: string;
+  status?: string;
+  address?: string;
   notes?: string;
 }
 
@@ -78,30 +86,30 @@ export interface CompleteAppointmentDto {
 }
 
 export const AppointmentStatus = {
-  PENDING: 'Pending',
+  SCHEDULED: 'Scheduled',
   CONFIRMED: 'Confirmed',
-  BOOKED: 'Booked', // New status from API
+  BOOKED: 'Booked', // Legacy status, phải giữ để tương thích
   IN_PROGRESS: 'InProgress',
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
-  NO_SHOW: 'NoShow'
+  NO_SHOW: 'NoShow',
+  RESCHEDULED: 'Rescheduled'
 } as const;
 
 export type AppointmentStatusType = typeof AppointmentStatus[keyof typeof AppointmentStatus];
 
 export const AppointmentType = {
-  CONSULTATION: 'Consultation',
-  FOLLOW_UP: 'FollowUp',
-  EMERGENCY: 'Emergency',
-  ROUTINE_CHECKUP: 'RoutineCheckup',
-  SPECIALIST: 'Specialist'
+  HOME: 'Home',
+  CLINIC: 'Clinic',
+  ONLINE: 'Online',
+  PHONE: 'Phone'
 } as const;
 
 export type AppointmentTypeType = typeof AppointmentType[keyof typeof AppointmentType];
 
 export const getStatusColor = (status: string): string => {
   switch (status) {
-    case AppointmentStatus.PENDING:
+    case AppointmentStatus.SCHEDULED:
       return 'bg-yellow-100 text-yellow-800';
     case AppointmentStatus.CONFIRMED:
     case AppointmentStatus.BOOKED:
@@ -114,6 +122,8 @@ export const getStatusColor = (status: string): string => {
       return 'bg-red-100 text-red-800';
     case AppointmentStatus.NO_SHOW:
       return 'bg-orange-100 text-orange-800';
+    case AppointmentStatus.RESCHEDULED:
+      return 'bg-purple-100 text-purple-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -121,8 +131,8 @@ export const getStatusColor = (status: string): string => {
 
 export const getStatusLabel = (status: string): string => {
   switch (status) {
-    case AppointmentStatus.PENDING:
-      return 'Chờ xác nhận';
+    case AppointmentStatus.SCHEDULED:
+      return 'Đã đặt lịch';
     case AppointmentStatus.CONFIRMED:
       return 'Đã xác nhận';
     case AppointmentStatus.BOOKED:
@@ -135,6 +145,8 @@ export const getStatusLabel = (status: string): string => {
       return 'Đã hủy';
     case AppointmentStatus.NO_SHOW:
       return 'Không đến';
+    case AppointmentStatus.RESCHEDULED:
+      return 'Đã hoãn';
     default:
       return status;
   }
@@ -142,16 +154,14 @@ export const getStatusLabel = (status: string): string => {
 
 export const getTypeLabel = (type: string): string => {
   switch (type) {
-    case AppointmentType.CONSULTATION:
-      return 'Tư vấn';
-    case AppointmentType.FOLLOW_UP:
-      return 'Tái khám';
-    case AppointmentType.EMERGENCY:
-      return 'Cấp cứu';
-    case AppointmentType.ROUTINE_CHECKUP:
-      return 'Khám định kỳ';
-    case AppointmentType.SPECIALIST:
-      return 'Chuyên khoa';
+    case AppointmentType.HOME:
+      return 'Khám tại nhà';
+    case AppointmentType.CLINIC:
+      return 'Khám tại phòng khám';
+    case AppointmentType.ONLINE:
+      return 'Khám online';
+    case AppointmentType.PHONE:
+      return 'Tư vấn điện thoại';
     default:
       return type;
   }

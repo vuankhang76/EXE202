@@ -1,6 +1,13 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { type ApiResponse} from '@/models/ApiResponse';
 import { toast } from 'sonner';
+
+// Extend AxiosRequestConfig để thêm skipGlobalLoading flag
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipGlobalLoading?: boolean;
+  }
+}
 
 let activeRequestsCount = 0;
 let loadingChangeCallback: ((isLoading: boolean) => void) | null = null;
@@ -26,9 +33,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(
-  (config) => {
-    activeRequestsCount++;
-    updateLoadingState();
+  (config: InternalAxiosRequestConfig) => {
+    // Chỉ tăng counter nếu không skip global loading
+    if (!config.skipGlobalLoading) {
+      activeRequestsCount++;
+      updateLoadingState();
+    }
     
     const token = localStorage.getItem("auth_token");
     if (token) {
@@ -45,14 +55,20 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   <T>(response: AxiosResponse<ApiResponse<T>>): AxiosResponse<T> => {
-    activeRequestsCount = Math.max(0, activeRequestsCount - 1);
-    updateLoadingState();
+    // Chỉ giảm counter nếu request không skip global loading
+    if (!response.config.skipGlobalLoading) {
+      activeRequestsCount = Math.max(0, activeRequestsCount - 1);
+      updateLoadingState();
+    }
     
     return response as AxiosResponse<T>;
   },
   (error) => {
-    activeRequestsCount = Math.max(0, activeRequestsCount - 1);
-    updateLoadingState();
+    // Chỉ giảm counter nếu request không skip global loading
+    if (!error.config?.skipGlobalLoading) {
+      activeRequestsCount = Math.max(0, activeRequestsCount - 1);
+      updateLoadingState();
+    }
     
     if (error.response) {
       switch (error.response.status) {
