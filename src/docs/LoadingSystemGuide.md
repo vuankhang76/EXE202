@@ -114,6 +114,34 @@ const response = await apiUtils.get('/api/users');
 const result = await apiUtils.post('/api/users', userData);
 ```
 
+#### Skip Global Loading
+
+Đối với các API calls không cần hiển thị global loading (ví dụ: search/autocomplete), sử dụng flag `skipGlobalLoading`:
+
+```tsx
+// Search operations không làm chớp màn hình
+const response = await apiUtils.get(
+  '/api/search',
+  undefined,
+  { skipGlobalLoading: true }
+);
+
+// Hoặc với POST/PUT
+const result = await apiUtils.post(
+  '/api/search',
+  searchData,
+  { skipGlobalLoading: true }
+);
+```
+
+**Khi nào nên skip global loading:**
+- ✅ Search/autocomplete operations
+- ✅ Real-time updates (polling, websocket fallbacks)
+- ✅ Background sync operations
+- ✅ Analytics/tracking calls
+- ❌ KHÔNG skip cho: Create, Update, Delete operations
+- ❌ KHÔNG skip cho: Login, authentication operations
+
 ### 5. Loading Keys
 
 Sử dụng predefined loading keys:
@@ -252,3 +280,8 @@ function ConditionalLoading({ showGlobal = true }) {
 1. Sử dụng specific loading keys thay vì global
 2. Tránh re-render không cần thiết
 3. Debounce rapid API calls
+
+### Global Loading chớp màn hình khi tìm kiếm
+1. Sử dụng `skipGlobalLoading: true` cho search API calls
+2. Ví dụ đã được implement trong `tenantService.searchPatientsInTenant()` và `userService.searchDoctorsInTenant()`
+3. Component sử dụng: `CreateAppointmentDialog` với `usePatientSearch` và `useDoctorSearch` hooks

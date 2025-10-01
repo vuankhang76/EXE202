@@ -47,3 +47,24 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
 }
+
+// Password reset DTOs
+export interface ForgotPasswordRequestDto {
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface ResetPasswordDto {
+  email?: string;
+  phoneNumber?: string;
+  otpCode: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthChangePasswordDto {
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

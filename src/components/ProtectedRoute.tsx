@@ -1,32 +1,20 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { PageLoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string; // Optional role-based access control
+  requiredRole?: string;
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { currentUser, loading, token } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-200 to-red-100">
-        <PageLoadingSpinner text="Đang xác thực..." />
-      </div>
-    );
-  }
-
-  // Check if user is authenticated (has valid token and user data)
+  const { currentUser, token } = useAuth();
   if (!currentUser || !token) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check role-based access if required
   if (requiredRole && currentUser.role !== requiredRole) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-200 to-red-100">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="text-6xl mb-4">🚫</div>
           <h2 className="text-2xl font-bold text-foreground mb-2">Không có quyền truy cập</h2>

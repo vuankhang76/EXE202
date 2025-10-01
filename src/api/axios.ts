@@ -1,6 +1,13 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { type ApiResponse} from '@/models/ApiResponse';
 import { toast } from 'sonner';
+
+// Extend AxiosRequestConfig để thêm skipGlobalLoading flag
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipGlobalLoading?: boolean;
+  }
+}
 
 let activeRequestsCount = 0;
 let loadingChangeCallback: ((isLoading: boolean) => void) | null = null;
@@ -26,9 +33,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(
-  (config) => {
-    activeRequestsCount++;
-    updateLoadingState();
+  (config: InternalAxiosRequestConfig) => {
+    // Chỉ tăng counter nếu không skip global loading
+    if (!config.skipGlobalLoading) {
+      activeRequestsCount++;
+      updateLoadingState();
+    }
     
     const token = localStorage.getItem("auth_token");
     if (token) {
@@ -37,7 +47,6 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    // Decrement on error
     activeRequestsCount = Math.max(0, activeRequestsCount - 1);
     updateLoadingState();
     return Promise.reject(error);
@@ -46,14 +55,20 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   <T>(response: AxiosResponse<ApiResponse<T>>): AxiosResponse<T> => {
-    activeRequestsCount = Math.max(0, activeRequestsCount - 1);
-    updateLoadingState();
+    // Chỉ giảm counter nếu request không skip global loading
+    if (!response.config.skipGlobalLoading) {
+      activeRequestsCount = Math.max(0, activeRequestsCount - 1);
+      updateLoadingState();
+    }
     
     return response as AxiosResponse<T>;
   },
   (error) => {
-    activeRequestsCount = Math.max(0, activeRequestsCount - 1);
-    updateLoadingState();
+    // Chỉ giảm counter nếu request không skip global loading
+    if (!error.config?.skipGlobalLoading) {
+      activeRequestsCount = Math.max(0, activeRequestsCount - 1);
+      updateLoadingState();
+    }
     
     if (error.response) {
       switch (error.response.status) {
@@ -104,7 +119,7 @@ export const apiUtils = {
    * @param data - Request body
    * @param config - Additional axios config
    */
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise< AxiosResponse<T>> {
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     const response = await api.post(url, data, config);
     return response as AxiosResponse<T>;
   },
@@ -115,7 +130,7 @@ export const apiUtils = {
    * @param data - Request body
    * @param config - Additional axios config
    */
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise< AxiosResponse<T>>  {
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>  {
     const response = await api.put(url, data, config);
     return response  as AxiosResponse<T>
   },
@@ -125,7 +140,7 @@ export const apiUtils = {
    * @param url - API endpoint
    * @param config - Additional axios config
    */
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise< AxiosResponse<T>>  {
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>  {
     const response = await api.delete(url, config);
     return response as AxiosResponse<T>
   },
