@@ -100,7 +100,6 @@ class TenantService {
     return response.data;
   }
 
-  // Search patients in tenant (for autocomplete)
   async searchPatientsInTenant(
     tenantId: number,
     searchTerm: string,

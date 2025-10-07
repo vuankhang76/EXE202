@@ -12,11 +12,8 @@ const Patients = lazy(() => import('./pages/Patients'))
 const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/Orders'))
 const Consultations = lazy(() => import('./pages/Consultations'))
-const CMR = lazy(() => import('./pages/CMR'))
-const Promotions = lazy(() => import('./pages/Promotions'))
 const Accounts = lazy(() => import('./pages/Accounts'))
 const Reports = lazy(() => import('./pages/Reports'))
-const AdvancedSearch = lazy(() => import('./pages/AdvancedSearch'))
 
 function LoginRedirect() {
   const { currentUser } = useAuth();
@@ -70,16 +67,6 @@ function App() {
               <Consultations />
             </ProtectedRoute>
           } />
-          <Route path="/cmr" element={
-            <ProtectedRoute>
-              <CMR />
-            </ProtectedRoute>
-          } />
-          <Route path="/promotions" element={
-            <ProtectedRoute>
-              <Promotions />
-            </ProtectedRoute>
-          } />
           <Route path="/accounts" element={
             <ProtectedRoute>
               <Accounts />
@@ -88,11 +75,6 @@ function App() {
           <Route path="/reports" element={
             <ProtectedRoute>
               <Reports />
-            </ProtectedRoute>
-          } />
-          <Route path="/advanced-search" element={
-            <ProtectedRoute>
-              <AdvancedSearch />
             </ProtectedRoute>
           } />
         </Routes>

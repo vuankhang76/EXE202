@@ -64,7 +64,6 @@ api.interceptors.response.use(
     return response as AxiosResponse<T>;
   },
   (error) => {
-    // Chỉ giảm counter nếu request không skip global loading
     if (!error.config?.skipGlobalLoading) {
       activeRequestsCount = Math.max(0, activeRequestsCount - 1);
       updateLoadingState();

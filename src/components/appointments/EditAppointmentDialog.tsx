@@ -53,7 +53,6 @@ export default function EditAppointmentDialog({
   const patientSearch = usePatientSearch(tenantId);
   const doctorSearch = useDoctorSearch(tenantId);
 
-  // Doctor availability states
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -92,7 +91,6 @@ export default function EditAppointmentDialog({
     }
   }, [appointment, open]);
 
-  // Load available time slots when doctor and date are selected
   useEffect(() => {
     const loadAvailableTimeSlots = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
@@ -135,7 +133,6 @@ export default function EditAppointmentDialog({
     loadAvailableTimeSlots();
   }, [doctorSearch.selectedDoctorId, formData.appointmentDate, open]);
 
-  // Check availability when both start and end times are selected
   useEffect(() => {
     const checkAvailability = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
@@ -143,7 +140,6 @@ export default function EditAppointmentDialog({
         return;
       }
 
-      // Skip check if times haven't changed from original
       if (appointment && 
           formData.appointmentDate === new Date(appointment.startAt).toISOString().split('T')[0] &&
           formData.startTime === new Date(appointment.startAt).toTimeString().slice(0, 5) &&
@@ -163,7 +159,6 @@ export default function EditAppointmentDialog({
         const result = await appointmentService.checkDoctorAvailability(doctorId, startAt, endAt, true);
         
         if (result.success && result.data === true) {
-          // Don't show success message, just clear error
           setAvailabilityMessage(null);
         } else {
           setAvailabilityMessage({
@@ -295,11 +290,9 @@ export default function EditAppointmentDialog({
       }
     }
 
-    // Convert available time slots to time strings for comparison
     const availableTimes = new Set(
       availableTimeSlots.map(slot => {
         const date = new Date(slot);
-        // Backend trả về local time (không có 'Z'), nên dùng getHours() thay vì getUTCHours()
         return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
       })
     );
@@ -323,23 +316,18 @@ export default function EditAppointmentDialog({
         if (!isEndTime) {
           isAvailable = availableTimeSlots.length > 0 && availableTimes.has(timeStr);
         } else if (formData.startTime) {
-          // Giờ kết thúc: Check xem giờ bắt đầu có trong available slots không
           const startTimeAvailable = availableTimes.has(formData.startTime);
           
           if (startTimeAvailable) {
-            // Tính khoảng thời gian từ start đến end (theo phút)
             const [startHour, startMin] = formData.startTime.split(':').map(Number);
             const startMinutes = startHour * 60 + startMin;
             const endMinutes = hour * 60 + minute;
             const durationMinutes = endMinutes - startMinutes;
             
-            // Check xem có đủ slots liên tục không (mỗi slot 30 phút)
-            // Nếu duration = 30, cần 1 slot. Duration = 60, cần 2 slots liên tục
-            if (durationMinutes > 0 && durationMinutes <= 180) { // Tối đa 3 giờ
+            if (durationMinutes > 0 && durationMinutes <= 180) {
               const slotsNeeded = Math.ceil(durationMinutes / 30);
               let allSlotsAvailable = true;
               
-              // Check từng slot 30 phút từ startTime đến endTime
               for (let i = 0; i < slotsNeeded; i++) {
                 const slotMinutes = startMinutes + (i * 30);
                 const slotHour = Math.floor(slotMinutes / 60);
@@ -454,7 +442,7 @@ export default function EditAppointmentDialog({
 
           {/* Availability Status */}
           {(loadingTimeSlots || checkingAvailability || availabilityMessage?.type === 'error') && (
-            <Alert variant={availabilityMessage?.type === 'error' ? 'destructive' : 'default'} className="py-2">
+            <Alert variant={availabilityMessage?.type === 'error' ? 'destructive' : availabilityMessage?.type === 'success' ? 'success' : 'default'} className="py-2">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 {loadingTimeSlots ? (
@@ -468,6 +456,8 @@ export default function EditAppointmentDialog({
                     Đang kiểm tra lịch bác sĩ...
                   </span>
                 ) : availabilityMessage?.type === 'error' ? (
+                  availabilityMessage.message
+                ) : availabilityMessage?.type === 'success' ? (
                   availabilityMessage.message
                 ) : null}
               </AlertDescription>
