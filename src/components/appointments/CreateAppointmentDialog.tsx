@@ -44,11 +44,9 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     notes: ''
   });
 
-  // Search hooks
   const patientSearch = usePatientSearch(tenantId);
   const doctorSearch = useDoctorSearch(tenantId);
 
-  // Doctor availability states
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -90,12 +88,10 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       type: AppointmentType.CLINIC,
       notes: ''
     });
-    // Reset search states
     patientSearch.setSearchTerm('');
     patientSearch.setSelectedPatientId('');
     doctorSearch.setSearchTerm('');
     doctorSearch.setSelectedDoctorId('');
-    // Reset availability states
     setAvailableTimeSlots([]);
     setAvailabilityMessage(null);
   };
@@ -103,13 +99,11 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate patient ID
     if (!patientSearch.selectedPatientId || patientSearch.selectedPatientId === 'search') {
       toast.error('Vui lòng chọn bệnh nhân');
       return;
     }
     
-    // Validate doctor ID
     if (!doctorSearch.selectedDoctorId || doctorSearch.selectedDoctorId === 'search') {
       toast.error('Vui lòng chọn bác sĩ');
       return;
@@ -118,7 +112,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     const selectedPatientId = parseInt(patientSearch.selectedPatientId);
     const selectedDoctorId = parseInt(doctorSearch.selectedDoctorId);
     
-    // Validate parsed IDs
     if (isNaN(selectedPatientId) || selectedPatientId <= 0) {
       toast.error('ID bệnh nhân không hợp lệ');
       return;
@@ -139,7 +132,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       return;
     }
 
-    // Update formData với selected IDs
     const submitData = {
       ...formData,
       patientId: selectedPatientId,
@@ -149,7 +141,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     await createAppointment(submitData);
   };
 
-  // Load available time slots when doctor and date are selected
   useEffect(() => {
     const loadAvailableTimeSlots = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
@@ -162,12 +153,20 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       try {
         setLoadingTimeSlots(true);
         setAvailabilityMessage(null);
-        // Reset form times when changing date
         setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
         
         const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 30, true);
         
+        console.log('[DEBUG] Raw time slots from backend:', result.data);
+        
         if (result.success && result.data && result.data.length > 0) {
+          // Debug: Log parsed times
+          result.data.forEach(slot => {
+            const date = new Date(slot);
+            const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            console.log(`[DEBUG] Slot: ${slot} -> Parsed time: ${timeStr}`);
+          });
+          
           setAvailableTimeSlots(result.data);
           setAvailabilityMessage({
             type: 'success',
@@ -195,12 +194,10 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     loadAvailableTimeSlots();
   }, [doctorSearch.selectedDoctorId, formData.appointmentDate]);
 
-  // Check availability when both start and end times are selected
   useEffect(() => {
     const checkAvailability = async () => {
       const doctorId = parseInt(doctorSearch.selectedDoctorId);
       if (!doctorId || !formData.appointmentDate || !formData.startTime || !formData.endTime) {
-        // Clear error when incomplete
         if (availabilityMessage?.type === 'error') {
           setAvailabilityMessage(null);
         }
@@ -215,12 +212,14 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         const result = await appointmentService.checkDoctorAvailability(doctorId, startAt, endAt, true);
         
         if (result.success && result.data === true) {
-          // Don't show success message, just clear error
-          setAvailabilityMessage(null);
+          setAvailabilityMessage({
+            type: 'success',
+            message: 'Giờ hẹn đã được kiểm tra và khả dụng'
+          });
         } else {
           setAvailabilityMessage({
             type: 'error',
-            message: '✗ Bác sĩ đã có lịch trong khung giờ này. Vui lòng chọn giờ khác.'
+            message: 'Bác sĩ đã có lịch trong khung giờ này. Vui lòng chọn giờ khác.'
           });
         }
       } catch (error) {
@@ -317,7 +316,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
-    let minHour = 7;
+    let minHour = 8;
     let minMinute = 0;
     
     if (isEndTime && formData.startTime) {
@@ -330,18 +329,36 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       }
     }
 
-    // Convert available time slots to time strings for comparison
     const availableTimes = new Set(
       availableTimeSlots.map(slot => {
         const date = new Date(slot);
-        // Backend trả về local time (không có 'Z'), nên dùng getHours() thay vì getUTCHours()
-        const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        console.log(`[DEBUG] Processing slot: ${slot} -> ${timeStr} (hours=${hours}, minutes=${minutes})`);
         return timeStr;
       })
     );
+    
+    console.log('[DEBUG] Available times Set:', Array.from(availableTimes));
 
-    for (let hour = 7; hour <= 20; hour++) {
+    const workingHours = [
+      { start: 8 * 60, end: 12 * 60 },
+      { start: 13 * 60 + 30, end: 17 * 60 + 30 }
+    ];
+
+    for (let hour = 8; hour <= 17; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
+        const totalMinutes = hour * 60 + minute;
+        
+        const isInWorkingHours = workingHours.some(period => 
+          totalMinutes >= period.start && totalMinutes < period.end
+        );
+        
+        if (!isInWorkingHours) {
+          continue;
+        }
+
         if (isToday) {
           if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
             continue;
@@ -360,7 +377,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           minute: '2-digit'
         });
         
-        // Thêm indicator nếu là khung giờ trống
         let isAvailable = false;
         
         if (!isEndTime) {
@@ -493,9 +509,8 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
             </div>
           </div>
 
-          {/* Availability Status */}
-          {(loadingTimeSlots || checkingAvailability || availabilityMessage?.type === 'error') && (
-            <Alert variant={availabilityMessage?.type === 'error' ? 'destructive' : 'default'} className="py-2">
+          {(loadingTimeSlots || checkingAvailability || availabilityMessage?.type ) && (
+            <Alert variant={availabilityMessage?.type === 'error' ? 'destructive' : availabilityMessage?.type === 'success' ? 'success' : 'default'} className="py-2">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
                 {loadingTimeSlots ? (
@@ -509,6 +524,8 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                     Đang kiểm tra lịch bác sĩ...
                   </span>
                 ) : availabilityMessage?.type === 'error' ? (
+                  availabilityMessage.message
+                ) : availabilityMessage?.type === 'success' ? (
                   availabilityMessage.message
                 ) : null}
               </AlertDescription>

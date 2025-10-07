@@ -78,16 +78,6 @@ const data = {
       icon: Home,
     },
     {
-      title: "CMR y tế",
-      url: "/cmr",
-      icon: HeartHandshake,
-    },
-    {
-      title: "Ưu đãi",
-      url: "/promotions",
-      icon: TicketCheck,
-    },
-    {
       title: "Tài khoản",
       url: "/accounts",
       icon: UserCog,
@@ -97,14 +87,6 @@ const data = {
       url: "/reports",
       icon: UserCog,
     },
-  ],
-
-  navAdvanced: [
-    {
-      title: "Tìm kiếm nâng cao",
-      url: "/advanced-search",
-      icon: Search,
-    }
   ],
 }
 
@@ -117,7 +99,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain label="Dịch vụ chăm sóc" items={data.navMain} />
         <NavMain label="Quản trị hệ thống" items={data.navServices} />
-        <NavMain label="Tính năng hỗ trợ" items={data.navAdvanced} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
