@@ -15,43 +15,36 @@ import { apiUtils } from '@/api/axios';
 class UserService {
   private readonly baseUrl = '/users';
 
-  // Create user (staff registration)
   async createUser(data: UserCreateDto): Promise<ApiResponse<UserDto>> {
     const response = await apiUtils.post<ApiResponse<UserDto>>(this.baseUrl, data);
     return response.data;
   }
 
-  // Get user by ID
   async getUserById(id: number): Promise<ApiResponse<UserDto>> {
     const response = await apiUtils.get<ApiResponse<UserDto>>(`${this.baseUrl}/${id}`);
     return response.data;
   }
 
-  // Get user by email
   async getUserByEmail(email: string): Promise<ApiResponse<UserDto>> {
     const response = await apiUtils.get<ApiResponse<UserDto>>(`${this.baseUrl}/email/${email}`);
     return response.data;
   }
 
-  // Get user by phone number
   async getUserByPhone(phoneNumber: string): Promise<ApiResponse<UserDto>> {
     const response = await apiUtils.get<ApiResponse<UserDto>>(`${this.baseUrl}/phone/${phoneNumber}`);
     return response.data;
   }
 
-  // Update user
   async updateUser(id: number, data: UserUpdateDto): Promise<ApiResponse<UserDto>> {
     const response = await apiUtils.put<ApiResponse<UserDto>>(`${this.baseUrl}/${id}`, data);
     return response.data;
   }
 
-  // Deactivate user
   async deactivateUser(id: number): Promise<ApiResponse<boolean>> {
     const response = await apiUtils.delete<ApiResponse<boolean>>(`${this.baseUrl}/${id}`);
     return response.data;
   }
 
-  // Get users with pagination and search
   async getUsers(
     tenantId?: number,
     pageNumber: number = 1,
@@ -74,50 +67,42 @@ class UserService {
     return response.data;
   }
 
-  // Get user with doctor info
   async getUserWithDoctorInfo(id: number): Promise<ApiResponse<UserWithDoctorDto>> {
     const response = await apiUtils.get<ApiResponse<UserWithDoctorDto>>(`${this.baseUrl}/${id}/doctor-info`);
     return response.data;
   }
 
-  // Get users by tenant
   async getUsersByTenant(tenantId: number, role?: string): Promise<ApiResponse<UserDto[]>> {
     const params = role ? { role } : {};
     const response = await apiUtils.get<ApiResponse<UserDto[]>>(`${this.baseUrl}/tenant/${tenantId}`, { params });
     return response.data;
   }
 
-  // Change password
   async changePassword(id: number, data: ChangePasswordDto): Promise<ApiResponse<boolean>> {
     const response = await apiUtils.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/change-password`, data);
     return response.data;
   }
 
-  // Check if email exists
   async checkEmailExists(email: string): Promise<ApiResponse<boolean>> {
     const response = await apiUtils.get<ApiResponse<boolean>>(`${this.baseUrl}/check-email/${email}`);
     return response.data;
   }
 
-  // Check if phone exists
   async checkPhoneExists(phoneNumber: string): Promise<ApiResponse<boolean>> {
     const response = await apiUtils.get<ApiResponse<boolean>>(`${this.baseUrl}/check-phone/${phoneNumber}`);
     return response.data;
   }
 
-  // Get available roles
   async getAvailableRoles(): Promise<ApiResponse<object>> {
     const response = await apiUtils.get<ApiResponse<object>>(`${this.baseUrl}/roles`);
     return response.data;
   }
 
-  // Create doctor record for user
   async createDoctorRecord(userId: number, data: CreateDoctorDto): Promise<ApiResponse<object>> {
     const response = await apiUtils.post<ApiResponse<object>>(`${this.baseUrl}/${userId}/create-doctor`, data);
     return response.data;
   }
 
-  // Search doctors in tenant (for autocomplete)
   async searchDoctorsInTenant(
     tenantId: number,
     searchTerm: string,

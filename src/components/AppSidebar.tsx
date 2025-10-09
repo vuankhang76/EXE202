@@ -1,17 +1,12 @@
 import * as React from "react"
 import {
-  AudioWaveform,
   UserRound,
   ClipboardList,
-  Command,
-  HeartHandshake,
-  GalleryVerticalEnd,
   UserCog,
-  TicketCheck,
   MessageCirclePlus,
   CalendarDays,
-  Search,
-  Home
+  Home,
+  Building2
 } from "lucide-react"
 
 import { NavMain } from "@/components/NavMain"
@@ -24,30 +19,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/Sidebar"
+import { useAuth } from "@/contexts/AuthContext"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+// Static navigation data
+const navigationData = {
   navMain: [
     {
       title: "Lịch hẹn và tái khám",
@@ -91,14 +66,36 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { currentUser } = useAuth();
+
+  const teamsData = React.useMemo(() => {
+    if (!currentUser?.tenantId || !currentUser?.tenantName) {
+      return [
+        {
+          name: "Chưa có phòng khám",
+          logo: Building2,
+          plan: "Chưa xác định",
+        }
+      ];
+    }
+
+    return [
+      {
+        name: currentUser.tenantName,
+        logo: Building2,
+        plan: "Phòng khám",
+      }
+    ];
+  }, [currentUser?.tenantId, currentUser?.tenantName]);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <Profile teams={data.teams} />
+        <Profile teams={teamsData} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain label="Dịch vụ chăm sóc" items={data.navMain} />
-        <NavMain label="Quản trị hệ thống" items={data.navServices} />
+        <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />
+        <NavMain label="Quản trị hệ thống" items={navigationData.navServices} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

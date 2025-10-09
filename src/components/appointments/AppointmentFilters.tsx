@@ -1,142 +1,177 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { Search, X } from "lucide-react";
-import { AppointmentStatus, getStatusLabel } from "@/types/appointment";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
+import { Calendar } from "@/components/ui/Calendar";
+import { AppointmentStatus, AppointmentType, getStatusLabel, getTypeLabel } from "@/types/appointment";
+import { Search, Calendar as CalendarIcon, Settings } from "lucide-react";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface AppointmentFiltersProps {
   searchTerm: string;
   statusFilter: string;
-  debouncedSearchTerm: string;
-  isProcessing: boolean;
+  typeFilter: string;
+  fromDate: Date | undefined;
+  toDate: Date | undefined;
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
-  onClearFilters: () => void;
+  onTypeFilterChange: (value: string) => void;
+  onFromDateChange: (date: Date | undefined) => void;
+  onToDateChange: (date: Date | undefined) => void;
+  onSearch: () => void;
+  onAdvancedFilters?: () => void;
 }
 
 export default function AppointmentFilters({
   searchTerm,
   statusFilter,
-  debouncedSearchTerm,
-  isProcessing,
+  typeFilter,
+  fromDate,
+  toDate,
   onSearchChange,
   onStatusFilterChange,
-  onClearFilters
+  onTypeFilterChange,
+  onFromDateChange,
+  onToDateChange,
+  onSearch,
+  onAdvancedFilters
 }: AppointmentFiltersProps) {
   return (
-    <Card className="gap-1">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
-          </div>
-          {isProcessing && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LoadingSpinner size="sm" />
-              Đang xử lý...
-            </div>
-          )}
+    <div className="flex gap-3 items-center">
+      {/* Search Input */}
+      <div className="flex-1 min-w-[200px]">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Tìm theo tên, số điện thoại..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10 h-10"
+          />
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search Row */}
-        <div className="flex gap-3 items-center">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-20 h-10"
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                {debouncedSearchTerm !== searchTerm && searchTerm && (
-                  <LoadingSpinner size="sm" />
-                )}
-                {searchTerm && (
-                  <button
-                    onClick={() => onSearchChange('')}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-          <div>
-            <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-              <SelectTrigger className="!h-10">
-                <SelectValue placeholder="Lọc theo trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                    Tất cả trạng thái
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.SCHEDULED}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    {getStatusLabel(AppointmentStatus.SCHEDULED)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.CONFIRMED}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    {getStatusLabel(AppointmentStatus.CONFIRMED)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.BOOKED}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    {getStatusLabel(AppointmentStatus.BOOKED)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.IN_PROGRESS}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    {getStatusLabel(AppointmentStatus.IN_PROGRESS)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.COMPLETED}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-gray-500" />
-                    {getStatusLabel(AppointmentStatus.COMPLETED)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.CANCELLED}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    {getStatusLabel(AppointmentStatus.CANCELLED)}
-                  </div>
-                </SelectItem>
-                <SelectItem value={AppointmentStatus.NO_SHOW}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-orange-500" />
-                    {getStatusLabel(AppointmentStatus.NO_SHOW)}
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {(searchTerm || (statusFilter && statusFilter !== 'all')) && (
+      </div>
+
+      {/* From Date */}
+      <div className="w-[140px] shrink-0">
+        <Popover>
+          <PopoverTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              onClick={onClearFilters}
-              className="h-10"
+              className="w-full justify-start text-left font-normal h-10"
             >
-              <X className="h-4 w-4 mr-2" />
-              Xóa tất cả
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span className="text-sm">
+                {fromDate ? format(fromDate, "dd/MM/yyyy", { locale: vi }) : "Từ"}
+              </span>
             </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={fromDate}
+              onSelect={onFromDateChange}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* To Date */}
+      <div className="w-[140px] shrink-0">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left font-normal h-10"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span className="text-sm">
+                {toDate ? format(toDate, "dd/MM/yyyy", { locale: vi }) : "Đến"}
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={toDate}
+              onSelect={onToDateChange}
+              
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Status Filter */}
+      <div className="shrink-0">
+        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+          <SelectTrigger className="h-10 truncate w-[140px]">
+            <SelectValue placeholder="Trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả</SelectItem>
+            <SelectItem value={AppointmentStatus.SCHEDULED}>
+              {getStatusLabel(AppointmentStatus.SCHEDULED)}
+            </SelectItem>
+            <SelectItem value={AppointmentStatus.CONFIRMED}>
+              {getStatusLabel(AppointmentStatus.CONFIRMED)}
+            </SelectItem>
+            <SelectItem value={AppointmentStatus.IN_PROGRESS}>
+              {getStatusLabel(AppointmentStatus.IN_PROGRESS)}
+            </SelectItem>
+            <SelectItem value={AppointmentStatus.COMPLETED}>
+              {getStatusLabel(AppointmentStatus.COMPLETED)}
+            </SelectItem>
+            <SelectItem value={AppointmentStatus.CANCELLED}>
+              {getStatusLabel(AppointmentStatus.CANCELLED)}
+            </SelectItem>
+            <SelectItem value={AppointmentStatus.NO_SHOW}>
+              {getStatusLabel(AppointmentStatus.NO_SHOW)}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Type Filter (Loại lịch hẹn) */}
+      <div className="shrink-0">
+        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+          <SelectTrigger className="h-10 truncate w-[180px]">
+            <SelectValue placeholder="Loại lịch hẹn" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả</SelectItem>
+            <SelectItem value={AppointmentType.CLINIC}>
+              {getTypeLabel(AppointmentType.CLINIC)}
+            </SelectItem>
+            <SelectItem value={AppointmentType.HOME}>
+              {getTypeLabel(AppointmentType.HOME)}
+            </SelectItem>
+            <SelectItem value={AppointmentType.ONLINE}>
+              {getTypeLabel(AppointmentType.ONLINE)}
+            </SelectItem>
+            <SelectItem value={AppointmentType.PHONE}>
+              {getTypeLabel(AppointmentType.PHONE)}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Search Button */}
+      <Button onClick={onSearch} className="h-10 px-6 shrink-0">
+        Tìm
+      </Button>
+
+      {/* Advanced Filters Button */}
+      {onAdvancedFilters && (
+        <Button 
+          variant="outline" 
+          onClick={onAdvancedFilters} 
+          className="h-10 px-4 shrink-0"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Nâng cao
+        </Button>
+      )}
+    </div>
   );
 }

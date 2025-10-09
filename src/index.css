@@ -20,8 +20,10 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Medical Theme - Light Red & White */
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(1 0 0); /* Pure white */
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -40,6 +42,19 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  
+  /* Medical color palette - Rose/Red theme */
+  --medical-rose-50: #fff1f2;
+  --medical-rose-100: #ffe4e6;
+  --medical-rose-200: #fecdd3;
+  --medical-rose-300: #fda4af;
+  --medical-rose-400: #fb7185;
+  --medical-rose-500: #f43f5e;
+  --medical-rose-600: #e11d48;
+  --medical-rose-700: #be123c;
+  --medical-rose-800: #9f1239;
+  --medical-rose-900: #881337;
+  
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
