@@ -12,7 +12,6 @@ import { type ApiResponse } from '@/models/ApiResponse';
 import { apiUtils } from '@/api/axios';
 
 class AuthService {
-  // Patient OTP methods
   async requestOtp(phoneNumber: string, purpose: string = 'login'): Promise<ApiResponse<any>> {
     const response = await apiUtils.post<ApiResponse<any>>('/auth/request-otp', {
       phoneNumber,
@@ -32,7 +31,6 @@ class AuthService {
     return response.data;
   }
 
-  // Staff OTP methods
   async requestStaffOtp(phoneNumber: string, purpose: string = 'login'): Promise<ApiResponse<any>> {
     const response = await apiUtils.post<ApiResponse<any>>('/auth/staff/request-otp', {
       phoneNumber,
@@ -52,7 +50,6 @@ class AuthService {
     return response.data;
   }
 
-  // Staff login with email/password
   async staffLogin(email: string, password: string): Promise<ApiResponse<AuthResponseDto>> {
     const response = await apiUtils.post<ApiResponse<AuthResponseDto>>('/auth/staff/login', {
       email,
@@ -62,21 +59,18 @@ class AuthService {
     return response.data;
   }
 
-  // Token validation
   async validateToken(token: string): Promise<ApiResponse<any>> {
     const response = await apiUtils.post<ApiResponse<any>>('/auth/validate-token', token);
 
     return response.data;
   }
 
-  // Logout
   async logout(): Promise<ApiResponse<any>> {
     const response = await apiUtils.post<ApiResponse<any>>('/auth/logout', {});
 
     return response.data;
   }
 
-  // Password reset methods
   async forgotPassword(data: ForgotPasswordRequestDto): Promise<ApiResponse<any>> {
     const response = await apiUtils.post<ApiResponse<any>>('/auth/forgot-password', data);
 

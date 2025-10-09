@@ -1,9 +1,7 @@
 import {
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
+  User as UserIcon,
 } from "lucide-react"
 
 import { useAuth } from "@/contexts/AuthContext"
@@ -17,7 +15,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -49,12 +46,17 @@ export function NavUser() {
     return null;
   }
 
-  // Create display data from currentUser
   const user = {
-    name: currentUser.fullName || 'User',
+    name: currentUser.fullName,
     email: currentUser.email || currentUser.phoneE164 || '',
-    avatar: '' // No avatar from backend, will use fallback
+    avatar: ''
   }
+
+  const FallbackAvatar = () => (
+    <div className="flex items-center justify-center h-full w-full bg-gray-100 text-gray-500 rounded-lg">
+      <UserIcon className="size-4" />
+    </div>
+  )
 
   return (
     <SidebarMenu>
@@ -67,7 +69,9 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg p-0">
+                  <FallbackAvatar />
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -86,7 +90,9 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg p-0">
+                    <FallbackAvatar />
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
@@ -94,21 +100,6 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />

@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import { Toaster } from './components/ui/Sonner';
 
+const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const Patients = lazy(() => import('./pages/Patients'))   
@@ -25,6 +26,16 @@ function LoginRedirect() {
   return <Login />;
 }
 
+function HomeRedirect() {
+  const { currentUser } = useAuth();
+  
+  if (currentUser) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Home />;
+}
+
 function App() {
   return (
     <LoadingProvider>
@@ -36,12 +47,8 @@ function App() {
           <Toaster />
           <GlobalLoadingOverlay showOnGlobalLoading={true} text="Đang xử lý..." />
           <Routes>
+          <Route path="/" element={<HomeRedirect />} />
           <Route path="/login" element={<LoginRedirect />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />

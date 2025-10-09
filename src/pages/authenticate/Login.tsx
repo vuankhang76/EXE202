@@ -1,37 +1,45 @@
-import { Heart, Users, Shield } from 'lucide-react';
+import { Calendar, Clock, Shield, ArrowLeft, Stethoscope } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import LoginForm from '@/components/LoginForm';
 import logo from '@/assets/Logo_RemoveBg1.png';
+import { useNavigate } from 'react-router-dom';
+
 export default function Login() {
+  const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-200 to-red-50">
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
+    <main className="min-h-screen bg-gray-50">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="logo" className="h-10 w-10" />
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">SavePlus</h1>
-                <p className="text-sm text-muted-foreground">Nền tảng quản lý y tế thông minh</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="SavePlus" className="h-10 w-auto" />
+              <span className="text-xl font-bold text-gray-900">
+                SavePlus
+              </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4" />
-              <span>Bảo mật cấp y tế</span>
-            </div>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="border-2 border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-500"
+            >
+              <ArrowLeft className="mr-2 w-4 h-4" />
+              Trang chủ
+            </Button>
           </div>
         </div>
       </header>
-      <div className="px-4 py-12">
+      <div className="py-12 px-4">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col justify-start h-full">
               <div className="mx-auto w-full max-w-md">
                 <div className="mb-8 text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-foreground">Đăng nhập vào hệ thống</h2>
+                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">Đăng nhập SavePlus</h2>
+                  <p className="mt-2 text-gray-600">Quản lý sức khỏe dễ dàng hơn</p>
                 </div>
-                <Card className="border-border/50 bg-card/80 backdrop-blur-sm shadow-xl">
+                <Card className="border-gray-200 bg-white shadow-xl">
                   <CardContent>
                     <LoginForm />
                   </CardContent>
@@ -40,60 +48,57 @@ export default function Login() {
             </div>
 
             <div className="flex flex-col justify-center min-h-[470px]">
-              <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Chào mừng bạn đến với SavePlus</h3>
+                  <p className="text-gray-600">Nền tảng đặt lịch khám y tế hàng đầu Việt Nam</p>
+                </div>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  <div className="rounded-xl bg-card/60 p-6 border border-border/50">
+                  <div className="rounded-xl bg-white p-6 border border-gray-200 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Users className="h-5 w-5" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
+                        <Calendar className="h-5 w-5" />
                       </div>
-                      <h4 className="font-semibold text-foreground">Quản lý bệnh nhân</h4>
+                      <h4 className="font-semibold text-gray-900">Đặt lịch nhanh</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Theo dõi thông tin bệnh nhân, lịch sử khám chữa bệnh và kết quả xét nghiệm.
+                    <p className="text-sm text-gray-600">
+                      Đặt lịch khám với bác sĩ và phòng khám uy tín chỉ trong vài phút.
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-card/60 p-6 border border-border/50">
+                  <div className="rounded-xl bg-white p-6 border border-gray-200 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Heart className="h-5 w-5" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
+                        <Clock className="h-5 w-5" />
                       </div>
-                      <h4 className="font-semibold text-foreground">Chăm sóc thông minh</h4>
+                      <h4 className="font-semibold text-gray-900">Tiết kiệm thời gian</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      AI hỗ trợ chẩn đoán và đưa ra khuyến nghị điều trị phù hợp.
+                    <p className="text-sm text-gray-600">
+                      Không cần chờ đợi, xem lịch trống và chọn khung giờ phù hợp.
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-card/60 p-6 border border-border/50">
+                  <div className="rounded-xl bg-white p-6 border border-gray-200 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
+                        <Stethoscope className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900">Bác sĩ chuyên nghiệp</h4>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Đội ngũ bác sĩ giàu kinh nghiệm, được chứng nhận và tận tâm.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-white p-6 border border-gray-200 hover:border-red-200 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
                         <Shield className="h-5 w-5" />
                       </div>
-                      <h4 className="font-semibold text-foreground">Bảo mật tối đa</h4>
+                      <h4 className="font-semibold text-gray-900">Bảo mật thông tin</h4>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Tuân thủ HIPAA và các tiêu chuẩn bảo mật y tế quốc tế.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-card/60 p-6 border border-border/50">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                      </div>
-                      <h4 className="font-semibold text-foreground">Báo cáo chi tiết</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Thống kê và phân tích dữ liệu y tế để cải thiện chất lượng dịch vụ.
+                    <p className="text-sm text-gray-600">
+                      Thông tin sức khỏe của bạn được bảo vệ an toàn tuyệt đối.
                     </p>
                   </div>
                 </div>

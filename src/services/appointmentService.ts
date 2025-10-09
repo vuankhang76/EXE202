@@ -88,7 +88,7 @@ class AppointmentService {
   async getAvailableTimeSlots(
     doctorId: number,
     date: string,
-    durationMinutes: number = 30,
+    durationMinutes: number = 5,
     skipGlobalLoading = false
   ): Promise<ApiResponse<string[]>> {
     const params = { date, durationMinutes };

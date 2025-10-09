@@ -103,7 +103,7 @@ export default function EditAppointmentDialog({
       try {
         setLoadingTimeSlots(true);
         setAvailabilityMessage(null);
-        const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 30, true);
+        const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 5, true);
         
         if (result.success && result.data && result.data.length > 0) {
           setAvailableTimeSlots(result.data);
@@ -276,45 +276,92 @@ export default function EditAppointmentDialog({
 
   const generateTimeOptions = (isEndTime: boolean = false) => {
     const options = [];
-    
-    let minHour = 7;
+    const now = new Date();
+    const selectedDate = formData.appointmentDate ? new Date(formData.appointmentDate) : null;
+    const isToday =
+      selectedDate &&
+      selectedDate.getDate() === now.getDate() &&
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getFullYear() === now.getFullYear();
+  
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+  
+    let minHour = 8;
     let minMinute = 0;
-    
+  
     if (isEndTime && formData.startTime) {
       const [startHour, startMin] = formData.startTime.split(':').map(Number);
       minHour = startHour;
-      minMinute = startMin + 30;
+      minMinute = startMin + 5;
       if (minMinute >= 60) {
         minHour += 1;
         minMinute = 0;
       }
     }
-
+  
     const availableTimes = new Set(
       availableTimeSlots.map(slot => {
         const date = new Date(slot);
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        return timeStr;
       })
     );
-
-    for (let hour = 7; hour <= 20; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        if (isEndTime) {
-          if (hour < minHour || (hour === minHour && minute < minMinute)) {
-            continue;
-          }
+  
+    const workingHours = [
+      { start: 8 * 60, end: 12 * 60 },
+      { start: 13 * 60 + 30, end: 17 * 60 + 30 },
+    ];
+  
+    for (let hour = 8; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 5) {
+        const totalMinutes = hour * 60 + minute;
+  
+        const isInWorkingHours = workingHours.some(
+          period => totalMinutes >= period.start && totalMinutes < period.end
+        );
+        if (!isInWorkingHours) continue;
+  
+        if (isToday) {
+          if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) continue;
         }
-
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  
+        if (isEndTime) {
+          if (hour < minHour || (hour === minHour && minute < minMinute)) continue;
+        }
+  
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute
+          .toString()
+          .padStart(2, '0')}`;
         const displayTime = new Date(`2000-01-01T${timeStr}`).toLocaleTimeString('vi-VN', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         });
-        
+  
         let isAvailable = false;
-        
         if (!isEndTime) {
-          isAvailable = availableTimeSlots.length > 0 && availableTimes.has(timeStr);
+          if (availableTimeSlots.length > 0) {
+            if (availableTimes.has(timeStr)) {
+              isAvailable = true;
+            } else {
+              const timesSorted = Array.from(availableTimes)
+                .map(t => {
+                  const [h, m] = t.split(':').map(Number);
+                  return h * 60 + m;
+                })
+                .sort((a, b) => a - b);
+              const [hour, min] = timeStr.split(':').map(Number);
+              const total = hour * 60 + min;
+              for (let i = 0; i < timesSorted.length - 1; i++) {
+                if (total > timesSorted[i] && total < timesSorted[i + 1]) {
+                  isAvailable = true;
+                  break;
+                }
+              }
+            }
+          }
         } else if (formData.startTime) {
           const startTimeAvailable = availableTimes.has(formData.startTime);
           
@@ -323,33 +370,35 @@ export default function EditAppointmentDialog({
             const startMinutes = startHour * 60 + startMin;
             const endMinutes = hour * 60 + minute;
             const durationMinutes = endMinutes - startMinutes;
-            
+  
             if (durationMinutes > 0 && durationMinutes <= 180) {
-              const slotsNeeded = Math.ceil(durationMinutes / 30);
+              const slotsNeeded = Math.ceil(durationMinutes / 5); // 🔹 thay đổi tính theo 5 phút
               let allSlotsAvailable = true;
-              
+  
               for (let i = 0; i < slotsNeeded; i++) {
-                const slotMinutes = startMinutes + (i * 30);
+                const slotMinutes = startMinutes + i * 5;
                 const slotHour = Math.floor(slotMinutes / 60);
                 const slotMin = slotMinutes % 60;
-                const slotTimeStr = `${slotHour.toString().padStart(2, '0')}:${slotMin.toString().padStart(2, '0')}`;
-                
+                const slotTimeStr = `${slotHour.toString().padStart(2, '0')}:${slotMin
+                  .toString()
+                  .padStart(2, '0')}`;
+  
                 if (!availableTimes.has(slotTimeStr)) {
                   allSlotsAvailable = false;
                   break;
                 }
               }
-              
+  
               isAvailable = allSlotsAvailable;
             }
           }
         }
-        
+  
         const label = isAvailable ? `${displayTime} ✓` : displayTime;
-        
         options.push({ value: timeStr, label });
       }
     }
+  
     return options;
   };
 
