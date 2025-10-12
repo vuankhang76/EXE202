@@ -36,8 +36,7 @@ export default function Login() {
             <div className="flex flex-col justify-start h-full">
               <div className="mx-auto w-full max-w-md">
                 <div className="mb-8 text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">Đăng nhập SavePlus</h2>
-                  <p className="mt-2 text-gray-600">Quản lý sức khỏe dễ dàng hơn</p>
+                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">Đăng nhập đối tác</h2>
                 </div>
                 <Card className="border-gray-200 bg-white shadow-xl">
                   <CardContent>

@@ -33,13 +33,8 @@ export function NavUser() {
   const navigate = useNavigate()
 
   const handleLogout = async () => {
-    try {
       await logout()
-      toast.success(`Đăng xuất thành công!`);
       navigate('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-    }
   }
 
   if (!currentUser) {

@@ -167,7 +167,8 @@ class AppointmentService {
       startAt: startAt,
       endAt: endAt,
       type: formData.type,
-      channel: 'Web'
+      channel: 'Web',
+      estimatedCost: formData.estimatedCost || 200000 // Mặc định 200,000 VND nếu không nhập
     };
   }
 

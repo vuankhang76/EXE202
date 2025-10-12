@@ -3,12 +3,12 @@ import { Input } from "@/components/ui/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Calendar } from "@/components/ui/Calendar";
-import { AppointmentStatus, AppointmentType, getStatusLabel, getTypeLabel } from "@/types/appointment";
+import { PAYMENT_STATUS, PAYMENT_METHODS } from "@/types/paymentTransaction";
 import { Search, Calendar as CalendarIcon, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
-interface AppointmentFiltersProps {
+interface PaymentFiltersProps {
   searchTerm: string;
   statusFilter: string;
   typeFilter: string;
@@ -23,7 +23,7 @@ interface AppointmentFiltersProps {
   onAdvancedFilters?: () => void;
 }
 
-export default function AppointmentFilters({
+export default function PaymentFilters({
   searchTerm,
   statusFilter,
   typeFilter,
@@ -36,7 +36,7 @@ export default function AppointmentFilters({
   onToDateChange,
   onSearch,
   onAdvancedFilters
-}: AppointmentFiltersProps) {
+}: PaymentFiltersProps) {
   return (
     <div className="flex gap-3 items-center">
       <div className="flex-1 min-w-[200px]">
@@ -93,6 +93,7 @@ export default function AppointmentFilters({
               mode="single"
               selected={toDate}
               onSelect={onToDateChange}
+              
             />
           </PopoverContent>
         </Popover>
@@ -105,24 +106,11 @@ export default function AppointmentFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value={AppointmentStatus.SCHEDULED}>
-              {getStatusLabel(AppointmentStatus.SCHEDULED)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.CONFIRMED}>
-              {getStatusLabel(AppointmentStatus.CONFIRMED)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.IN_PROGRESS}>
-              {getStatusLabel(AppointmentStatus.IN_PROGRESS)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.COMPLETED}>
-              {getStatusLabel(AppointmentStatus.COMPLETED)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.CANCELLED}>
-              {getStatusLabel(AppointmentStatus.CANCELLED)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.NO_SHOW}>
-              {getStatusLabel(AppointmentStatus.NO_SHOW)}
-            </SelectItem>
+            {PAYMENT_STATUS.map(status => (
+              <SelectItem key={status.value} value={status.value}>
+                {status.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -130,22 +118,15 @@ export default function AppointmentFilters({
       <div className="shrink-0">
         <Select value={typeFilter} onValueChange={onTypeFilterChange}>
           <SelectTrigger className="h-10 truncate w-[180px]">
-            <SelectValue placeholder="Loại lịch hẹn" />
+            <SelectValue placeholder="Phương thức thanh toán" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value={AppointmentType.CLINIC}>
-              {getTypeLabel(AppointmentType.CLINIC)}
-            </SelectItem>
-            <SelectItem value={AppointmentType.HOME}>
-              {getTypeLabel(AppointmentType.HOME)}
-            </SelectItem>
-            <SelectItem value={AppointmentType.ONLINE}>
-              {getTypeLabel(AppointmentType.ONLINE)}
-            </SelectItem>
-            <SelectItem value={AppointmentType.PHONE}>
-              {getTypeLabel(AppointmentType.PHONE)}
-            </SelectItem>
+            {PAYMENT_METHODS.map(method => (
+              <SelectItem key={method.value} value={method.value}>
+                {method.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

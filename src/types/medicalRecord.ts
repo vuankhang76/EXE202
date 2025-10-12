@@ -12,7 +12,6 @@ export interface MedicalRecordDto extends BaseEntity {
   fileName?: string;
   fileSize?: number;
   mimeType?: string;
-  // Additional info
   patientName?: string;
   createdByUserName?: string;
   tenantName?: string;
@@ -69,7 +68,6 @@ export interface PatientMedicalRecordSummaryDto {
   recentRecords: MedicalRecordDto[];
 }
 
-// Medical record types
 export const MedicalRecordTypes = {
   LabResult: 'LabResult',
   Imaging: 'Imaging',

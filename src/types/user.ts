@@ -60,28 +60,6 @@ export interface CreateDoctorDto {
   licenseNumber?: string;
 }
 
-// Auth related DTOs
-export interface ForgotPasswordRequestDto {
-  email?: string;
-  phoneNumber?: string;
-}
-
-export interface ResetPasswordDto {
-  email?: string;
-  phoneNumber?: string;
-  otpCode: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface AuthChangePasswordDto {
-  email: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-// User roles constants
 export const UserRoles = {
   SystemAdmin: 'SystemAdmin',
   ClinicAdmin: 'ClinicAdmin',
@@ -93,7 +71,6 @@ export const UserRoles = {
 
 export type UserRole = typeof UserRoles[keyof typeof UserRoles];
 
-// DTO cho search doctor (dùng cho autocomplete)
 export interface DoctorSearchDto {
   userId: number;
   doctorId?: number;

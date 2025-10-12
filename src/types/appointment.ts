@@ -37,6 +37,7 @@ export interface AppointmentCreateDto {
   type: string;
   channel?: string;
   address?: string;
+  estimatedCost?: number; // Chi phí ước tính
 }
 
 export interface AppointmentFormData {
@@ -48,6 +49,7 @@ export interface AppointmentFormData {
   endTime: string;
   type: string;
   notes?: string;
+  estimatedCost?: number; // Chi phí ước tính
 }
 
 export interface AppointmentUpdateDto {
@@ -69,16 +71,6 @@ export interface AppointmentFilterDto {
   type?: string;
   pageNumber: number;
   pageSize: number;
-}
-
-export interface PagedResult<T> {
-  data: T[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  hasPreviousPage: boolean;
-  hasNextPage: boolean;
 }
 
 export interface CompleteAppointmentDto {

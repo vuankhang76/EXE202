@@ -22,6 +22,7 @@ export interface UserInfoDto {
   role?: string;
   tenantId?: string;
   tenantName?: string;
+  isPatient?: boolean;
 }
 
 export interface AuthResponseDto {
@@ -39,6 +40,7 @@ export interface AuthUser {
   role?: string;
   tenantId?: string;
   tenantName?: string;
+  isPatient?: boolean;
 }
 
 export interface AuthState {

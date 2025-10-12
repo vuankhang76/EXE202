@@ -46,7 +46,7 @@ export function Combobox<T extends string>({
   disabled = false,
   searchValue,
   onSearchValueChange,
-  hasSearched = false, // Default false
+  hasSearched = false,
 }: Props<T>) {
   const [open, setOpen] = React.useState(false)
 
@@ -72,10 +72,13 @@ export function Combobox<T extends string>({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-66 p-0">
+      <PopoverContent
+        align="start"
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+      >
         <Command shouldFilter={false}>
-          <CommandInput 
-            placeholder={searchPlaceholder} 
+          <CommandInput
+            placeholder={searchPlaceholder}
             className="h-9"
             value={searchValue}
             onValueChange={onSearchValueChange}
@@ -94,7 +97,9 @@ export function Combobox<T extends string>({
                         key={item.value}
                         value={item.label}
                         onSelect={() => {
-                          onSelectedValueChange(selectedValue === item.value ? "" as T : item.value as T)
+                          onSelectedValueChange(
+                            selectedValue === item.value ? ("" as T) : (item.value as T)
+                          )
                           setOpen(false)
                         }}
                       >

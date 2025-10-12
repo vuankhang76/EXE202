@@ -120,23 +120,23 @@ export default function AppointmentTable({
 
   const renderGender = (gender?: string) => {
     if (!gender) return "N/A";
-    return gender === "M" ? <span className="flex items-center"><Mars className="text-blue-500 h-4 w-4 mr-1"/>Nam</span> : <span className="text-pink-500 flex"><Venus className="h-4 w-4" />Nữ</span>;
+    return gender === "M" ? <span className="flex items-center"><Mars className="text-blue-500 h-4 w-4 mr-1" />Nam</span> : <span className="text-pink-500 flex"><Venus className="h-4 w-4" />Nữ</span>;
   }
 
   const formatPhone = (phone?: string) => {
     if (!phone) return "N/A";
-  
+
     const digits = phone.replace(/\D/g, "");
-  
+
     if (/^0\d{9}$/.test(digits)) {
       return digits.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
     }
-  
+
     if (/^84\d{9}$/.test(digits)) {
       const local = "0" + digits.slice(2);
       return local.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
     }
-  
+
     return phone;
   };
 
@@ -342,75 +342,77 @@ export default function AppointmentTable({
         </div>
       ) : (
         <>
-          <div className="border rounded-md overflow-hidden">
-            <div className="w-full overflow-x-auto">
-              <Table className="min-w-[1200px]">
-                <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
-                  <TableRow>
-                    <TableHead className="min-w-[30px]">ID</TableHead>
-                    <TableHead className="min-w-[120px]">Họ và tên</TableHead>
-                    <TableHead className="min-w-[120px]">Ngày sinh</TableHead>
-                    <TableHead className="min-w-[60px]">Giới tính</TableHead>
-                    <TableHead className="min-w-[60px]">Điện thoại</TableHead>
-                    <TableHead className="min-w-[120px]">Địa chỉ</TableHead>
-                    <TableHead className="min-w-[120px]">Bác sĩ</TableHead>
-                    <TableHead className="min-w-[100px]">Ngày khám</TableHead>
-                    <TableHead className="min-w-[120px]">Giờ khám</TableHead>
-                    <TableHead className="min-w-[80px]">Loại</TableHead>
-                    <TableHead className="min-w-[150px]">Trạng thái</TableHead>
-                    <TableHead className="min-w-[100px] text-right">Thao tác</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {safeAppointments.map((appointment) => {
+          <div className="border rounded-md bg-white flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto min-h-[500px]">
+              <div className="min-w-[1200px] w-full">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
+                    <TableRow>
+                      <TableHead className="min-w-[30px]">ID</TableHead>
+                      <TableHead className="min-w-[120px]">Họ và tên</TableHead>
+                      <TableHead className="min-w-[120px]">Ngày sinh</TableHead>
+                      <TableHead className="min-w-[60px]">Giới tính</TableHead>
+                      <TableHead className="min-w-[60px]">Điện thoại</TableHead>
+                      <TableHead className="min-w-[120px]">Địa chỉ</TableHead>
+                      <TableHead className="min-w-[120px]">Bác sĩ</TableHead>
+                      <TableHead className="min-w-[100px]">Ngày khám</TableHead>
+                      <TableHead className="min-w-[120px]">Giờ khám</TableHead>
+                      <TableHead className="min-w-[80px]">Loại</TableHead>
+                      <TableHead className="min-w-[150px]">Trạng thái</TableHead>
+                      <TableHead className="min-w-[100px] text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {safeAppointments.map((appointment) => {
 
-                    return (
-                      <TableRow key={appointment.appointmentId}>
-                        <TableCell className="font-medium">
-                          {appointment.appointmentId}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {appointment.patientName}
-                        </TableCell>
-                        <TableCell>
-                          {appointment.patientDateOfBirth
-                            ? `${formatDate(appointment.patientDateOfBirth)} (${age(appointment.patientDateOfBirth)} tuổi)`
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {renderGender(appointment.patientGender)}
-                        </TableCell>
-                        <TableCell>
-                          {formatPhone(appointment.patientPhone)}
-                        </TableCell>
-                        <TableCell>
-                          {appointment.patientAddress}
-                        </TableCell>
-                        <TableCell>
-                          {appointment.doctorName}
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(appointment.startAt)}
-                        </TableCell>
-                        <TableCell>
-                          {formatTime(appointment.startAt)} - {formatTime(appointment.endAt)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {getTypeLabel(appointment.type)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {renderStatusSelect(appointment)}
-                        </TableCell>
-                        <TableCell>
-                          {renderActionButtons(appointment)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                      return (
+                        <TableRow key={appointment.appointmentId}>
+                          <TableCell className="font-medium">
+                            {appointment.appointmentId}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {appointment.patientName}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.patientDateOfBirth
+                              ? `${formatDate(appointment.patientDateOfBirth)} (${age(appointment.patientDateOfBirth)} tuổi)`
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {renderGender(appointment.patientGender)}
+                          </TableCell>
+                          <TableCell>
+                            {formatPhone(appointment.patientPhone)}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.patientAddress}
+                          </TableCell>
+                          <TableCell>
+                            {appointment.doctorName}
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(appointment.startAt)}
+                          </TableCell>
+                          <TableCell>
+                            {formatTime(appointment.startAt)} - {formatTime(appointment.endAt)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {getTypeLabel(appointment.type)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {renderStatusSelect(appointment)}
+                          </TableCell>
+                          <TableCell>
+                            {renderActionButtons(appointment)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
           {renderPagination()}

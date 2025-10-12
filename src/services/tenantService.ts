@@ -117,6 +117,38 @@ class TenantService {
     );
     return response.data;
   }
+
+  async uploadThumbnail(tenantId: number, file: File): Promise<ApiResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await apiUtils.post<ApiResponse<string>>(
+      `${this.baseUrl}/${tenantId}/upload-thumbnail`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  async uploadCoverImage(tenantId: number, file: File): Promise<ApiResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await apiUtils.post<ApiResponse<string>>(
+      `${this.baseUrl}/${tenantId}/upload-cover`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
 }
 
 export default new TenantService();

@@ -1,13 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Shield, Stethoscope, Activity, Heart, ArrowRight, CheckCircle2, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Shield, Stethoscope, Activity, Heart, ArrowRight, CheckCircle2, Users, Award, ChevronLeft, ChevronRight, User, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/Dropdown-menu';
 import Logo from '../assets/Logo_RemoveBg1.png';
 import HeroImage from '../assets/Untitled_design.png';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { currentUser, userType, logout } = useAuth();
 
   const features = [
     {
@@ -150,6 +161,11 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header/Navigation */}
@@ -175,20 +191,105 @@ export default function Home() {
               <a href="#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
                 Về chúng tôi
               </a>
-              <Button 
-                onClick={() => navigate('/login')}
-                className="bg-red-500 hover:bg-red-600 text-white"
-              >
-                Đăng nhập
-              </Button>
+              {userType !== 'patient' && (
+              <Link to={'/tenant/auth'} className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Dành cho đối tác
+                </Link>
+              )}
+              
+              {currentUser && userType === 'patient' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {currentUser.fullName}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Bảng điều khiển</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Lịch hẹn</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  onClick={() => navigate('/patient/auth')}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Đăng nhập
+                </Button>
+              )}
             </nav>
-            <Button 
-              onClick={() => navigate('/login')}
-              className="md:hidden bg-red-500 hover:bg-red-600 text-white"
-              size="sm"
-            >
-              Đăng nhập
-            </Button>
+            <div className="md:hidden flex gap-2">
+              {currentUser && userType === 'patient' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span className="max-w-[100px] truncate">{currentUser.fullName}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Bảng điều khiển</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Lịch hẹn</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => navigate('/patient/auth')}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                    size="sm"
+                  >
+                    Bệnh nhân
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/login')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Nhân viên
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -198,31 +299,77 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                <Heart className="w-4 h-4" />
-                Nền tảng đặt lịch khám y tế hàng đầu
-              </div>
-              <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
-                Chăm sóc sức khỏe{' '}
-                <span className="text-gray-900">
-                  dễ dàng hơn
-                </span>{' '}
-                bao giờ hết
-              </h1>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Đặt lịch hẹn với bác sĩ, phòng khám và bệnh viện uy tín chỉ trong vài phút. 
-                Quản lý sức khỏe thông minh, tiện lợi và an toàn.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg"
-                  onClick={() => navigate('/login')}
-                  className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
-                >
-                  Bắt đầu ngay
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </div>
+              {currentUser && userType === 'patient' ? (
+                <>
+                  <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Đã đăng nhập
+                  </div>
+                  <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
+                    Chào mừng,{' '}
+                    <span className="text-red-500">
+                      {currentUser.fullName}
+                    </span>!
+                  </h1>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    Sẵn sàng chăm sóc sức khỏe của bạn hôm nay? Đặt lịch khám với bác sĩ hoặc xem lại các cuộc hẹn sắp tới.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
+                    >
+                      Vào bảng điều khiển
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                    <Button 
+                      size="lg"
+                      variant="outline"
+                      className="text-base px-8"
+                      onClick={() => navigate('/patient/dashboard')}
+                    >
+                      Xem lịch hẹn
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <Heart className="w-4 h-4" />
+                    Nền tảng đặt lịch khám y tế hàng đầu
+                  </div>
+                  <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
+                    Chăm sóc sức khỏe{' '}
+                    <span className="text-gray-900">
+                      dễ dàng hơn
+                    </span>{' '}
+                    bao giờ hết
+                  </h1>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    Đặt lịch hẹn với bác sĩ, phòng khám và bệnh viện uy tín chỉ trong vài phút. 
+                    Quản lý sức khỏe thông minh, tiện lợi và an toàn.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/patient/auth')}
+                      className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
+                    >
+                      Đăng ký ngay
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                    <Button 
+                      size="lg"
+                      variant="outline"
+                      onClick={() => navigate('/patient/auth')}
+                      className="text-base px-8"
+                    >
+                      Đăng nhập
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
             <div className="relative">
               <img 
@@ -272,15 +419,12 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                Đặt khám bệnh viện
+                Đặt khám phòng khám
               </h2>
-              <p className="text-gray-600">
-                Đặt khám và thanh toán dễ có phiếu khám (thời gian, số thứ tự) trước khi đi khám các bệnh viện kết nối chính thức với SavePlus.
-              </p>
             </div>
             <Button 
               variant="default"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/patient/auth')}
               className="rounded-full bg-red-500 hover:bg-red-600 text-white"
             >
               Xem thêm
@@ -493,5 +637,6 @@ export default function Home() {
     </div>
   );
 }
+
 
 
