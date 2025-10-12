@@ -72,9 +72,24 @@ class UserService {
     return response.data;
   }
 
-  async getUsersByTenant(tenantId: number, role?: string): Promise<ApiResponse<UserDto[]>> {
-    const params = role ? { role } : {};
-    const response = await apiUtils.get<ApiResponse<UserDto[]>>(`${this.baseUrl}/tenant/${tenantId}`, { params });
+  async getUsersByTenant(
+    tenantId: number,
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    role?: string
+  ): Promise<ApiResponse<PagedResult<UserDto>>> {
+    const params = new URLSearchParams({
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString()
+    });
+    
+    if (role) {
+      params.append('role', role);
+    }
+
+    const response = await apiUtils.get<ApiResponse<PagedResult<UserDto>>>(
+      `${this.baseUrl}/tenant/${tenantId}?${params}`
+    );
     return response.data;
   }
 

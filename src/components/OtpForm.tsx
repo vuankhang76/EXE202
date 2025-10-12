@@ -17,7 +17,7 @@ export default function OtpForm({ phoneNumber, onBack }: OtpFormProps) {
   const [countdown, setCountdown] = useState(300);
   const [canResend, setCanResend] = useState(false);
 
-  const { verifyStaffOtp, requestStaffOtp } = useAuth();
+  const { verifyOtp, requestOtp } = useAuth();
   const { isLoading, startLoading, stopLoading } = useLoading();
   const navigate = useNavigate();
 
@@ -53,7 +53,7 @@ export default function OtpForm({ phoneNumber, onBack }: OtpFormProps) {
     setErrors({});
 
     try {
-      await verifyStaffOtp(phoneNumber, otpCode);
+      await verifyOtp(phoneNumber, otpCode);
       navigate('/dashboard');
     } catch (error: any) {
       setErrors({
@@ -71,7 +71,7 @@ export default function OtpForm({ phoneNumber, onBack }: OtpFormProps) {
     setErrors({});
 
     try {
-      await requestStaffOtp(phoneNumber);
+      await requestOtp(phoneNumber);
       
       setCountdown(300);
       setCanResend(false);
