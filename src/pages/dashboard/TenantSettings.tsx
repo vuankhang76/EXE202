@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
+import { TimeInput } from '@/components/ui/TimeInput';
 import { Loader2, Save, AlertCircle } from 'lucide-react';
 import AdminLayout from '@/layout/AdminLayout';
 import tenantService from '@/services/tenantService';
@@ -22,7 +23,7 @@ export default function TenantSettings() {
     const [formData, setFormData] = useState<TenantUpdateDto>({});
     const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
-    
+
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
@@ -67,7 +68,26 @@ export default function TenantSettings() {
         }
     };
 
+    const normalizePhoneNumber = (phone: string): string => {
+        if (!phone) return phone;
+        
+        const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        
+        if (cleaned.startsWith('0')) {
+            return '+84' + cleaned.substring(1);
+        }
+        
+        if (cleaned.startsWith('84') && !cleaned.startsWith('+84')) {
+            return '+' + cleaned;
+        }
+        
+        return cleaned;
+    };
+
     const handleInputChange = (field: keyof TenantUpdateDto, value: string) => {
+        if (field === 'phone') {
+            value = normalizePhoneNumber(value);
+        }
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -161,7 +181,7 @@ export default function TenantSettings() {
         try {
             const response = await tenantService.updateTenant(parseInt(currentUser.tenantId), formData);
             console.log('Update response:', response);
-            
+
             if (response.success) {
                 toast.success('Cập nhật thành công', {
                     description: 'Thông tin phòng khám đã được cập nhật'
@@ -170,15 +190,26 @@ export default function TenantSettings() {
                 setCoverPreview(null);
                 loadTenant();
             } else {
+                const errorMessage = response.errors && response.errors.length > 0
+                    ? response.errors.join(', ')
+                    : response.message || 'Có lỗi xảy ra';
+                
                 toast.error('Cập nhật thất bại', {
-                    description: response.message || 'Có lỗi xảy ra'
+                    description: errorMessage
                 });
             }
         } catch (error: any) {
             console.error('Error updating tenant:', error);
-            toast.error('Cập nhật thất bại', {
-                description: error.message || 'Không thể cập nhật thông tin'
-            });
+            
+            if (!error.toastShown) {
+                const errorMessage = error.response?.data?.errors?.length > 0
+                    ? error.response.data.errors.join(', ')
+                    : error.response?.data?.message || error.message || 'Không thể cập nhật thông tin';
+                
+                toast.error('Cập nhật thất bại', {
+                    description: errorMessage
+                });
+            }
         } finally {
             setSaving(false);
         }
@@ -295,7 +326,6 @@ export default function TenantSettings() {
                                         type="tel"
                                         value={formData.phone || ''}
                                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                                        placeholder="+84..."
                                         disabled={!canEdit}
                                     />
                                 </div>
@@ -327,50 +357,48 @@ export default function TenantSettings() {
 
                         <div className="space-y-4">
                             <div>
-                                <Label className="text-base mb-3 block">Ngày thường (Thứ 2 - Thứ 6)</Label>
                                 <div className="grid gap-4 sm:grid-cols-2">
+                                <Label className="text-base mb-3 block">
+                                    Ngày thường (Thứ 2 - Thứ 6)
+                                </Label>
+                                <Label className="text-base mb-3 block">
+                                    Cuối tuần (Thứ 7 - Chủ nhật)
+                                </Label>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="weekdayOpen">Giờ mở cửa</Label>
-                                        <Input
+                                        <TimeInput
                                             id="weekdayOpen"
-                                            type="time"
                                             value={formData.weekdayOpen || ''}
-                                            onChange={(e) => handleInputChange('weekdayOpen', e.target.value)}
+                                            onChange={(value) => handleInputChange('weekdayOpen', value)}
                                             disabled={!canEdit}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="weekdayClose">Giờ đóng cửa</Label>
-                                        <Input
+                                        <TimeInput
                                             id="weekdayClose"
-                                            type="time"
                                             value={formData.weekdayClose || ''}
-                                            onChange={(e) => handleInputChange('weekdayClose', e.target.value)}
+                                            onChange={(value) => handleInputChange('weekdayClose', value)}
                                             disabled={!canEdit}
                                         />
                                     </div>
-                                </div>
-                            </div>
-                            <div>
-                                <Label className="text-base mb-3 block">Cuối tuần (Thứ 7 - Chủ nhật)</Label>
-                                <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
                                         <Label htmlFor="weekendOpen">Giờ mở cửa</Label>
-                                        <Input
+                                        <TimeInput
                                             id="weekendOpen"
-                                            type="time"
                                             value={formData.weekendOpen || ''}
-                                            onChange={(e) => handleInputChange('weekendOpen', e.target.value)}
+                                            onChange={(value) => handleInputChange('weekendOpen', value)}
                                             disabled={!canEdit}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="weekendClose">Giờ đóng cửa</Label>
-                                        <Input
+                                        <TimeInput
                                             id="weekendClose"
-                                            type="time"
                                             value={formData.weekendClose || ''}
-                                            onChange={(e) => handleInputChange('weekendClose', e.target.value)}
+                                            onChange={(value) => handleInputChange('weekendClose', value)}
                                             disabled={!canEdit}
                                         />
                                     </div>

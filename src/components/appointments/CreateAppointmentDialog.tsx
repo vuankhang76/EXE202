@@ -43,7 +43,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     endTime: '',
     type: AppointmentType.CLINIC,
     notes: '',
-    estimatedCost: 200000 // Mặc định 200,000 VND
+    estimatedCost: 200000
   });
 
   const patientSearch = usePatientSearch(tenantId);

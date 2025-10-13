@@ -348,7 +348,8 @@ export default function AppointmentTable({
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
                     <TableRow>
-                      <TableHead className="min-w-[30px]">ID</TableHead>
+                      <TableHead className="min-w-[30px]">Mã lịch</TableHead>
+                      <TableHead className="min-w-[150px]">Trạng thái</TableHead>
                       <TableHead className="min-w-[120px]">Họ và tên</TableHead>
                       <TableHead className="min-w-[120px]">Ngày sinh</TableHead>
                       <TableHead className="min-w-[60px]">Giới tính</TableHead>
@@ -358,7 +359,6 @@ export default function AppointmentTable({
                       <TableHead className="min-w-[100px]">Ngày khám</TableHead>
                       <TableHead className="min-w-[120px]">Giờ khám</TableHead>
                       <TableHead className="min-w-[80px]">Loại</TableHead>
-                      <TableHead className="min-w-[150px]">Trạng thái</TableHead>
                       <TableHead className="min-w-[100px] text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -368,7 +368,10 @@ export default function AppointmentTable({
                       return (
                         <TableRow key={appointment.appointmentId}>
                           <TableCell className="font-medium">
-                            {appointment.appointmentId}
+                            #{appointment.appointmentId}
+                          </TableCell>
+                          <TableCell>
+                            {renderStatusSelect(appointment)}
                           </TableCell>
                           <TableCell className="font-medium">
                             {appointment.patientName}
@@ -400,9 +403,6 @@ export default function AppointmentTable({
                             <Badge variant="outline">
                               {getTypeLabel(appointment.type)}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {renderStatusSelect(appointment)}
                           </TableCell>
                           <TableCell>
                             {renderActionButtons(appointment)}
