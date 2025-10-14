@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { getRoleLabel, getRoleBadgeVariant, getStatusBadgeClass } from '@/types/account';
 import type { UserDto } from '@/types';
+import { DialogContentSkeleton } from "@/components/ui/DialogContentSkeleton";
 
 interface ViewDoctorDialogProps {
   open: boolean;
@@ -33,13 +34,15 @@ interface ViewDoctorDialogProps {
     yearStarted?: number;
     about?: string;
   } | null;
+  loading?: boolean;
 }
 
 export default function ViewDoctorDialog({
   open,
   onOpenChange,
   doctor,
-  doctorDetails
+  doctorDetails,
+  loading = false
 }: ViewDoctorDialogProps) {
   if (!doctor) return null;
 
@@ -53,21 +56,27 @@ export default function ViewDoctorDialog({
     return phone;
   };
 
+  const isDoctor = doctor.role === 'Doctor';
+  const isLoadingDoctorDetails = isDoctor && !doctorDetails && loading;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar-thin">
         <DialogHeader>
-          <DialogTitle>Thông tin bác sĩ</DialogTitle>
+          <DialogTitle>Thông tin chi tiết</DialogTitle>
           <DialogDescription>
-            Chi tiết thông tin tài khoản và hồ sơ bác sĩ
+            Chi tiết thông tin tài khoản {isDoctor ? 'và hồ sơ bác sĩ' : ''}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6 py-4">
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Thông tin cơ bản
+        {isLoadingDoctorDetails ? (
+          <DialogContentSkeleton />
+        ) : (
+          <div className="space-y-6 py-4">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Thông tin cơ bản
             </h3>
             
             <div className="grid grid-cols-2 gap-4">
@@ -180,7 +189,8 @@ export default function ViewDoctorDialog({
               )}
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>

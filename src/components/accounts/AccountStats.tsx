@@ -1,13 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Users, Stethoscope, Shield } from "lucide-react";
+import { StatsGridSkeleton } from "@/components/ui/StatCardSkeleton";
 
 interface AccountStatsProps {
   total: number;
   doctors: number;
   nurses: number;
+  loading?: boolean;
 }
 
-export default function AccountStats({ total, doctors, nurses }: AccountStatsProps) {
+export default function AccountStats({ total, doctors, nurses, loading = false }: AccountStatsProps) {
+  if (loading) {
+    return <StatsGridSkeleton count={3} />;
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card>

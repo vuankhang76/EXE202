@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import {
-  Loader2,
   Edit,
   Eye,
   UserCheck,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import type { UserDto } from '@/types';
 import { getRoleLabel, getRoleBadgeVariant, getStatusBadgeClass } from '@/types/account';
+import { TableSkeleton } from "@/components/ui/TableSkeleton";
 
 interface AccountTableProps {
   users: UserDto[];
@@ -136,9 +136,8 @@ export default function AccountTable({
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto" />
-        <p className="text-muted-foreground mt-2">Đang tải...</p>
+      <div>
+        <TableSkeleton rows={10} columns={6} />
       </div>
     );
   }

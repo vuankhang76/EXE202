@@ -3,7 +3,6 @@ import { lazy } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import { Toaster } from './components/ui/Sonner';
 
 const Home = lazy(() => import('./pages/Home'))
@@ -64,7 +63,6 @@ function App() {
           v7_relativeSplatPath: true
         }}>
           <Toaster />
-          <GlobalLoadingOverlay showOnGlobalLoading={true} text="Đang xử lý..." />
           <Routes>
           <Route path="/" element={<HomeRedirect />} />
           

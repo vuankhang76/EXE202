@@ -23,6 +23,7 @@ export interface UserInfoDto {
   tenantId?: string;
   tenantName?: string;
   isPatient?: boolean;
+  doctorId?: number;
 }
 
 export interface AuthResponseDto {
@@ -41,6 +42,7 @@ export interface AuthUser {
   tenantId?: string;
   tenantName?: string;
   isPatient?: boolean;
+  doctorId?: number;
 }
 
 export interface AuthState {

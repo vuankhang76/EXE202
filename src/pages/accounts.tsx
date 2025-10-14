@@ -28,6 +28,7 @@ export default function Accounts() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
   const [selectedDoctorDetails, setSelectedDoctorDetails] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -178,37 +179,48 @@ export default function Accounts() {
 
   const handleViewClick = async (user: UserDto) => {
     setSelectedUser(user);
+    setSelectedDoctorDetails(null); // Clear old data
+    setViewDialogOpen(true); // Open dialog immediately
+    
     if (user.role === UserRole.DOCTOR) {
+      setLoadingDoctorDetails(true);
       try {
         const response = await userService.getUserWithDoctorInfo(user.userId);
         if (response.success && response.data) {
           setSelectedDoctorDetails(response.data);
-        }
-      } catch (error) {
-        console.error("Error loading doctor details:", error);
-      }
-    }
-    setViewDialogOpen(true);
-  };
-
-  const handleEditClick = async (user: UserDto) => {
-    setSelectedUser(user);
-    if (user.role === UserRole.DOCTOR) {
-      try {
-        const response = await userService.getUserWithDoctorInfo(user.userId);
-        if (response.success && response.data) {
-          setSelectedDoctorDetails(response.data);
-        } else {
-          toast.error("Không thể tải thông tin bác sĩ");
-          return;
         }
       } catch (error) {
         console.error("Error loading doctor details:", error);
         toast.error("Không thể tải thông tin bác sĩ");
-        return;
+      } finally {
+        setLoadingDoctorDetails(false);
       }
     }
-    setEditDialogOpen(true);
+  };
+
+  const handleEditClick = async (user: UserDto) => {
+    setSelectedUser(user);
+    setSelectedDoctorDetails(null); // Clear old data
+    
+    if (user.role === UserRole.DOCTOR) {
+      setLoadingDoctorDetails(true);
+      try {
+        const response = await userService.getUserWithDoctorInfo(user.userId);
+        if (response.success && response.data) {
+          setSelectedDoctorDetails(response.data);
+          setEditDialogOpen(true); // Only open after loading
+        } else {
+          toast.error("Không thể tải thông tin bác sĩ");
+        }
+      } catch (error) {
+        console.error("Error loading doctor details:", error);
+        toast.error("Không thể tải thông tin bác sĩ");
+      } finally {
+        setLoadingDoctorDetails(false);
+      }
+    } else {
+      setEditDialogOpen(true); // Open immediately for non-doctor
+    }
   };
 
   const handleEditSubmit = async (data: EditDoctorFormData) => {
@@ -312,6 +324,7 @@ export default function Accounts() {
           total={stats.total}
           doctors={stats.doctors}
           nurses={stats.nurses}
+          loading={loading}
         />
 
         <AccountFilters
@@ -370,6 +383,7 @@ export default function Accounts() {
           onOpenChange={setViewDialogOpen}
           doctor={selectedUser}
           doctorDetails={selectedDoctorDetails}
+          loading={loadingDoctorDetails}
         />
       </div>
     </AdminLayout>

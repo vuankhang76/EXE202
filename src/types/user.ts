@@ -32,6 +32,11 @@ export interface UserUpdateDto {
 
 export interface UserWithDoctorDto extends UserDto {
   doctorInfo?: DoctorDto;
+  // API also returns these fields directly when user is a doctor
+  doctorId?: number;
+  licenseNumber?: string;
+  specialty?: string;
+  avatarUrl?: string;
 }
 
 export interface DoctorDto extends BaseEntity {

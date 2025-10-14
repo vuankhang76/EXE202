@@ -6,7 +6,6 @@ import {
   MessageCirclePlus,
   CalendarDays,
   Home,
-  Building2,
   Settings
 } from "lucide-react"
 
@@ -20,7 +19,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/Sidebar"
-import { useAuth } from "@/contexts/AuthContext"
 
 const navigationData = {
   navMain: [
@@ -71,32 +69,10 @@ const navigationData = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { currentUser } = useAuth();
-
-  const teamsData = React.useMemo(() => {
-    if (!currentUser?.tenantId || !currentUser?.tenantName) {
-      return [
-        {
-          name: "Chưa có phòng khám",
-          logo: Building2,
-          plan: "Chưa xác định",
-        }
-      ];
-    }
-
-    return [
-      {
-        name: currentUser.tenantName,
-        logo: Building2,
-        plan: "Phòng khám",
-      }
-    ];
-  }, [currentUser?.tenantId, currentUser?.tenantName]);
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <Profile teams={teamsData} />
+        <Profile />
       </SidebarHeader>
       <SidebarContent>
         <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />

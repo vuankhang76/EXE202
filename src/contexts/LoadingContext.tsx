@@ -39,6 +39,9 @@ export function LoadingProvider({ children }: LoadingProviderProps) {
     }));
   }, []);
 
+  // NOTE: Global loading overlay is disabled for better UX
+  // This connects to axios but doesn't render a full-page overlay
+  // Use component-level loading states and skeleton screens instead
   useEffect(() => {
     setLoadingCallback((isLoading: boolean) => {
       setLoading('axios_global', isLoading);
