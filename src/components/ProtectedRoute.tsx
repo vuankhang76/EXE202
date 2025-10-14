@@ -3,29 +3,32 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  allowedUserTypes?: ('patient' | 'tenant')[];
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { currentUser, token } = useAuth();
+export default function ProtectedRoute({ children, allowedUserTypes }: ProtectedRouteProps) {
+  const { currentUser, token, userType } = useAuth();
+
   if (!currentUser || !token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  if (requiredRole && currentUser.role !== requiredRole) {
+  if (allowedUserTypes && userType && !allowedUserTypes.includes(userType)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md p-8">
           <div className="text-6xl mb-4">🚫</div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">Không có quyền truy cập</h2>
-          <p className="text-muted-foreground mb-4">
-            Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên.
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Không có quyền truy cập</h2>
+          <p className="text-gray-600 mb-6">
+            {userType === 'patient' 
+              ? 'Trang này dành cho đối tác. Vui lòng quay lại trang chủ.'
+              : 'Trang này dành cho bệnh nhân. Vui lòng quay lại trang chủ.'}
           </p>
           <button
-            onClick={() => window.history.back()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            onClick={() => window.location.href = '/'}
+            className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
           >
-            Quay lại
+            Về trang chủ
           </button>
         </div>
       </div>

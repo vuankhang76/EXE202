@@ -204,3 +204,133 @@
     --sidebar-ring: oklch(0.439 0 0);
   }
 }
+
+/* Custom Scrollbar Styles */
+@layer utilities {
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Firefox */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted));
+  }
+
+  /* Thin scrollbar variant - Extra thin and minimal */
+  .custom-scrollbar-thin::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .custom-scrollbar-thin {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(0, 0, 0, 0.1) transparent !important;
+  }
+
+  /* Medical theme scrollbar (rose/red) */
+  .medical-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .medical-scrollbar::-webkit-scrollbar-track {
+    background: var(--medical-rose-100);
+    border-radius: 4px;
+  }
+
+  .medical-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--medical-rose-300);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .medical-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--medical-rose-400);
+  }
+
+  .medical-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--medical-rose-300) var(--medical-rose-100);
+  }
+}
+
+/* Global scrollbar cho body và html */
+@layer base {
+  html::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  html::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  html::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+  }
+
+  html::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) #f1f1f1;
+  }
+
+  body::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+  }
+
+  body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) #f1f1f1;
+  }
+}

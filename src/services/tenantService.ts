@@ -6,6 +6,8 @@ import {
   type ClinicPatientDto,
   type UpdateClinicPatientDto,
   type PatientSearchDto,
+  type DoctorDto,
+  type UpdateDoctorDto,
   type ApiResponse,
   type PagedResult
 } from '@/types';
@@ -33,13 +35,11 @@ class TenantService {
     return response.data;
   }
 
-  // Update tenant
   async updateTenant(id: number, data: TenantUpdateDto): Promise<ApiResponse<TenantDto>> {
     const response = await apiUtils.put<ApiResponse<TenantDto>>(`${this.baseUrl}/${id}`, data);
     return response.data;
   }
 
-  // Get tenants with pagination and search
   async getTenants(
     pageNumber: number = 1,
     pageSize: number = 10,
@@ -84,7 +84,6 @@ class TenantService {
     return response.data;
   }
 
-  // Get specific patient in tenant
   async getTenantPatient(tenantId: number, patientId: number): Promise<ApiResponse<ClinicPatientDto>> {
     const response = await apiUtils.get<ApiResponse<ClinicPatientDto>>(`${this.baseUrl}/${tenantId}/patients/${patientId}`);
     return response.data;
@@ -114,6 +113,68 @@ class TenantService {
       `${this.baseUrl}/${tenantId}/patients/search?${params}`,
       undefined,
       { skipGlobalLoading: true }
+    );
+    return response.data;
+  }
+
+  // Get tenant doctors
+  async getTenantDoctors(
+    tenantId: number,
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    searchTerm?: string
+  ): Promise<ApiResponse<PagedResult<DoctorDto>>> {
+    const params = new URLSearchParams({
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString()
+    });
+    
+    if (searchTerm) {
+      params.append('searchTerm', searchTerm);
+    }
+
+    const response = await apiUtils.get<ApiResponse<PagedResult<DoctorDto>>>(
+      `${this.baseUrl}/${tenantId}/doctors?${params}`,
+      undefined,
+      { skipGlobalLoading: true }
+    );
+    return response.data;
+  }
+
+  // Get single doctor in tenant
+  async getTenantDoctor(tenantId: number, doctorId: number): Promise<ApiResponse<DoctorDto>> {
+    const response = await apiUtils.get<ApiResponse<DoctorDto>>(
+      `${this.baseUrl}/${tenantId}/doctors/${doctorId}`
+    );
+    return response.data;
+  }
+
+  // Update doctor in tenant
+  async updateTenantDoctor(
+    tenantId: number,
+    doctorId: number,
+    data: UpdateDoctorDto
+  ): Promise<ApiResponse<DoctorDto>> {
+    const response = await apiUtils.put<ApiResponse<DoctorDto>>(
+      `${this.baseUrl}/${tenantId}/doctors/${doctorId}`,
+      data
+    );
+    return response.data;
+  }
+
+  async uploadImage(file: File, folder: string = 'tenants'): Promise<ApiResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    const response = await apiUtils.post<ApiResponse<string>>(
+      `${this.baseUrl}/upload-image`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
     );
     return response.data;
   }

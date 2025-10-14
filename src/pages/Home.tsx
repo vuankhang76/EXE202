@@ -1,13 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Shield, Stethoscope, Activity, Heart, ArrowRight, CheckCircle2, Users, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Shield, Stethoscope, Activity, Heart, ArrowRight, CheckCircle2, Users, Award, ChevronLeft, ChevronRight, User, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/Dropdown-menu';
 import Logo from '../assets/Logo_RemoveBg1.png';
 import HeroImage from '../assets/Untitled_design.png';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import tenantService from '@/services/tenantService';
+import type { TenantDto } from '@/types';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { currentUser, userType, logout } = useAuth();
 
   const features = [
     {
@@ -66,58 +79,43 @@ export default function Home() {
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [clinics, setClinics] = useState<TenantDto[]>([]);
+  const [clinicsLoading, setClinicsLoading] = useState(true);
 
-  const clinics = [
-    {
-      name: 'Bệnh viện Ung Bướu TPHCM',
-      address: '47 Nguyễn Huy Lượng, Phường Bình Thạnh, TP. Hồ Chí Minh',
-      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
-      logo: 'https://via.placeholder.com/100x100?text=UB',
-      schedule: [
-        { days: 'Thứ 2 - Thứ 6:', hours: '7h30 - 16h30' },
-        { days: 'Thứ 7 - CN:', hours: '7h30 - 11h30' }
-      ]
-    },
-    {
-      name: 'Bệnh viện Quân Y 175',
-      address: 'Số 786 Nguyễn Kiệm, Phường Hạnh Thông, TP. Hồ Chí Minh',
-      image: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&q=80',
-      logo: 'https://via.placeholder.com/100x100?text=QY175',
-      schedule: [
-        { days: 'Thứ 2 - Thứ 6:', hours: '7h - 16h30' },
-        { days: 'Thứ 7:', hours: '7h - 16h' }
-      ]
-    },
-    {
-      name: 'Bệnh viện Y Học Cổ Truyền TP.HCM',
-      address: '179 -187 Nam Kỳ Khởi Nghĩa, Phường Xuân Hoà, TP. Hồ Chí Minh',
-      image: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800&q=80',
-      logo: 'https://via.placeholder.com/100x100?text=YHCT',
-      schedule: [
-        { days: 'Thứ 2 - Thứ 7:', hours: '7h - 19h' },
-        { days: 'Chủ nhật:', hours: '7h - 11h30' }
-      ]
-    },
-    {
-      name: 'Bệnh Viện Đa Khoa Thủ Đức',
-      address: '29 Phú Châu, Phường Tam Bình, TP. Hồ Chí Minh',
-      image: 'https://images.unsplash.com/photo-1596541223130-5d31a73fb6c6?w=800&q=80',
-      logo: 'https://via.placeholder.com/100x100?text=BVTD',
-      schedule: [
-        { days: 'Thứ 2 - Thứ 6:', hours: '7h - 16h30' }
-      ]
-    },
-    {
-      name: 'Bệnh viện Nhân Dân Gia Định',
-      address: '1 Nơ Trang Long, Phường 7, Quận Bình Thạnh, TP. HCM',
-      image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&q=80',
-      logo: 'https://via.placeholder.com/100x100?text=GD',
-      schedule: [
-        { days: 'Thứ 2 - Thứ 7:', hours: '7h - 17h' },
-        { days: 'Chủ nhật:', hours: '7h - 12h' }
-      ]
+  useEffect(() => {
+    loadClinics();
+  }, []);
+
+  const loadClinics = async () => {
+    setClinicsLoading(true);
+    try {
+      const response = await tenantService.getTenants(1, 20);
+      if (response.success && response.data) {
+        setClinics(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading clinics:', error);
+    } finally {
+      setClinicsLoading(false);
     }
-  ];
+  };
+
+  const formatSchedule = (clinic: TenantDto) => {
+    const schedule = [];
+    if (clinic.weekdayOpen && clinic.weekdayClose) {
+      schedule.push({
+        days: 'Thứ 2 - Thứ 6:',
+        hours: `${clinic.weekdayOpen} - ${clinic.weekdayClose}`
+      });
+    }
+    if (clinic.weekendOpen && clinic.weekendClose) {
+      schedule.push({
+        days: 'Thứ 7 - CN:',
+        hours: `${clinic.weekendOpen} - ${clinic.weekendClose}`
+      });
+    }
+    return schedule;
+  };
 
   const getItemsPerView = () => {
     if (typeof window !== 'undefined') {
@@ -150,6 +148,11 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header/Navigation */}
@@ -175,20 +178,105 @@ export default function Home() {
               <a href="#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
                 Về chúng tôi
               </a>
-              <Button 
-                onClick={() => navigate('/login')}
-                className="bg-red-500 hover:bg-red-600 text-white"
-              >
-                Đăng nhập
-              </Button>
+              {userType !== 'patient' && (
+              <Link to={'/tenant/auth'} className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Dành cho đối tác
+                </Link>
+              )}
+              
+              {currentUser && userType === 'patient' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {currentUser.fullName}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Bảng điều khiển</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Lịch hẹn</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  onClick={() => navigate('/patient/auth')}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Đăng nhập
+                </Button>
+              )}
             </nav>
-            <Button 
-              onClick={() => navigate('/login')}
-              className="md:hidden bg-red-500 hover:bg-red-600 text-white"
-              size="sm"
-            >
-              Đăng nhập
-            </Button>
+            <div className="md:hidden flex gap-2">
+              {currentUser && userType === 'patient' ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span className="max-w-[100px] truncate">{currentUser.fullName}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Bảng điều khiển</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>Lịch hẹn</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => navigate('/patient/auth')}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                    size="sm"
+                  >
+                    Bệnh nhân
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/login')}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Nhân viên
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -198,31 +286,77 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                <Heart className="w-4 h-4" />
-                Nền tảng đặt lịch khám y tế hàng đầu
-              </div>
-              <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
-                Chăm sóc sức khỏe{' '}
-                <span className="text-gray-900">
-                  dễ dàng hơn
-                </span>{' '}
-                bao giờ hết
-              </h1>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Đặt lịch hẹn với bác sĩ, phòng khám và bệnh viện uy tín chỉ trong vài phút. 
-                Quản lý sức khỏe thông minh, tiện lợi và an toàn.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg"
-                  onClick={() => navigate('/login')}
-                  className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
-                >
-                  Bắt đầu ngay
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </div>
+              {currentUser && userType === 'patient' ? (
+                <>
+                  <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Đã đăng nhập
+                  </div>
+                  <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
+                    Chào mừng,{' '}
+                    <span className="text-red-500">
+                      {currentUser.fullName}
+                    </span>!
+                  </h1>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    Sẵn sàng chăm sóc sức khỏe của bạn hôm nay? Đặt lịch khám với bác sĩ hoặc xem lại các cuộc hẹn sắp tới.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/patient/dashboard')}
+                      className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
+                    >
+                      Vào bảng điều khiển
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                    <Button 
+                      size="lg"
+                      variant="outline"
+                      className="text-base px-8"
+                      onClick={() => navigate('/patient/dashboard')}
+                    >
+                      Xem lịch hẹn
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <Heart className="w-4 h-4" />
+                    Nền tảng đặt lịch khám y tế hàng đầu
+                  </div>
+                  <h1 className="text-4xl md:text-4xl font-bold text-gray-900 leading-tight">
+                    Chăm sóc sức khỏe{' '}
+                    <span className="text-gray-900">
+                      dễ dàng hơn
+                    </span>{' '}
+                    bao giờ hết
+                  </h1>
+                  <p className="text-lg text-gray-600 leading-relaxed">
+                    Đặt lịch hẹn với bác sĩ, phòng khám và bệnh viện uy tín chỉ trong vài phút. 
+                    Quản lý sức khỏe thông minh, tiện lợi và an toàn.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/patient/auth')}
+                      className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
+                    >
+                      Đăng ký ngay
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                    <Button 
+                      size="lg"
+                      variant="outline"
+                      onClick={() => navigate('/patient/auth')}
+                      className="text-base px-8"
+                    >
+                      Đăng nhập
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
             <div className="relative">
               <img 
@@ -272,15 +406,12 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                Đặt khám bệnh viện
+                Đặt khám phòng khám
               </h2>
-              <p className="text-gray-600">
-                Đặt khám và thanh toán dễ có phiếu khám (thời gian, số thứ tự) trước khi đi khám các bệnh viện kết nối chính thức với SavePlus.
-              </p>
             </div>
             <Button 
               variant="default"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/patient/auth')}
               className="rounded-full bg-red-500 hover:bg-red-600 text-white"
             >
               Xem thêm
@@ -309,51 +440,76 @@ export default function Home() {
             )}
 
             <div className="overflow-hidden h-[420px]">
-              <div 
-                className="flex transition-transform duration-300 ease-in-out gap-4 h-full p-4"
-                style={{ transform: `translateX(-${currentSlide * (100 / itemsPerView)}%)` }}
-              >
-                {clinics.map((clinic, index) => (
-                  <div 
-                    key={index} 
-                    className="flex-shrink-0 h-full" 
-                    style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
-                  >
-                    <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col py-0">
-                      <div className="relative h-48 flex-shrink-0">
-                        <img 
-                          src={clinic.image} 
-                          alt={clinic.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4 bg-white rounded-lg p-2 shadow-md">
-                          <img 
-                            src={clinic.logo} 
-                            alt={`${clinic.name} logo`}
-                            className="w-16 h-16 object-contain"
-                          />
-                        </div>
-                      </div>
-                      <CardContent className="p-4 flex flex-col flex-grow">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
-                          {clinic.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3 h-10 line-clamp-2">
-                          {clinic.address}
-                        </p>
-                        <div className="space-y-1 border-t border-gray-100 pt-3 mt-auto">
-                          {clinic.schedule.map((item, idx) => (
-                            <div key={idx} className="flex justify-between text-sm">
-                              <span className="text-gray-600">{item.days}</span>
-                              <span className="text-gray-900 font-medium">{item.hours}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+              {clinicsLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Đang tải danh sách phòng khám...</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : clinics.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <p className="text-gray-600">Chưa có phòng khám nào</p>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className="flex transition-transform duration-300 ease-in-out gap-4 h-full p-4"
+                  style={{ transform: `translateX(-${currentSlide * (100 / itemsPerView)}%)` }}
+                >
+                  {clinics.map((clinic) => {
+                    const schedule = formatSchedule(clinic);
+                    return (
+                      <div 
+                        key={clinic.tenantId} 
+                        className="flex-shrink-0 h-full cursor-pointer" 
+                        style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
+                        onClick={() => navigate(`/clinics/${clinic.tenantId}`)}
+                      >
+                        <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col py-0">
+                          <div className="relative h-48 flex-shrink-0">
+                            <img 
+                              src={clinic.coverImageUrl || clinic.thumbnailUrl || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80'} 
+                              alt={clinic.name}
+                              className="w-full h-full object-cover"
+                            />
+                            {clinic.thumbnailUrl && (
+                              <div className="absolute top-4 left-4 bg-white rounded-lg p-2 shadow-md">
+                                <img 
+                                  src={clinic.thumbnailUrl} 
+                                  alt={`${clinic.name} logo`}
+                                  className="w-16 h-16 object-cover"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <CardContent className="p-4 flex flex-col flex-grow">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+                              {clinic.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-3 h-10 line-clamp-2">
+                              {clinic.address || 'Địa chỉ đang cập nhật'}
+                            </p>
+                            <div className="space-y-1 border-t border-gray-100 pt-3 mt-auto">
+                              {schedule.length > 0 ? (
+                                schedule.map((item, idx) => (
+                                  <div key={idx} className="flex justify-between text-sm">
+                                    <span className="text-gray-600">{item.days}</span>
+                                    <span className="text-gray-900 font-medium">{item.hours}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500 text-center">Giờ làm việc đang cập nhật</p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -493,5 +649,6 @@ export default function Home() {
     </div>
   );
 }
+
 
 

@@ -38,9 +38,9 @@ export default function Appointments() {
   const [toDate, setToDate] = useState<Date | undefined>(new Date());
 
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDto | null>(null);
-  const [viewDialogOpen,  setViewDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  
+
   const hasShownTenantErrorRef = useRef(false);
 
   const checkTenantId = useCallback((showToast: boolean = false) => {
@@ -110,7 +110,6 @@ export default function Appointments() {
               items = arrayValues[0];
               totalCount = items.length;
             } else {
-              console.warn('Could not find array data in response:', result.data);
               items = [];
             }
           }
@@ -126,7 +125,6 @@ export default function Appointments() {
         setTotalCount(0);
       }
     } catch (error) {
-      console.error('Error loading appointments:', error);
       setAppointments([]);
       setTotalPages(0);
       setTotalCount(0);
@@ -256,14 +254,9 @@ export default function Appointments() {
   }, [currentPage, loadAppointments, loadStats]);
 
   return (
-    <AdminLayout breadcrumbTitle="Lịch hẹn và tái khám">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lịch hẹn và tái khám</h1>
-          <p className="text-muted-foreground">
-            Quản lý lịch hẹn và tái khám của bệnh nhân
-          </p>
-        </div>
+    <AdminLayout
+      breadcrumbTitle="Lịch hẹn và tái khám"
+      actions={
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -272,14 +265,13 @@ export default function Appointments() {
           <CreateAppointmentDialog onSuccess={() => {
             loadAppointments(1);
             loadStats();
-          }} />
+          }}
+          />
         </div>
-      </div>
-
-      {/* Statistics Cards */}
+      }
+    >
       <AppointmentStats stats={stats} />
 
-      {/* Filters */}
       <AppointmentFilters
         searchTerm={searchTerm}
         statusFilter={statusFilter}
@@ -296,7 +288,6 @@ export default function Appointments() {
         }}
       />
 
-      {/* Appointments Table */}
       <AppointmentTable
         appointments={appointments}
         currentLoading={loading}
@@ -309,13 +300,12 @@ export default function Appointments() {
         onPageChange={handlePageChange}
       />
 
-      {/* Dialogs */}
       <ViewAppointmentDialog
         appointment={selectedAppointment}
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
       />
-      
+
       <EditAppointmentDialog
         appointment={selectedAppointment}
         open={editDialogOpen}

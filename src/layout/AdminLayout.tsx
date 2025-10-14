@@ -20,19 +20,21 @@ interface AdminLayoutProps {
     title: string
     href?: string
   }>
+  actions?: ReactNode
 }
 
 export default function AdminLayout({ 
   children, 
   breadcrumbTitle, 
-  breadcrumbItems = [] 
+  breadcrumbItems = [],
+  actions,
 }: AdminLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-x-hidden">
+      <SidebarInset className="overflow-x-hidden custom-scrollbar-thin">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-4 w-full">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -54,6 +56,9 @@ export default function AdminLayout({
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
+            <div className="ml-auto flex items-center gap-2">
+              {actions}
+            </div>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

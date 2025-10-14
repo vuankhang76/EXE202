@@ -6,7 +6,8 @@ import {
   MessageCirclePlus,
   CalendarDays,
   Home,
-  Building2
+  Building2,
+  Settings
 } from "lucide-react"
 
 import { NavMain } from "@/components/NavMain"
@@ -15,13 +16,12 @@ import { Profile } from "@/components/Profile"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  SidebarFooter, 
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/Sidebar"
 import { useAuth } from "@/contexts/AuthContext"
 
-// Static navigation data
 const navigationData = {
   navMain: [
     {
@@ -51,6 +51,11 @@ const navigationData = {
       title: "Tổng quan",
       url: "/dashboard",
       icon: Home,
+    },
+    {
+      title: "Cài đặt phòng khám",
+      url: "/settings",
+      icon: Settings,
     },
     {
       title: "Tài khoản",

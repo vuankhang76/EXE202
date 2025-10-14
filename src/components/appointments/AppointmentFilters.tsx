@@ -39,7 +39,6 @@ export default function AppointmentFilters({
 }: AppointmentFiltersProps) {
   return (
     <div className="flex gap-3 items-center">
-      {/* Search Input */}
       <div className="flex-1 min-w-[200px]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -52,7 +51,6 @@ export default function AppointmentFilters({
         </div>
       </div>
 
-      {/* From Date */}
       <div className="w-[140px] shrink-0">
         <Popover>
           <PopoverTrigger asChild>
@@ -77,7 +75,6 @@ export default function AppointmentFilters({
         </Popover>
       </div>
 
-      {/* To Date */}
       <div className="w-[140px] shrink-0">
         <Popover>
           <PopoverTrigger asChild>
@@ -96,13 +93,11 @@ export default function AppointmentFilters({
               mode="single"
               selected={toDate}
               onSelect={onToDateChange}
-              
             />
           </PopoverContent>
         </Popover>
       </div>
 
-      {/* Status Filter */}
       <div className="shrink-0">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger className="h-10 truncate w-[140px]">
@@ -132,7 +127,6 @@ export default function AppointmentFilters({
         </Select>
       </div>
 
-      {/* Type Filter (Loại lịch hẹn) */}
       <div className="shrink-0">
         <Select value={typeFilter} onValueChange={onTypeFilterChange}>
           <SelectTrigger className="h-10 truncate w-[180px]">
@@ -156,12 +150,10 @@ export default function AppointmentFilters({
         </Select>
       </div>
 
-      {/* Search Button */}
       <Button onClick={onSearch} className="h-10 px-6 shrink-0">
         Tìm
       </Button>
 
-      {/* Advanced Filters Button */}
       {onAdvancedFilters && (
         <Button 
           variant="outline" 

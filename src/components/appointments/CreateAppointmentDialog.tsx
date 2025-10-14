@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
+import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Plus, Clock, AlertCircle } from 'lucide-react';
@@ -41,7 +42,8 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     startTime: '',
     endTime: '',
     type: AppointmentType.CLINIC,
-    notes: ''
+    notes: '',
+    estimatedCost: 200000
   });
 
   const patientSearch = usePatientSearch(tenantId);
@@ -86,7 +88,8 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       startTime: '',
       endTime: '',
       type: AppointmentType.CLINIC,
-      notes: ''
+      notes: '',
+      estimatedCost: 200000
     });
     patientSearch.setSearchTerm('');
     patientSearch.setSelectedPatientId('');
@@ -156,21 +159,11 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
         
         const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 5, true);
-        
-        console.log('[DEBUG] Raw time slots from backend:', result.data);
-        
+                
         if (result.success && result.data && result.data.length > 0) {
-          result.data.forEach(slot => {
-            const date = new Date(slot);
-            const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-            console.log(`[DEBUG] Slot: ${slot} -> Parsed time: ${timeStr}`);
-          });
           
           setAvailableTimeSlots(result.data);
-          setAvailabilityMessage({
-            type: 'success',
-            message: `Có ${result.data.length} khung giờ trống`
-          });
+
         } else {
           setAvailableTimeSlots([]);
           setAvailabilityMessage({
@@ -179,7 +172,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           });
         }
       } catch (error) {
-        console.error('Error loading time slots:', error);
         setAvailableTimeSlots([]);
         setAvailabilityMessage({
           type: 'error',
@@ -583,6 +575,22 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="estimatedCost">Chi phí ước tính (VND)</Label>
+            <Input
+              id="estimatedCost"
+              type="number"
+              min="0"
+              step="10000"
+              value={formData.estimatedCost || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('estimatedCost', parseFloat(e.target.value) || 0)}
+              placeholder="Nhập chi phí ước tính..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Hệ thống sẽ tự động tạo hóa đơn thanh toán với trạng thái PENDING
+            </p>
           </div>
 
           <div className="space-y-2">

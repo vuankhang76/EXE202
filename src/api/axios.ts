@@ -2,7 +2,6 @@ import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosR
 import { type ApiResponse} from '@/models/ApiResponse';
 import { toast } from 'sonner';
 
-// Extend AxiosRequestConfig để thêm skipGlobalLoading flag
 declare module 'axios' {
   export interface AxiosRequestConfig {
     skipGlobalLoading?: boolean;
@@ -34,7 +33,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Chỉ tăng counter nếu không skip global loading
     if (!config.skipGlobalLoading) {
       activeRequestsCount++;
       updateLoadingState();
@@ -55,7 +53,6 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   <T>(response: AxiosResponse<ApiResponse<T>>): AxiosResponse<T> => {
-    // Chỉ giảm counter nếu request không skip global loading
     if (!response.config.skipGlobalLoading) {
       activeRequestsCount = Math.max(0, activeRequestsCount - 1);
       updateLoadingState();
@@ -69,30 +66,55 @@ api.interceptors.response.use(
       updateLoadingState();
     }
     
+    error.toastShown = true;
+    
     if (error.response) {
-      switch (error.response.status) {
+      const status = error.response.status;
+      const message = error.response?.data?.message || error.response?.data?.Message;
+      
+      switch (status) {
         case 400:
-          toast.error(error.response?.data?.errors?.[0]?.message || error.response?.data?.message || 'Yêu cầu không hợp lệ');
+          toast.error('Yêu cầu không hợp lệ', {
+            description: error.response?.data?.errors?.[0]?.message || message || 'Dữ liệu không hợp lệ'
+          });
           break;
         case 401:
-          toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại');
+          if (!error.config?.url?.includes('/login')) {
+            toast.error('Phiên đăng nhập hết hạn', {
+              description: 'Vui lòng đăng nhập lại'
+            });
+          } else {
+            error.toastShown = false;
+          }
           break;
         case 403:
-          toast.error('Bạn không có quyền thực hiện thao tác này');
+          toast.error('Không có quyền truy cập', {
+            description: message || 'Bạn không có quyền thực hiện thao tác này'
+          });
           break;
         case 404:
-          toast.error('Không tìm thấy tài nguyên yêu cầu');
+          toast.error('Không tìm thấy', {
+            description: message || 'Không tìm thấy tài nguyên yêu cầu'
+          });
           break;
         case 500:
-          toast.error(error.response?.data?.errors?.[0]?.message || error.response?.data?.message || 'Lỗi máy chủ. Vui lòng thử lại sau');
+          toast.error('Lỗi hệ thống', {
+            description: error.response?.data?.errors?.[0]?.message || message || 'Vui lòng thử lại sau'
+          });
           break;
         default:
-          toast.error(error.response?.data?.message || 'Có lỗi không mong muốn xảy ra');
+          toast.error('Có lỗi xảy ra', {
+            description: message || 'Có lỗi không mong muốn xảy ra'
+          });
       }
     } else if (error.request) {
-      toast.error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng');
+      toast.error('Lỗi kết nối', {
+        description: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng'
+      });
     } else {
-      toast.error('Có lỗi xảy ra khi xử lý yêu cầu');
+      toast.error('Có lỗi xảy ra', {
+        description: 'Có lỗi xảy ra khi xử lý yêu cầu'
+      });
     }
     
     return Promise.reject(error);

@@ -7,9 +7,9 @@ export function useDoctorSearch(tenantId: number) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
   const [doctors, setDoctors] = useState<DoctorSearchDto[]>([]);
-  const [allFoundDoctors, setAllFoundDoctors] = useState<DoctorSearchDto[]>([]); // Store all found doctors
+  const [allFoundDoctors, setAllFoundDoctors] = useState<DoctorSearchDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // Track if search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -18,7 +18,6 @@ export function useDoctorSearch(tenantId: number) {
       searchDoctors(debouncedSearchTerm);
       setHasSearched(true);
     } else if (debouncedSearchTerm.length === 0 && tenantId) {
-      // Load default doctors when no search term
       loadDefaultDoctors();
       setHasSearched(false);
     } else {
@@ -27,7 +26,6 @@ export function useDoctorSearch(tenantId: number) {
     }
   }, [debouncedSearchTerm, tenantId]);
 
-  // Load default data on mount
   useEffect(() => {
     if (tenantId) {
       loadDefaultDoctors();
@@ -37,8 +35,7 @@ export function useDoctorSearch(tenantId: number) {
   const loadDefaultDoctors = async () => {
     setIsLoading(true);
     try {
-      // Use a common search term or modify backend to support empty search
-      const response = await userService.searchDoctorsInTenant(tenantId, 'dr', 10);
+      const response = await userService.searchDoctorsInTenant(tenantId, 'dr', 20);
       if (response.success && response.data) {
         setDoctors(response.data);
         setAllFoundDoctors(prev => {

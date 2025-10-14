@@ -26,7 +26,7 @@ export default function LoginForm() {
     rememberMe: false
   });
   
-  const { staffLogin, requestStaffOtp } = useAuth();
+  const { login, requestOtp } = useAuth();
   const { isLoading, startLoading, stopLoading } = useLoading();
   const navigate = useNavigate();
 
@@ -94,11 +94,11 @@ export default function LoginForm() {
 
     try {
       if (loginMode === 'staff-email') {
-        await staffLogin(formData.email, formData.password);
+        await login({ email: formData.email, password: formData.password, userType: 'tenant' });
         navigate('/dashboard');
       } else if (loginMode === 'staff-otp') {
         const phone = normalizePhoneNumber(formData.phone);
-        await requestStaffOtp(phone);
+        await requestOtp(phone);
         setPhoneNumber(phone);
         setLoginStep('otp');
       }
@@ -166,12 +166,6 @@ export default function LoginForm() {
         </button>
       </div>
 
-      {errors.general && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-          {errors.general}
-        </div>
-      )}
-
       {loginMode === 'staff-email' && (
         <>
           <div className="space-y-2">
@@ -236,7 +230,7 @@ export default function LoginForm() {
               id="phone"
               name="phone"
               type="tel"
-              placeholder="Nhập số điện thoại (0xxxxxxxxx)"
+              placeholder="Nhập số điện thoại"
               value={formData.phone}
               onChange={handleInputChange}
               className={`pl-10 ${errors.phone ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20' : ''}`}

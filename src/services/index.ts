@@ -2,6 +2,7 @@
 export { default as authService } from './authService';
 export { default as appointmentService } from './appointmentService';
 export { default as patientService } from './patientService';
+export { default as patientAccountService } from './patientAccountService';
 export { default as userService } from './userService';
 export { default as tenantService } from './tenantService';
 export { default as reminderService } from './reminderService';
