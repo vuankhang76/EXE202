@@ -10,8 +10,10 @@ const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
 const PatientAuth = lazy(() => import('./pages/authenticate/PatientAuth'))
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
+const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
+const DoctorProfileEdit = lazy(() => import('./pages/DoctorProfileEdit'))
 const Patients = lazy(() => import('./pages/Patients'))   
 const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/PaymentTransaction'))
@@ -66,6 +68,9 @@ function App() {
           <Routes>
           <Route path="/" element={<HomeRedirect />} />
           
+          {/* Public Clinic Detail Route */}
+          <Route path="/clinics/:id" element={<ClinicDetail />} />
+          
           <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
           <Route path="/patient/auth" element={<PatientAuthRedirect />} />
           
@@ -85,6 +90,11 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <TenantSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor/profile/edit" element={
+            <ProtectedRoute allowedUserTypes={['tenant']}>
+              <DoctorProfileEdit />
             </ProtectedRoute>
           } />
           <Route path="/patients" element={

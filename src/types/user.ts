@@ -36,17 +36,20 @@ export interface UserWithDoctorDto extends UserDto {
 export interface DoctorDto extends BaseEntity {
   doctorId: number;
   userId: number;
-  specialty?: string;
-  licenseNumber?: string;
-  qualifications?: string;
-  experience?: string;
-  consultationFee?: number;
-  availableHours?: string;
-  isActive: boolean;
-  // User info
-  fullName?: string;
+  tenantId: number;
+  fullName: string;
   email?: string;
   phoneE164?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  avatarUrl?: string;
+  title?: string;
+  positionTitle?: string;
+  yearStarted?: number;
+  isVerified: boolean;
+  about?: string;
+  isActive: boolean;
+  tenantName?: string;
 }
 
 export interface ChangePasswordDto {
@@ -56,8 +59,56 @@ export interface ChangePasswordDto {
 }
 
 export interface CreateDoctorDto {
+  specialty: string;
+  licenseNumber: string;
+  title?: string;
+  positionTitle?: string;
+  yearStarted?: number;
+  about?: string;
+}
+
+export interface UpdateDoctorDto {
   specialty?: string;
   licenseNumber?: string;
+  avatarUrl?: string;
+  title?: string;
+  positionTitle?: string;
+  yearStarted?: number;
+  isVerified?: boolean;
+  about?: string;
+  isActive?: boolean;
+}
+
+export interface DoctorEditDto {
+  doctorId: number;
+  tenantId: number;
+  fullName: string;
+  email: string;
+  phoneE164?: string;
+  avatarUrl?: string;
+  title?: string;
+  positionTitle?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  yearStarted?: number;
+  about?: string;
+  isVerified: boolean;
+}
+
+export interface DoctorSelfUpdateDto {
+  fullName: string;
+  phoneE164?: string;
+  avatarUrl?: string;
+  title?: string;
+  positionTitle?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  yearStarted?: number;
+  about?: string;
+}
+
+export interface DoctorAdminUpdateDto extends DoctorSelfUpdateDto {
+  isVerified?: boolean;
 }
 
 export const UserRoles = {

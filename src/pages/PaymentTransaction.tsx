@@ -216,12 +216,6 @@ export default function PaymentTransaction() {
     <AdminLayout 
     breadcrumbTitle="Giao dịch thanh toán"
     actions={
-      <div className="flex gap-2">
-        
-      </div>
-    }
-    >
-      <div className="flex items-center justify-between">
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -232,7 +226,8 @@ export default function PaymentTransaction() {
             loadStats();
           }} />
         </div>
-      </div>
+      }
+    >
 
       <PaymentStats stats={stats} loading={statsLoading} />
 

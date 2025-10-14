@@ -344,11 +344,11 @@ export default function AppointmentTable({
         <>
           <div className="border rounded-md bg-white flex flex-col overflow-hidden">
             <div className="flex-1 overflow-auto min-h-[500px]">
-              <div className="min-w-[1200px] w-full">
+              <div className="w-full">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
                     <TableRow>
-                      <TableHead className="min-w-[30px]">Mã lịch</TableHead>
+                      <TableHead className="min-w-[30px]">Lịch hẹn</TableHead>
                       <TableHead className="min-w-[150px]">Trạng thái</TableHead>
                       <TableHead className="min-w-[120px]">Họ và tên</TableHead>
                       <TableHead className="min-w-[120px]">Ngày sinh</TableHead>

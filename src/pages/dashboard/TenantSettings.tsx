@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Textarea } from '@/components/ui/Textarea';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
 import { TimeInput } from '@/components/ui/TimeInput';
 import { Loader2, Save, AlertCircle } from 'lucide-react';
@@ -70,17 +70,17 @@ export default function TenantSettings() {
 
     const normalizePhoneNumber = (phone: string): string => {
         if (!phone) return phone;
-        
+
         const cleaned = phone.replace(/[\s\-\(\)]/g, '');
-        
+
         if (cleaned.startsWith('0')) {
             return '+84' + cleaned.substring(1);
         }
-        
+
         if (cleaned.startsWith('84') && !cleaned.startsWith('+84')) {
             return '+' + cleaned;
         }
-        
+
         return cleaned;
     };
 
@@ -176,6 +176,14 @@ export default function TenantSettings() {
             return;
         }
 
+        // Validate description length
+        if (formData.description && formData.description.length > 5000) {
+            toast.error('Mô tả quá dài', {
+                description: `Mô tả không được vượt quá 5,000 ký tự (hiện tại: ${formData.description.length})`
+            });
+            return;
+        }
+
         console.log('Saving tenant with data:', formData);
         setSaving(true);
         try {
@@ -193,19 +201,19 @@ export default function TenantSettings() {
                 const errorMessage = response.errors && response.errors.length > 0
                     ? response.errors.join(', ')
                     : response.message || 'Có lỗi xảy ra';
-                
+
                 toast.error('Cập nhật thất bại', {
                     description: errorMessage
                 });
             }
         } catch (error: any) {
             console.error('Error updating tenant:', error);
-            
+
             if (!error.toastShown) {
                 const errorMessage = error.response?.data?.errors?.length > 0
                     ? error.response.data.errors.join(', ')
                     : error.response?.data?.message || error.message || 'Không thể cập nhật thông tin';
-                
+
                 toast.error('Cập nhật thất bại', {
                     description: errorMessage
                 });
@@ -237,17 +245,10 @@ export default function TenantSettings() {
     }
 
     return (
-        <AdminLayout breadcrumbTitle="Cài đặt phòng khám">
-            <div className="space-y-6">
+        <AdminLayout
+            breadcrumbTitle="Cài đặt phòng khám"
+            actions={
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold flex items-center gap-2">
-                            Cài đặt Phòng khám
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Quản lý thông tin và cài đặt phòng khám
-                        </p>
-                    </div>
                     {canEdit && (
                         <Button onClick={handleSave} disabled={saving}>
                             {saving ? (
@@ -259,12 +260,18 @@ export default function TenantSettings() {
                         </Button>
                     )}
                 </div>
-
+            }
+        >
+            <div className="space-y-6">
                 {!canEdit && (
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                            Bạn chỉ có quyền xem thông tin. Chỉ <strong>Quản trị viên</strong> hoặc <strong>Chủ sở hữu</strong> mới có thể chỉnh sửa.
+                        <AlertDescription className="inline">
+                            Bạn chỉ có quyền xem thông tin. Chỉ{' '}
+                            <span className="font-semibold">Quản trị viên</span>
+                            {' '}hoặc{' '}
+                            <span className="font-semibold">Chủ sở hữu</span>
+                            {' '}mới có thể chỉnh sửa.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -344,13 +351,12 @@ export default function TenantSettings() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="description">Mô tả</Label>
-                                <Textarea
-                                    id="description"
+                                <RichTextEditor
                                     value={formData.description || ''}
-                                    onChange={(e) => handleInputChange('description', e.target.value)}
+                                    onChange={(value) => handleInputChange('description', value)}
                                     placeholder="Mô tả về phòng khám..."
-                                    rows={4}
                                     disabled={!canEdit}
+                                    maxLength={5000}
                                 />
                             </div>
                         </div>
@@ -358,12 +364,12 @@ export default function TenantSettings() {
                         <div className="space-y-4">
                             <div>
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                <Label className="text-base mb-3 block">
-                                    Ngày thường (Thứ 2 - Thứ 6)
-                                </Label>
-                                <Label className="text-base mb-3 block">
-                                    Cuối tuần (Thứ 7 - Chủ nhật)
-                                </Label>
+                                    <Label className="text-base mb-3 block">
+                                        Ngày thường (Thứ 2 - Thứ 6)
+                                    </Label>
+                                    <Label className="text-base mb-3 block">
+                                        Cuối tuần (Thứ 7 - Chủ nhật)
+                                    </Label>
                                 </div>
                                 <div className="grid gap-4 sm:grid-cols-4">
                                     <div className="space-y-2">

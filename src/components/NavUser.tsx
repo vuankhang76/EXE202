@@ -2,6 +2,7 @@ import {
   ChevronsUpDown,
   LogOut,
   User as UserIcon,
+  Edit,
 } from "lucide-react"
 
 import { useAuth } from "@/contexts/AuthContext"
@@ -96,6 +97,15 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {currentUser.role === 'Tenant' && (
+              <>
+                <DropdownMenuItem onClick={() => navigate('/doctor/profile/edit')}>
+                  <Edit />
+                  Chỉnh sửa hồ sơ
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Đăng xuất
