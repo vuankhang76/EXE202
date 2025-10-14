@@ -134,6 +134,14 @@ export default function AccountTable({
     );
   };
 
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto" />
+        <p className="text-muted-foreground mt-2">Đang tải...</p>
+      </div>
+    );
+  }
 
   if (!users || users.length === 0) {
     return (
