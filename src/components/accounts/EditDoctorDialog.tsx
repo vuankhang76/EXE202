@@ -20,15 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import { Plus, Loader2 } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { SPECIALTIES, ACADEMIC_TITLES, POSITION_TITLES } from "@/constants/doctorOptions";
+import { useEffect } from 'react';
 
-const createDoctorSchema = z.object({
+const editDoctorSchema = z.object({
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
-  phoneE164: z.string().regex(/^\+84\d{9}$/, 'Số điện thoại không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
-  confirmPassword: z.string().min(6, 'Xác nhận mật khẩu phải có ít nhất 6 ký tự'),
+  phoneE164: z.string().regex(/^\+84\d{9}$/, 'Số điện thoại phải có định dạng +84 và 9 số (tổng 10 số)'),
+  
   specialty: z.string().min(1, 'Chuyên khoa là bắt buộc'),
   licenseNumber: z.string().min(1, 'Số giấy phép hành nghề là bắt buộc'),
   title: z.string().optional(),
@@ -41,26 +41,25 @@ const createDoctorSchema = z.object({
       return !isNaN(num) && num >= 1950 && num <= new Date().getFullYear();
     }, `Năm bắt đầu phải từ 1950 đến ${new Date().getFullYear()}`),
   about: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không khớp",
-  path: ["confirmPassword"],
 });
 
-export type CreateDoctorFormData = z.infer<typeof createDoctorSchema>;
+export type EditDoctorFormData = z.infer<typeof editDoctorSchema>;
 
-interface CreateDoctorDialogProps {
+interface EditDoctorDialogProps {
   open: boolean;
-  creating: boolean;
+  saving: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateDoctorFormData) => Promise<void>;
+  onSubmit: (data: EditDoctorFormData) => Promise<void>;
+  initialData?: EditDoctorFormData | null;
 }
 
-export default function CreateDoctorDialog({
+export default function EditDoctorDialog({
   open,
-  creating,
+  saving,
   onOpenChange,
-  onSubmit
-}: CreateDoctorDialogProps) {
+  onSubmit,
+  initialData
+}: EditDoctorDialogProps) {
   const {
     register,
     handleSubmit,
@@ -68,16 +67,25 @@ export default function CreateDoctorDialog({
     control,
     setValue,
     formState: { errors },
-  } = useForm<CreateDoctorFormData>({
-    resolver: zodResolver(createDoctorSchema),
+  } = useForm<EditDoctorFormData>({
+    resolver: zodResolver(editDoctorSchema),
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
   });
 
+  // Load initial data when dialog opens
+  useEffect(() => {
+    if (open && initialData) {
+      reset(initialData);
+    }
+  }, [open, initialData, reset]);
+
+  // Normalize phone number to E.164 format (10 digits total: +84 + 9 digits)
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
     const cleaned = phone.replace(/[\s\-\(\)]/g, '');
 
+    // Remove +84 or 84 prefix to get the base number
     let baseNumber = cleaned;
     if (baseNumber.startsWith('+84')) {
       baseNumber = baseNumber.substring(3);
@@ -87,10 +95,13 @@ export default function CreateDoctorDialog({
       baseNumber = baseNumber.substring(1);
     }
 
+    // Only keep first 9 digits
     baseNumber = baseNumber.replace(/\D/g, '').substring(0, 9);
+
     return baseNumber ? '+84' + baseNumber : '';
   };
 
+  // Handle phone input change with auto-formatting
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const formatted = normalizePhoneNumber(value);
@@ -106,15 +117,16 @@ export default function CreateDoctorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar-thin">
         <DialogHeader>
-          <DialogTitle>Thêm bác sĩ mới</DialogTitle>
+          <DialogTitle>Chỉnh sửa thông tin bác sĩ</DialogTitle>
           <DialogDescription>
-            Tạo tài khoản và hồ sơ cho bác sĩ mới trong phòng khám
+            Cập nhật thông tin tài khoản và hồ sơ bác sĩ
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-muted-foreground">Thông tin tài khoản</h3>
+              
               <div className="space-y-2">
                 <Label htmlFor="fullName">
                   Họ và tên <span className="text-red-500">*</span>
@@ -138,7 +150,8 @@ export default function CreateDoctorDialog({
                     id="email"
                     type="email"
                     {...register('email')}
-                    placeholder="doctor@example.com"
+                    disabled
+                    className="bg-muted"
                   />
                   {errors.email && (
                     <p className="text-xs text-red-500">{errors.email.message}</p>
@@ -160,40 +173,9 @@ export default function CreateDoctorDialog({
                   )}
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">
-                    Mật khẩu <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    placeholder="Tối thiểu 6 ký tự"
-                  />
-                  {errors.password && (
-                    <p className="text-xs text-red-500">{errors.password.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">
-                    Xác nhận mật khẩu <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    {...register('confirmPassword')}
-                    placeholder="Nhập lại mật khẩu"
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
-                  )}
-                </div>
-              </div>
             </div>
 
+            {/* Doctor Professional Information Section */}
             <div className="space-y-4 pt-4 border-t">
               <h3 className="text-sm font-semibold text-muted-foreground">Thông tin chuyên môn</h3>
               
@@ -327,20 +309,20 @@ export default function CreateDoctorDialog({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={creating}
+              disabled={saving}
             >
               Huỷ
             </Button>
-            <Button type="submit" disabled={creating}>
-              {creating ? (
+            <Button type="submit" disabled={saving}>
+              {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo...
+                  Đang lưu...
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Tạo tài khoản
+                  <Save className="mr-2 h-4 w-4" />
+                  Lưu thay đổi
                 </>
               )}
             </Button>

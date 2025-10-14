@@ -150,8 +150,9 @@ export default function AppointmentFilters({
         </Select>
       </div>
 
-      <Button onClick={onSearch} className="h-10 px-6 shrink-0">
-        Tìm
+      <Button onClick={onSearch} className="h-9 px-6 shrink-0">
+        <Search className="h-4 w-4 mr-2" />
+        Tìm kiếm
       </Button>
 
       {onAdvancedFilters && (

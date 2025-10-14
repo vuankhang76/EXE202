@@ -27,6 +27,7 @@ export interface UserUpdateDto {
   phoneE164?: string;
   role?: string;
   tenantId?: number;
+  isActive?: boolean;
 }
 
 export interface UserWithDoctorDto extends UserDto {
