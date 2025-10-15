@@ -190,7 +190,6 @@ export default function AccountTable({
                     <TableCell className="font-medium">{user.fullName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
                         {user.email}
                       </div>
                     </TableCell>

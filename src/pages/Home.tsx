@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import tenantService from '@/services/tenantService';
-import type { TenantDto } from '@/types';
+import type { TenantDto, DoctorDto } from '@/types';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -81,9 +81,14 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [clinics, setClinics] = useState<TenantDto[]>([]);
   const [clinicsLoading, setClinicsLoading] = useState(true);
+  
+  const [currentDoctorSlide, setCurrentDoctorSlide] = useState(0);
+  const [doctors, setDoctors] = useState<DoctorDto[]>([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(true);
 
   useEffect(() => {
     loadClinics();
+    loadDoctors();
   }, []);
 
   const loadClinics = async () => {
@@ -97,6 +102,36 @@ export default function Home() {
       console.error('Error loading clinics:', error);
     } finally {
       setClinicsLoading(false);
+    }
+  };
+
+  const loadDoctors = async () => {
+    setDoctorsLoading(true);
+    try {
+      const clinicsResponse = await tenantService.getTenants(1, 100);
+      if (clinicsResponse.success && clinicsResponse.data) {
+        const allClinics = clinicsResponse.data.data || [];
+        const allDoctorsPromises = allClinics.map(clinic => 
+          tenantService.getTenantDoctors(clinic.tenantId)
+        );
+        
+        const doctorsResponses = await Promise.all(allDoctorsPromises);
+        const allDoctors: DoctorDto[] = [];
+        
+        doctorsResponses.forEach(response => {
+          if (response.success && response.data) {
+            const doctorsList = response.data.data || [];
+            allDoctors.push(...doctorsList);
+          }
+        });
+        
+        const verifiedDoctors = allDoctors.filter(doctor => doctor.isVerified === true);
+        setDoctors(verifiedDoctors);
+      }
+    } catch (error) {
+      console.error('Error loading doctors:', error);
+    } finally {
+      setDoctorsLoading(false);
     }
   };
 
@@ -128,6 +163,7 @@ export default function Home() {
 
   const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
   const maxSlide = Math.max(0, clinics.length - itemsPerView);
+  const maxDoctorSlide = Math.max(0, doctors.length - itemsPerView);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev >= maxSlide ? 0 : prev + 1));
@@ -137,11 +173,19 @@ export default function Home() {
     setCurrentSlide((prev) => (prev <= 0 ? maxSlide : prev - 1));
   };
 
+  const nextDoctorSlide = () => {
+    setCurrentDoctorSlide((prev) => (prev >= maxDoctorSlide ? 0 : prev + 1));
+  };
+
+  const prevDoctorSlide = () => {
+    setCurrentDoctorSlide((prev) => (prev <= 0 ? maxDoctorSlide : prev - 1));
+  };
+
   useEffect(() => {
     const handleResize = () => {
       const newItemsPerView = getItemsPerView();
       setItemsPerView(newItemsPerView);
-      setCurrentSlide(0); // Reset slide when screen size changes
+      setCurrentSlide(0);
     };
 
     window.addEventListener('resize', handleResize);
@@ -155,7 +199,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Navigation */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -400,10 +443,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Clinics Section */}
       <section id="clinics" className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
+          <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                 Đặt khám phòng khám
@@ -508,6 +550,140 @@ export default function Home() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Doctors Section */}
+      <section id="doctors" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                Đặt khám với bác sĩ
+              </h2>
+              <p className="text-gray-600">
+                Tìm kiếm và đặt lịch với các bác sĩ chuyên khoa hàng đầu
+              </p>
+            </div>
+            <Button 
+              variant="default"
+              onClick={() => navigate('/patient/auth')}
+              className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+            >
+              Xem thêm
+              <ChevronRight className="ml-1 w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="relative">
+            {/* Navigation Buttons */}
+            {currentDoctorSlide > 0 && (
+              <button
+                onClick={prevDoctorSlide}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-red-500 transition-colors group"
+              >
+                <ChevronLeft className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors" />
+              </button>
+            )}
+            
+            {currentDoctorSlide < maxDoctorSlide && (
+              <button
+                onClick={nextDoctorSlide}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-red-500 transition-colors group"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors" />
+              </button>
+            )}
+
+            <div className="overflow-hidden h-[380px]">
+              {doctorsLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Đang tải danh sách bác sĩ...</p>
+                  </div>
+                </div>
+              ) : doctors.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <Stethoscope className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">Chưa có bác sĩ nào</p>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className="flex transition-transform duration-300 ease-in-out gap-4 h-full p-4"
+                  style={{ transform: `translateX(-${currentDoctorSlide * (100 / itemsPerView)}%)` }}
+                >
+                  {doctors.map((doctor) => (
+                    <div 
+                      key={doctor.doctorId} 
+                      className="flex-shrink-0 h-full cursor-pointer" 
+                      style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
+                      onClick={() => navigate(`/clinics/${doctor.tenantId}`)}
+                    >
+                      <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col">
+                        <CardContent className="text-center p-6">
+                          <div className="mb-4 flex justify-center">
+                            <div className="relative">
+                              {doctor.avatarUrl ? (
+                                <img
+                                  src={doctor.avatarUrl}
+                                  alt={doctor.fullName}
+                                  className="w-24 h-24 rounded-full object-cover ring-4 ring-red-50"
+                                /> 
+                              ) : (
+                                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center">
+                                  <Stethoscope className="w-16 h-16 text-red-400" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <h3 className="font-medium text-gray-900 text-lg mb-1">
+                            {doctor.title && (
+                              <span className="font-medium text-gray-900 text-lg">
+                                {doctor.title}{' '}
+                              </span>
+                            )}
+                            {doctor.fullName}
+                          </h3>
+
+                          <div className="space-y-1 text-sm text-gray-600 mb-1">
+                            {doctor.specialty && (
+                              <p className="text-red-500">{doctor.specialty}</p>
+                            )}
+                            {doctor.yearStarted && (
+                              <p className="text-gray-500">
+                                {new Date().getFullYear() - doctor.yearStarted} năm kinh nghiệm
+                              </p>
+                            )}
+                          </div>
+
+                          {doctor.tenantName && (
+                            <p className="text-sm text-gray-500 mb-4">
+                              {doctor.tenantName}
+                            </p>
+                          )}
+
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/clinics/${doctor.tenantId}`);
+                            }}
+                            className="w-full bg-white border border-gray-300 text-black hover:bg-red-500 hover:text-white"
+                          >
+                            Đặt lịch khám
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

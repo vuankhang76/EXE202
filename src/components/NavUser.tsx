@@ -44,7 +44,6 @@ export function NavUser() {
         return;
       }
       
-      // Kiểm tra role Doctor hoặc ClinicAdmin
       const isDoctorOrAdmin = currentUser.role === 'Doctor' || currentUser.role === 'ClinicAdmin';
       
       if (currentUser.doctorId) {
@@ -55,7 +54,6 @@ export function NavUser() {
         setHasDocInfo(true);
       }
 
-      // Nếu chưa có avatar và user là Doctor/ClinicAdmin hoặc có doctorId
       if (!doctorAvatar && (isDoctorOrAdmin || currentUser.doctorId)) {
         try {
           const response = await userService.getUserWithDoctorInfo(Number(currentUser.userId));          
@@ -72,7 +70,6 @@ export function NavUser() {
         return;
       }
 
-      // Kiểm tra các role khác có liên kết với doctor không
       if (!doctorAvatar && !isDoctorOrAdmin && !currentUser.doctorId) {
         try {
           const response = await userService.getUserWithDoctorInfo(Number(currentUser.userId));

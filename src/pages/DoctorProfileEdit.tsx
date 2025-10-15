@@ -23,7 +23,6 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
-import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Select,
   SelectContent,
@@ -38,6 +37,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { DoctorEditDto, DoctorSelfUpdateDto } from '@/types';
 import { SPECIALTIES, ACADEMIC_TITLES, POSITION_TITLES } from '@/constants/doctorOptions';
+import { DoctorProfileEditSkeleton } from '@/components/doctor/DoctorProfileEditSkeleton';
 
 const doctorProfileSchema = z.object({
   fullName: z
@@ -104,12 +104,10 @@ export default function DoctorProfileEdit() {
 
   const isDirty = formIsDirty || manualDirty;
 
-  // Normalize phone number to E.164 format (10 digits total: +84 + 9 digits)
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
     const cleaned = phone.replace(/[\s\-\(\)]/g, '');
 
-    // Remove +84 or 84 prefix to get the base number
     let baseNumber = cleaned;
     if (baseNumber.startsWith('+84')) {
       baseNumber = baseNumber.substring(3);
@@ -119,7 +117,6 @@ export default function DoctorProfileEdit() {
       baseNumber = baseNumber.substring(1);
     }
 
-    // Only keep first 9 digits
     baseNumber = baseNumber.replace(/\D/g, '').substring(0, 9);
 
     return baseNumber ? '+84' + baseNumber : '';
@@ -292,99 +289,7 @@ export default function DoctorProfileEdit() {
   if (loading) {
     return (
       <AdminLayout breadcrumbTitle="Chỉnh sửa hồ sơ">
-        <div className="space-y-6">
-          {/* Header Actions Skeleton */}
-          <div className="flex items-center justify-end gap-2 mb-6">
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Avatar Card Skeleton */}
-            <Card className="lg:col-span-1">
-              <CardHeader className="flex w-full justify-center">
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-col items-center gap-4">
-                    <Skeleton className="h-44 w-44 rounded-full" />
-                    <Skeleton className="h-4 w-40" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Basic Info Card Skeleton */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <Skeleton className="h-6 w-40" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Professional Info Card Skeleton */}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* About Card Skeleton */}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-24" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Skeleton className="h-64 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DoctorProfileEditSkeleton />
       </AdminLayout>
     );
   }
