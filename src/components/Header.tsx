@@ -4,7 +4,6 @@ import { Button } from './ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -20,6 +19,14 @@ export default function Header() {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const handleNavigateToAppointments = () => {
+    navigate('/patient/appointments');
+  };
+
+  const handleNavigateToDashboard = () => {
+    navigate('/patient/dashboard');
   };
 
   return (
@@ -62,25 +69,40 @@ export default function Header() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/patient/dashboard')}
-                    className="flex items-center gap-2"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleNavigateToDashboard();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
                   >
                     <User className="h-4 w-4" />
                     <span>Bảng điều khiển</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2">
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleNavigateToAppointments();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
+                  >
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
-                  </DropdownMenuItem>
+                  </button>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-red-50 rounded-sm cursor-pointer text-left text-red-600"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Đăng xuất</span>
-                  </DropdownMenuItem>
+                  </button>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -104,25 +126,43 @@ export default function Header() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/patient/dashboard')}
-                    className="flex items-center gap-2"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Dashboard button clicked! (mobile)');
+                      handleNavigateToDashboard();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
                   >
                     <User className="h-4 w-4" />
                     <span>Bảng điều khiển</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2">
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Appointments button clicked! (mobile)');
+                      handleNavigateToAppointments();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
+                  >
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
-                  </DropdownMenuItem>
+                  </button>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Logout button clicked! (mobile)');
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-red-50 rounded-sm cursor-pointer text-left text-red-600"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Đăng xuất</span>
-                  </DropdownMenuItem>
+                  </button>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

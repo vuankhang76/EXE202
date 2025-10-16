@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import ClinicHeader from '@/components/clinic/ClinicHeader';
 import ClinicIntroBooking from '@/components/clinic/ClinicIntroBooking';
 import DoctorList from '@/components/clinic/DoctorList';
+import ClinicDetailSkeleton from '@/components/clinic/ClinicDetailSkeleton';
 import tenantService from '@/services/tenantService';
 import type { TenantDto, DoctorDto } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,15 +51,26 @@ export default function ClinicDetail() {
         if (!currentUser || userType !== 'patient') {
             navigate('/patient/auth', {
                 state: {
-                    from: `/clinics/`,
-                    message: 'Vui l�ng dang nh?p d? d?t l?ch kh�m'
+                    from: `/clinics/${id}`,
+                    message: 'Vui lòng đăng nhập để đặt lịch hẹn'
                 }
             });
             return;
         }
 
         const selectedDoctor = doctors[0];
-        if (!selectedDoctor) return;
+        if (!selectedDoctor) {
+            alert('Phòng khám chưa có bác sĩ nào');
+            return;
+        }
+
+        // PatientId should be passed from auth context or stored in currentUser
+        const patientIdNum = currentUser.userId ? parseInt(currentUser.userId) : null;
+        
+        if (!patientIdNum) {
+            alert('Không tìm thấy thông tin bệnh nhân. Vui lòng đăng nhập lại.');
+            return;
+        }
 
         navigate('/patient/appointments/create', {
             state: {
@@ -66,19 +78,19 @@ export default function ClinicDetail() {
                 clinicName: clinic?.name,
                 doctorId: selectedDoctor.doctorId,
                 doctorName: selectedDoctor.fullName,
-                specialty: selectedDoctor.specialty
+                specialty: selectedDoctor.specialty,
+                patientId: patientIdNum
             }
         });
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">�ang t?i th�ng tin ph�ng kh�m...</p>
-                </div>
-            </div>
+            <>
+                <Header />
+                <ClinicDetailSkeleton />
+                <Footer />
+            </>
         );
     }
 

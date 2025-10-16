@@ -40,21 +40,27 @@ export const useAuth = () => {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [userType, setUserType] = useState<UserType | null>(null);
+
+  // Load from localStorage on mount (runs AFTER initial render)
+  useEffect(() => {
+    const patientToken = patientAccountService.getToken();
     const patientUser = patientAccountService.getUser();
-    if (patientUser) return { ...patientUser, userId: String(patientUser.userId) };
-    return authService.getUser();
-  });
-  
-  const [token, setToken] = useState<string | null>(() => {
-    return patientAccountService.getToken() || authService.getToken();
-  });
-  
-  const [userType, setUserType] = useState<UserType | null>(() => {
-    if (patientAccountService.getToken()) return 'patient';
-    if (authService.getToken()) return 'tenant';
-    return null;
-  });
+    const tenantToken = authService.getToken();
+    const tenantUser = authService.getUser();
+    
+    if (patientToken && patientUser) {
+      setCurrentUser({ ...patientUser, userId: String(patientUser.userId) });
+      setToken(patientToken);
+      setUserType('patient');
+    } else if (tenantToken && tenantUser) {
+      setCurrentUser(tenantUser);
+      setToken(tenantToken);
+      setUserType('tenant');
+    }
+  }, []);
 
   // Cache doctor avatar in memory (persists across page navigations)
   const [doctorAvatar, setDoctorAvatar] = useState<string | null>(() => {
@@ -118,6 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         result = await authService.staffLogin(email!, password);
       }
 
+      console.log('Login API result:', result);
+      console.log('Result.data:', result.data);
+
       if (!result.success || !result.data) {
         const errorMessage = result.message || 'Đăng nhập thất bại';
         toast.error('Đăng nhập thất bại', {
@@ -127,6 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const { token: authToken, user } = result.data;
+      
+      console.log('Extracted token:', authToken);
+      console.log('Extracted user:', user);
       
       if (userType === 'patient') {
         patientAccountService.saveAuth(authToken, user);

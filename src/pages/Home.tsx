@@ -17,7 +17,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import tenantService from '@/services/tenantService';
 import type { TenantDto, DoctorDto } from '@/types';
-
+import Footer from '@/components/Footer';
+import ClinicCardSkeleton from '@/components/clinic/ClinicCardSkeleton';
+import DoctorCardSkeleton from '@/components/doctor/DoctorCardSkeleton';
 export default function Home() {
   const navigate = useNavigate();
   const { currentUser, userType, logout } = useAuth();
@@ -245,7 +247,10 @@ export default function Home() {
                       <User className="h-4 w-4" />
                       <span>Bảng điều khiển</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2">
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/appointments')}
+                      className="flex items-center gap-2"
+                    >
                       <Calendar className="h-4 w-4" />
                       <span>Lịch hẹn</span>
                     </DropdownMenuItem>
@@ -287,7 +292,10 @@ export default function Home() {
                       <User className="h-4 w-4" />
                       <span>Bảng điều khiển</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2">
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/patient/appointments')}
+                      className="flex items-center gap-2"
+                    >
                       <Calendar className="h-4 w-4" />
                       <span>Lịch hẹn</span>
                     </DropdownMenuItem>
@@ -310,13 +318,6 @@ export default function Home() {
                   >
                     Bệnh nhân
                   </Button>
-                  <Button 
-                    onClick={() => navigate('/login')}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Nhân viên
-                  </Button>
                 </>
               )}
             </div>
@@ -324,7 +325,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="relative bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -412,8 +412,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-gray-200">
@@ -443,7 +442,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="clinics" className="py-20 bg-white">
+      <section id="clinics" className="py-10 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
             <div>
@@ -462,7 +461,6 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            {/* Navigation Buttons */}
             {currentSlide > 0 && (
               <button
                 onClick={prevSlide}
@@ -483,12 +481,7 @@ export default function Home() {
 
             <div className="overflow-hidden h-[420px]">
               {clinicsLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải danh sách phòng khám...</p>
-                  </div>
-                </div>
+                <ClinicCardSkeleton itemsPerView={itemsPerView} />
               ) : clinics.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -509,7 +502,7 @@ export default function Home() {
                         style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
                         onClick={() => navigate(`/clinics/${clinic.tenantId}`)}
                       >
-                        <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col py-0">
+                        <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col py-0 gap-0">
                           <div className="relative h-48 flex-shrink-0">
                             <img 
                               src={clinic.coverImageUrl || clinic.thumbnailUrl || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80'} 
@@ -527,7 +520,7 @@ export default function Home() {
                             )}
                           </div>
                           <CardContent className="p-4 flex flex-col flex-grow">
-                            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+                            <h3 className="text-base font-semibold text-gray-900 mb-1">
                               {clinic.name}
                             </h3>
                             <p className="text-sm text-gray-600 mb-3 h-10 line-clamp-2">
@@ -557,8 +550,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Doctors Section */}
-      <section id="doctors" className="py-20 bg-gray-50">
+      <section id="doctors" className="bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
             <div>
@@ -580,7 +572,6 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            {/* Navigation Buttons */}
             {currentDoctorSlide > 0 && (
               <button
                 onClick={prevDoctorSlide}
@@ -599,14 +590,9 @@ export default function Home() {
               </button>
             )}
 
-            <div className="overflow-hidden h-[380px]">
+            <div className="overflow-hidden">
               {doctorsLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải danh sách bác sĩ...</p>
-                  </div>
-                </div>
+                <DoctorCardSkeleton itemsPerView={itemsPerView} />
               ) : doctors.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -622,12 +608,12 @@ export default function Home() {
                   {doctors.map((doctor) => (
                     <div 
                       key={doctor.doctorId} 
-                      className="flex-shrink-0 h-full cursor-pointer" 
+                      className="flex-shrink-0 h-full cursor-pointer"
                       style={{ width: `calc(${100 / itemsPerView}% - ${(itemsPerView - 1) * 16 / itemsPerView}px)` }}
                       onClick={() => navigate(`/clinics/${doctor.tenantId}`)}
                     >
-                      <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden h-full flex flex-col">
-                        <CardContent className="text-center p-6">
+                      <Card className="border border-gray-200 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden  flex flex-col py-0">
+                        <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-4">
                           <div className="mb-4 flex justify-center">
                             <div className="relative">
                               {doctor.avatarUrl ? (
@@ -691,8 +677,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 bg-gray-50">
+      <section id="how-it-works" className="py-10 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-full text-sm font-medium mb-4 border border-gray-200">
@@ -726,7 +711,7 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="py-10 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="space-y-6">
@@ -776,55 +761,11 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-100 border-t border-gray-100 py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <img src={Logo} alt="SavePlus" className="h-8 w-auto" />
-                <span className="text-xl font-bold text-black">SavePlus</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Nền tảng đặt lịch khám y tế tin cậy, kết nối bạn với các chuyên gia sức khỏe hàng đầu.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-black mb-4">Dịch vụ</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Đặt lịch khám</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Tư vấn trực tuyến</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Xét nghiệm</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Quản lý hồ sơ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-black mb-4">Hỗ trợ</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Trung tâm hỗ trợ</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Câu hỏi thường gặp</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Điều khoản sử dụng</a></li>
-                <li><a href="#" className="hover:text-red-500 text-gray-600 transition-colors">Chính sách bảo mật</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-black mb-4">Liên hệ</h4>
-              <ul className="space-y-2 text-sm">
-                <li className="text-gray-600">Email: contact@saveplus.vn</li>
-                <li className="text-gray-600">Hotline: 1900-xxxx</li>
-                <li className="text-gray-600">Địa chỉ: TP. Hồ Chí Minh</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 pt-8 text-center text-sm text-gray-600">
-            <p className="font-semibold">&copy; 2024 SavePlus. Công Ty TNHH SavePlus.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
+
 
 
 

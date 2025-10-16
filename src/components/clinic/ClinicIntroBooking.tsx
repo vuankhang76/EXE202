@@ -12,7 +12,6 @@ export default function ClinicIntroBooking({ clinic, onBookAppointment }: Clinic
   return (
     <section className="py-12 bg-gray-50">
       <div className="grid grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto gap-8">
-        {/* Introduction Section */}
         {clinic.description && (
           <div className="p-4">
             <h2 className="text-xl font-medium text-gray-900 mb-4">
@@ -25,7 +24,6 @@ export default function ClinicIntroBooking({ clinic, onBookAppointment }: Clinic
           </div>
         )}
 
-        {/* Booking CTA Section */}
         <div className="p-4 md:p-6">
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">

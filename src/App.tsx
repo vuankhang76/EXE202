@@ -9,6 +9,8 @@ const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
 const PatientAuth = lazy(() => import('./pages/authenticate/PatientAuth'))
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
+const PatientAppointments = lazy(() => import('./pages/patient/Appointments'))
+const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -76,6 +78,16 @@ function App() {
           <Route path="/patient/dashboard" element={
             <ProtectedRoute allowedUserTypes={['patient']}>
               <PatientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/appointments" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <PatientAppointments />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/appointments/create" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <CreateAppointment />
             </ProtectedRoute>
           } />
           
