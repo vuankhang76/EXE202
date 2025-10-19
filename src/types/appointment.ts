@@ -38,6 +38,7 @@ export interface AppointmentCreateDto {
   channel?: string;
   address?: string;
   estimatedCost?: number; // Chi phí ước tính
+  serviceId?: number; // Service selected
 }
 
 export interface AppointmentFormData {

@@ -11,6 +11,7 @@ const PatientAuth = lazy(() => import('./pages/authenticate/PatientAuth'))
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
 const PatientAppointments = lazy(() => import('./pages/patient/Appointments'))
 const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment'))
+const PaymentPage = lazy(() => import('./pages/patient/PaymentPage'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -41,7 +42,6 @@ function HomeRedirect() {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // Patient hoặc chưa đăng nhập -> hiển thị Home
   return <Home />;
 }
 
@@ -88,6 +88,11 @@ function App() {
           <Route path="/patient/appointments/create" element={
             <ProtectedRoute allowedUserTypes={['patient']}>
               <CreateAppointment />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/payment" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <PaymentPage />
             </ProtectedRoute>
           } />
           

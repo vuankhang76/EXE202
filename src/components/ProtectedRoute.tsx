@@ -7,7 +7,16 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedUserTypes }: ProtectedRouteProps) {
-  const { currentUser, token, userType } = useAuth();
+  const { currentUser, token, userType, isInitialized } = useAuth();
+
+  // Chờ AuthContext load xong từ localStorage
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
 
   if (!currentUser || !token) {
     return <Navigate to="/" replace />;

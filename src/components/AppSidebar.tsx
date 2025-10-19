@@ -51,11 +51,6 @@ const navigationData = {
       icon: Home,
     },
     {
-      title: "Cài đặt phòng khám",
-      url: "/settings",
-      icon: Settings,
-    },
-    {
       title: "Tài khoản",
       url: "/accounts",
       icon: UserCog,
@@ -64,6 +59,11 @@ const navigationData = {
       title: "Báo cáo & Thống kê",
       url: "/reports",
       icon: UserCog,
+    },
+    {
+      title: "Cài đặt",
+      url: "/settings",
+      icon: Settings,
     },
   ],
 }

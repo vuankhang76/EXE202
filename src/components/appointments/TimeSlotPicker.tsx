@@ -9,13 +9,15 @@ interface TimeSlotPickerProps {
   selectedDate: Date;
   onTimeSlotSelect: (startTime: string, endTime: string) => void;
   selectedTime?: string;
+  slotDurationMinutes?: number; // Duration from TenantSettings
 }
 
 export default function TimeSlotPicker({
   doctorId,
   selectedDate,
   onTimeSlotSelect,
-  selectedTime
+  selectedTime,
+  slotDurationMinutes = 30 // Default fallback
 }: TimeSlotPickerProps) {
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,52 +34,38 @@ export default function TimeSlotPicker({
     setError('');
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      console.log('Loading time slots for doctor:', doctorId, 'date:', dateStr);
       
       const response = await appointmentService.getAvailableTimeSlots(
         doctorId,
         dateStr,
-        30, // 30 minutes duration
+        slotDurationMinutes, // Use duration from TenantSettings
         true
       );
-
-      console.log('Time slots response:', response);
-
       if (response.success && response.data) {
-        console.log('Time slots data:', response.data);
         setTimeSlots(response.data);
       } else {
         setError(response.message || 'Không thể tải lịch trống');
       }
     } catch (err) {
       setError('Đã xảy ra lỗi khi tải lịch trống');
-      console.error('Error loading time slots:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleTimeSlotClick = (timeSlot: string) => {
-    console.log('Time slot clicked:', timeSlot);
-    
-    // Parse the ISO datetime string from backend (e.g., "2025-10-16T09:00:00")
-    // We need to preserve the local time, not convert to UTC
-    
     let year: number, month: number, day: number, hour: number, minute: number;
-    
     if (timeSlot.includes('T')) {
-      // ISO format: "2025-10-16T09:00:00"
       const [datePart, timePart] = timeSlot.split('T');
       const [y, m, d] = datePart.split('-').map(Number);
       const [h, min] = timePart.split(':').map(Number);
       
       year = y;
-      month = m - 1; // JavaScript months are 0-indexed
+      month = m - 1
       day = d;
       hour = h;
       minute = min;
     } else if (timeSlot.includes(':')) {
-      // Time only format: "09:00:00" or "09:00"
       const dateStr = selectedDate.toISOString().split('T')[0];
       const [y, m, d] = dateStr.split('-').map(Number);
       const [h, min] = timeSlot.split(':').map(Number);
@@ -88,16 +76,11 @@ export default function TimeSlotPicker({
       hour = h;
       minute = min;
     } else {
-      console.error('Unexpected time slot format:', timeSlot);
       return;
     }
-    
-    // Create date in LOCAL timezone (not UTC!)
-    const startTime = new Date(year, month, day, hour, minute, 0);
-    const endTime = new Date(year, month, day, hour, minute + 30, 0); // Add 30 minutes
+        const startTime = new Date(year, month, day, hour, minute, 0);
+    const endTime = new Date(year, month, day, hour, minute + slotDurationMinutes, 0);
 
-    // Format to ISO string but preserve local time
-    // Backend expects: "2025-10-16T09:00:00" (no Z, no timezone offset)
     const formatLocalISO = (date: Date) => {
       const pad = (n: number) => String(n).padStart(2, '0');
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -106,41 +89,59 @@ export default function TimeSlotPicker({
     const startISO = formatLocalISO(startTime);
     const endISO = formatLocalISO(endTime);
 
-    console.log('Selected time:', timeSlot);
-    console.log('Start time (local):', startISO);
-    console.log('End time (local):', endISO);
-
     onTimeSlotSelect(startISO, endISO);
   };
 
-  // Memoize formatted time slots to prevent excessive re-renders
   const formattedSlots = useMemo(() => {
-    return timeSlots.map(slot => {
-      // If it's ISO format with date
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const isToday = today.getTime() === selectedDay.getTime();
+    
+    return timeSlots.map((slot) => {
+      let slotTime: Date;
+      
+      if (slot.includes('T')) {
+        const [datePart, timePart] = slot.split('T');
+        const [y, m, d] = datePart.split('-').map(Number);
+        const [h, min] = timePart.split(':').map(Number);
+        slotTime = new Date(y, m - 1, d, h, min, 0);
+      } else if (slot.includes(':')) {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const [h, min] = slot.split(':').map(Number);
+        slotTime = new Date(y, m - 1, d, h, min, 0);
+      } else {
+        return { time: slot, isPast: false };
+      }
+      
+      let formattedTime: string;
       if (slot.includes('T')) {
         const [, timePart] = slot.split('T');
-        return timePart.substring(0, 5); // HH:mm
+        formattedTime = timePart.substring(0, 5);
+      } else if (slot.includes(':')) {
+        formattedTime = slot.substring(0, 5);
+      } else {
+        formattedTime = slot;
       }
       
-      // If it's just time (HH:mm:ss or HH:mm)
-      if (slot.includes(':')) {
-        return slot.substring(0, 5); // HH:mm
-      }
+      const isPast = isToday && slotTime < now;
       
-      // Fallback
-      return slot;
+      return {
+        time: formattedTime,
+        isPast: isPast
+      };
     });
-  }, [timeSlots]);
+  }, [timeSlots, selectedDate]);
 
   const isTimeSlotSelected = useCallback((index: number) => {
     if (!selectedTime || !timeSlots[index]) return false;
     
     try {
-      // Parse the selected time
       const selected = new Date(selectedTime);
       const selectedFormatted = `${String(selected.getHours()).padStart(2, '0')}:${String(selected.getMinutes()).padStart(2, '0')}`;
       
-      return formattedSlots[index] === selectedFormatted;
+      return formattedSlots[index]?.time === selectedFormatted;
     } catch (error) {
       return false;
     }
@@ -192,17 +193,24 @@ export default function TimeSlotPicker({
     );
   }
 
+  const availableSlotsCount = formattedSlots.filter(slot => !slot.isPast).length;
+
   return (
     <Card>
       <CardContent className="p-6">
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5 text-red-500" />
-          Chọn giờ khám ({timeSlots.length} khung giờ)
+          Chọn giờ khám ({availableSlotsCount} khung giờ)
         </h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
           {timeSlots.map((slot, index) => {
-            const formattedTime = formattedSlots[index];
+            const slotData = formattedSlots[index];
             const isSelected = isTimeSlotSelected(index);
+            const isPast = slotData?.isPast || false;
+            
+            if (isPast) {
+              return null;
+            }
             
             return (
               <Button
@@ -215,21 +223,11 @@ export default function TimeSlotPicker({
                 }`}
                 onClick={() => handleTimeSlotClick(slot)}
               >
-                {formattedTime}
+                {slotData?.time}
               </Button>
             );
           })}
         </div>
-        
-        {/* Debug info - remove in production */}
-        {process.env.NODE_ENV === 'development' && timeSlots.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-            <p className="font-semibold mb-1">Debug Info:</p>
-            <p>First slot raw: {timeSlots[0]}</p>
-            <p>First slot formatted: {formattedSlots[0]}</p>
-            <p>Total slots: {timeSlots.length}</p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

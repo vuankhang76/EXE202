@@ -20,10 +20,16 @@ import { useApiCall } from '@/hooks/useApiCall';
 import { usePatientSearch } from '@/hooks/usePatientSearch';
 import { useDoctorSearch } from '@/hooks/useDoctorSearch';
 import appointmentService from '@/services/appointmentService';
+import { serviceService } from '@/services/serviceService';
+import { tenantSettingService } from '@/services/tenantSettingService';
+import { paymentTransactionService } from '@/services/paymentTransactionService';
+import patientService from '@/services/patientService';
 import { toast } from 'sonner';
 import { SimpleDatePicker } from '@/components/ui/SimpleDatePicker';
 import { Combobox } from '@/components/ui/Combobox';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Service } from '@/types/service';
+import type { PatientRegistrationDto } from '@/types';
 
 interface CreateAppointmentDialogProps {
   onSuccess?: () => void;
@@ -43,7 +49,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     endTime: '',
     type: AppointmentType.CLINIC,
     notes: '',
-    estimatedCost: 200000
+    estimatedCost: 0
   });
 
   const patientSearch = usePatientSearch(tenantId);
@@ -53,14 +59,53 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityMessage, setAvailabilityMessage] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
+  
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<number>(0);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [slotDurationMinutes, setSlotDurationMinutes] = useState<number>(30);
+
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [newPatientData, setNewPatientData] = useState<PatientRegistrationDto>({
+    fullName: '',
+    primaryPhoneE164: '',
+    gender: '',
+    dateOfBirth: undefined,
+    address: ''
+  });
+  
+  const [registrationErrors, setRegistrationErrors] = useState({
+    fullName: '',
+    phone: '',
+    dateOfBirth: ''
+  });
 
   const createAppointmentWrapper = async (formData: AppointmentFormData) => {
     try {
       const createDto = appointmentService.convertFormDataToCreateDto(formData);      
       const result = await appointmentService.createAppointment(createDto);
+      
+      if (formData.type === AppointmentType.CLINIC && result.success && result.data) {
+        try {
+          const paymentData = {
+            tenantId: formData.tenantId,
+            patientId: formData.patientId,
+            appointmentId: result.data.appointmentId,
+            amount: formData.estimatedCost || 0,
+            currency: 'VND',
+            method: 'Cash', // CASH payment for clinic appointments
+          };
+          
+          await paymentTransactionService.createPaymentTransaction(paymentData);
+        } catch (paymentError) {
+          console.error('Failed to create payment transaction:', paymentError);
+
+        }
+      }
+      
       return result;
     } catch (error: any) {
-      console.error('Error in wrapper:', error);
       throw error;
     }
   };
@@ -89,7 +134,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
       endTime: '',
       type: AppointmentType.CLINIC,
       notes: '',
-      estimatedCost: 200000
+      estimatedCost: 0
     });
     patientSearch.setSearchTerm('');
     patientSearch.setSelectedPatientId('');
@@ -97,7 +142,249 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     doctorSearch.setSelectedDoctorId('');
     setAvailableTimeSlots([]);
     setAvailabilityMessage(null);
+    setSelectedServiceId(0);
+    setShowRegisterForm(false);
+    setNewPatientData({
+      fullName: '',
+      primaryPhoneE164: '',
+      gender: '',
+      dateOfBirth: undefined,
+      address: ''
+    });
+    setRegistrationErrors({
+      fullName: '',
+      phone: '',
+      dateOfBirth: ''
+    });
   };
+
+  const validateField = (field: keyof typeof newPatientData, value: any) => {
+    const errors = { ...registrationErrors };
+    
+    switch (field) {
+      case 'fullName':
+        if (!value || !value.trim()) {
+          errors.fullName = 'Họ tên là bắt buộc';
+        } else if (value.trim().length < 2) {
+          errors.fullName = 'Họ tên phải có ít nhất 2 ký tự';
+        } else if (value.length > 200) {
+          errors.fullName = 'Họ tên không được vượt quá 200 ký tự';
+        } else {
+          errors.fullName = '';
+        }
+        break;
+        
+      case 'primaryPhoneE164':
+        if (!value || !value.trim()) {
+          errors.phone = 'Số điện thoại là bắt buộc';
+        } else {
+          const phoneRegex = /^(\+84|84|0)[0-9]{9,10}$/;
+          if (!phoneRegex.test(value.trim())) {
+            errors.phone = 'Định dạng: 0xxxxxxxxx hoặc +84xxxxxxxxx';
+          } else {
+            errors.phone = '';
+          }
+        }
+        break;
+        
+      case 'dateOfBirth':
+        if (value) {
+          const dob = new Date(value);
+          const today = new Date();
+          if (dob > today) {
+            errors.dateOfBirth = 'Ngày sinh không được là ngày tương lai';
+          } else {
+            const age = today.getFullYear() - dob.getFullYear();
+            if (age > 150) {
+              errors.dateOfBirth = 'Ngày sinh không hợp lệ';
+            } else {
+              errors.dateOfBirth = '';
+            }
+          }
+        } else {
+          errors.dateOfBirth = '';
+        }
+        break;
+    }
+    
+    setRegistrationErrors(errors);
+  };
+
+  const updatePatientField = (field: keyof typeof newPatientData, value: any) => {
+    setNewPatientData({ ...newPatientData, [field]: value });
+    validateField(field, value);
+  };
+
+  const normalizePhoneToE164 = (phone: string): string => {
+    const cleaned = phone.trim().replace(/[\s\-\(\)]/g, '');
+    
+    if (cleaned.startsWith('+84')) {
+      return cleaned;
+    }
+    
+    if (cleaned.startsWith('84')) {
+      return '+' + cleaned;
+    }
+    
+    if (cleaned.startsWith('0')) {
+      return '+84' + cleaned.substring(1);
+    }
+    
+    return cleaned;
+  };
+
+  const handleQuickRegister = async () => {
+    if (!newPatientData.fullName.trim()) {
+      toast.error('Vui lòng nhập họ tên');
+      return;
+    }
+    
+    if (newPatientData.fullName.trim().length < 2) {
+      toast.error('Họ tên phải có ít nhất 2 ký tự');
+      return;
+    }
+    
+    if (newPatientData.fullName.length > 200) {
+      toast.error('Họ tên không được vượt quá 200 ký tự');
+      return;
+    }
+
+    if (!newPatientData.primaryPhoneE164.trim()) {
+      toast.error('Vui lòng nhập số điện thoại');
+      return;
+    }
+
+    const phoneRegex = /^(\+84|84|0)[0-9]{9,10}$/;
+    if (!phoneRegex.test(newPatientData.primaryPhoneE164.trim())) {
+      toast.error('Số điện thoại không hợp lệ. Định dạng: 0xxxxxxxxx hoặc +84xxxxxxxxx');
+      return;
+    }
+
+    const cleanPhone = newPatientData.primaryPhoneE164.trim();
+    const validPrefixes = ['090', '091', '092', '093', '094', '096', '097', '098', '099', // Mobifone
+                          '070', '076', '077', '078', '079', // Mobifone
+                          '088', '089', // Vinaphone
+                          '081', '082', '083', '084', '085', // Vinaphone
+                          '032', '033', '034', '035', '036', '037', '038', '039', // Vinaphone
+                          '056', '058', // Vietnamobile
+                          '092', '059', // Vietnamobile
+                          '086', '096', '097', '098', // Viettel
+                          '062', '063', '064', '065', '066', '067', '068', '069']; // Gmobile
+    
+    const phonePrefix = cleanPhone.startsWith('+84') 
+      ? '0' + cleanPhone.substring(3, 5)
+      : cleanPhone.startsWith('84')
+      ? '0' + cleanPhone.substring(2, 4)
+      : cleanPhone.substring(0, 3);
+    
+    if (!validPrefixes.includes(phonePrefix)) {
+      toast.error('Đầu số điện thoại không hợp lệ');
+      return;
+    }
+
+    if (newPatientData.gender && !['M', 'F', 'O'].includes(newPatientData.gender)) {
+      toast.error('Giới tính không hợp lệ');
+      return;
+    }
+
+    if (newPatientData.dateOfBirth) {
+      const dob = new Date(newPatientData.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      
+      if (dob > today) {
+        toast.error('Ngày sinh không được là ngày trong tương lai');
+        return;
+      }
+      
+      if (age > 150) {
+        toast.error('Ngày sinh không hợp lệ');
+        return;
+      }
+    }
+
+    if (newPatientData.address && newPatientData.address.length > 300) {
+      toast.error('Địa chỉ không được vượt quá 300 ký tự');
+      return;
+    }
+
+    setIsRegistering(true);
+    try {
+      const normalizedData = {
+        ...newPatientData,
+        primaryPhoneE164: normalizePhoneToE164(newPatientData.primaryPhoneE164)
+      };
+
+
+      const registerResponse = await patientService.registerPatient(normalizedData);
+      
+      if (!registerResponse.success || !registerResponse.data) {
+        toast.error(registerResponse.message || 'Không thể đăng ký bệnh nhân');
+        return;
+      }
+
+      const newPatientId = registerResponse.data.patientId;
+
+      const enrollResponse = await patientService.enrollPatientToClinic(newPatientId, tenantId);
+      
+      if (!enrollResponse.success) {
+        toast.error('Đăng ký thành công nhưng không thể thêm vào phòng khám');
+        return;
+      }
+
+      toast.success('Đăng ký bệnh nhân thành công!');
+      
+      patientSearch.setSelectedPatientId(newPatientId.toString());
+      
+      setShowRegisterForm(false);
+      
+      setNewPatientData({
+        fullName: '',
+        primaryPhoneE164: '',
+        gender: '',
+        dateOfBirth: undefined,
+        address: ''
+      });
+    } catch (error: any) {
+      console.error('Error registering patient:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký bệnh nhân');
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && tenantId) {
+      loadServicesAndSettings();
+    }
+  }, [open, tenantId]);
+
+  const loadServicesAndSettings = async () => {
+    try {
+      setLoadingServices(true);
+      const servicesResponse = await serviceService.getTenantServices(tenantId);
+      if (servicesResponse.success && servicesResponse.data) {
+        setServices(servicesResponse.data);
+      }
+
+      const configResponse = await tenantSettingService.getBookingConfig(tenantId);
+      if (configResponse.success && configResponse.data) {
+        setSlotDurationMinutes(configResponse.data.defaultSlotDurationMinutes);
+      }
+    } catch (error) {
+      console.error('Error loading services and settings:', error);
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+  useEffect(() => {
+    if (selectedServiceId > 0) {
+      const selectedService = services.find(s => s.serviceId === selectedServiceId);
+      if (selectedService) {
+        setFormData(prev => ({ ...prev, estimatedCost: selectedService.basePrice }));
+      }
+    }
+  }, [selectedServiceId, services]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +396,11 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     
     if (!doctorSearch.selectedDoctorId || doctorSearch.selectedDoctorId === 'search') {
       toast.error('Vui lòng chọn bác sĩ');
+      return;
+    }
+
+    if (selectedServiceId === 0) {
+      toast.error('Vui lòng chọn dịch vụ');
       return;
     }
     
@@ -158,7 +450,13 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         setAvailabilityMessage(null);
         setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
         
-        const result = await appointmentService.getAvailableTimeSlots(doctorId, formData.appointmentDate, 5, true);
+        // Use slot duration from tenant settings
+        const result = await appointmentService.getAvailableTimeSlots(
+          doctorId, 
+          formData.appointmentDate, 
+          slotDurationMinutes,  // Use tenant settings instead of hardcoded value
+          true
+        );
                 
         if (result.success && result.data && result.data.length > 0) {
           
@@ -183,7 +481,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     };
 
     loadAvailableTimeSlots();
-  }, [doctorSearch.selectedDoctorId, formData.appointmentDate]);
+  }, [doctorSearch.selectedDoctorId, formData.appointmentDate, slotDurationMinutes]);
 
   useEffect(() => {
     const checkAvailability = async () => {
@@ -214,7 +512,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           });
         }
       } catch (error) {
-        console.error('Error checking availability:', error);
       } finally {
         setCheckingAvailability(false);
       }
@@ -314,10 +611,10 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     if (isEndTime && formData.startTime) {
       const [startHour, startMin] = formData.startTime.split(':').map(Number);
       minHour = startHour;
-      minMinute = startMin + 5;
+      minMinute = startMin + slotDurationMinutes;
       if (minMinute >= 60) {
         minHour += 1;
-        minMinute = 0;
+        minMinute = minMinute % 60;
       }
     }
   
@@ -337,7 +634,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     ];
   
     for (let hour = 8; hour <= 17; hour++) {
-      for (let minute = 0; minute < 60; minute += 5) {
+      for (let minute = 0; minute < 60; minute += slotDurationMinutes) {
         const totalMinutes = hour * 60 + minute;
   
         const isInWorkingHours = workingHours.some(
@@ -393,11 +690,11 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
             const durationMinutes = endMinutes - startMinutes;
   
             if (durationMinutes > 0 && durationMinutes <= 180) {
-              const slotsNeeded = Math.ceil(durationMinutes / 5); // 🔹 thay đổi tính theo 5 phút
+              const slotsNeeded = Math.ceil(durationMinutes / slotDurationMinutes); // Use tenant settings
               let allSlotsAvailable = true;
   
               for (let i = 0; i < slotsNeeded; i++) {
-                const slotMinutes = startMinutes + i * 5;
+                const slotMinutes = startMinutes + i * slotDurationMinutes;
                 const slotHour = Math.floor(slotMinutes / 60);
                 const slotMin = slotMinutes % 60;
                 const slotTimeStr = `${slotHour.toString().padStart(2, '0')}:${slotMin
@@ -423,9 +720,9 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     return options;
   };
 
-  const timeOptions = useMemo(() => generateTimeOptions(), [formData.appointmentDate, availableTimeSlots]);
+  const timeOptions = useMemo(() => generateTimeOptions(), [formData.appointmentDate, availableTimeSlots, slotDurationMinutes]);
   
-  const endTimeOptions = useMemo(() => generateTimeOptions(true), [formData.appointmentDate, formData.startTime, availableTimeSlots]);
+  const endTimeOptions = useMemo(() => generateTimeOptions(true), [formData.appointmentDate, formData.startTime, availableTimeSlots, slotDurationMinutes]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -435,7 +732,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           Tạo lịch hẹn mới
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Tạo lịch hẹn mới</DialogTitle>
           <DialogDescription>
@@ -443,11 +740,11 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-2">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Bệnh nhân *</Label>
-                            <Combobox
+              <Combobox
                 selectedValue={patientSearch.selectedPatientId}
                 onSelectedValueChange={(value: string) => {
                   patientSearch.setSelectedPatientId(value);
@@ -461,6 +758,156 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
                 searchPlaceholder="Tìm kiếm bệnh nhân..."
                 emptyMessage="Không tìm thấy bệnh nhân"
               />
+              
+              {/* Show register button when search returns no results */}
+              {patientSearch.hasSearched && 
+               patientSearch.patients.length === 0 && 
+               patientSearch.searchTerm.length >= 2 && 
+               !patientSearch.isLoading &&
+               !showRegisterForm && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowRegisterForm(true);
+                    setNewPatientData(prev => ({
+                      ...prev,
+                      fullName: patientSearch.searchTerm,
+                      primaryPhoneE164: patientSearch.searchTerm.match(/^(\+84|0)[0-9]{9,10}$/) ? patientSearch.searchTerm : ''
+                    }));
+                  }}
+                  className="w-full mt-2 border-dashed"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Đăng ký bệnh nhân mới
+                </Button>
+              )}
+
+              {/* Quick registration form */}
+              {showRegisterForm && (
+                <div className="mt-3 p-4 border rounded-lg bg-blue-50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm text-blue-900">Đăng ký bệnh nhân mới</h4>
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowRegisterForm(false)}
+                      className="h-6 w-6 p-0"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="newPatientName" className="text-xs">Họ và tên *</Label>
+                      <span className="text-xs text-gray-400">{newPatientData.fullName.length}/200</span>
+                    </div>
+                    <Input
+                      id="newPatientName"
+                      placeholder="Nguyễn Văn A"
+                      value={newPatientData.fullName}
+                      onChange={(e) => updatePatientField('fullName', e.target.value)}
+                      className={`h-9 ${registrationErrors.fullName ? 'border-red-500' : ''}`}
+                      maxLength={200}
+                    />
+                    {registrationErrors.fullName && (
+                      <p className="text-xs text-red-500 mt-1">{registrationErrors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newPatientPhone" className="text-xs">Số điện thoại *</Label>
+                    <Input
+                      id="newPatientPhone"
+                      placeholder="+84xxxxxxxxx hoặc 0xxxxxxxxx"
+                      value={newPatientData.primaryPhoneE164}
+                      onChange={(e) => updatePatientField('primaryPhoneE164', e.target.value)}
+                      className={`h-9 ${registrationErrors.phone ? 'border-red-500' : ''}`}
+                    />
+                    {registrationErrors.phone ? (
+                      <p className="text-xs text-red-500 mt-1">{registrationErrors.phone}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Sẽ tự động chuyển sang định dạng +84...
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPatientGender" className="text-xs">Giới tính</Label>
+                      <Select
+                        value={newPatientData.gender}
+                        onValueChange={(value) => setNewPatientData({...newPatientData, gender: value})}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Chọn" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="M">Nam</SelectItem>
+                          <SelectItem value="F">Nữ</SelectItem>
+                          <SelectItem value="O">Khác</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="newPatientDob" className="text-xs">Ngày sinh</Label>
+                      <Input
+                        id="newPatientDob"
+                        type="date"
+                        value={newPatientData.dateOfBirth ? new Date(newPatientData.dateOfBirth).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                          const dateValue = e.target.value ? new Date(e.target.value).toISOString().split('T')[0] : undefined;
+                          updatePatientField('dateOfBirth', dateValue);
+                        }}
+                        className={`h-9 ${registrationErrors.dateOfBirth ? 'border-red-500' : ''}`}
+                        max={new Date().toISOString().split('T')[0]}
+                      />
+                      {registrationErrors.dateOfBirth && (
+                        <p className="text-xs text-red-500 mt-1">{registrationErrors.dateOfBirth}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="newPatientAddress" className="text-xs">Địa chỉ</Label>
+                      <span className="text-xs text-gray-400">{newPatientData.address?.length || 0}/300</span>
+                    </div>
+                    <Input
+                      id="newPatientAddress"
+                      placeholder="123 Đường ABC, Quận XYZ"
+                      value={newPatientData.address}
+                      onChange={(e) => setNewPatientData({...newPatientData, address: e.target.value})}
+                      className="h-9"
+                      maxLength={300}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      type="button"
+                      onClick={handleQuickRegister} 
+                      disabled={isRegistering || !!registrationErrors.fullName || !!registrationErrors.phone || !!registrationErrors.dateOfBirth}
+                      className="flex-1 h-9"
+                    >
+                      {isRegistering ? 'Đang đăng ký...' : 'Đăng ký'}
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={() => setShowRegisterForm(false)}
+                      disabled={isRegistering}
+                      className="h-9"
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -578,19 +1025,23 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="estimatedCost">Chi phí ước tính (VND)</Label>
-            <Input
-              id="estimatedCost"
-              type="number"
-              min="0"
-              step="10000"
-              value={formData.estimatedCost || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('estimatedCost', parseFloat(e.target.value) || 0)}
-              placeholder="Nhập chi phí ước tính..."
-            />
-            <p className="text-xs text-muted-foreground">
-              Hệ thống sẽ tự động tạo hóa đơn thanh toán với trạng thái PENDING
-            </p>
+            <Label htmlFor="service">Dịch vụ / Gói khám *</Label>
+            <Select
+              value={selectedServiceId.toString()}
+              onValueChange={(value) => setSelectedServiceId(parseInt(value))}
+              disabled={loadingServices}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={loadingServices ? "Đang tải..." : "Chọn dịch vụ"} />
+              </SelectTrigger>
+              <SelectContent>
+                {services.map((service) => (
+                  <SelectItem key={service.serviceId} value={service.serviceId.toString()}>
+                    {service.name} - {service.basePrice.toLocaleString('vi-VN')}đ
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

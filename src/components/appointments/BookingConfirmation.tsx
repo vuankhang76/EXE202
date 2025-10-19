@@ -1,26 +1,31 @@
-import { Calendar, Clock, MapPin, User, Stethoscope, Building2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Stethoscope, Building2, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import type { DoctorDto, TenantDto } from '@/types';
+import type { Service } from '@/types/service';
 import { getTypeLabel } from '@/types/appointment';
 
 interface BookingConfirmationProps {
   clinic: TenantDto;
   doctor: DoctorDto;
+  service?: Service;
   appointmentDate: Date;
   startTime: string;
   endTime: string;
   appointmentType: string;
   notes?: string;
+  paymentMethod?: 'cash' | 'bank_transfer';
 }
 
 export default function BookingConfirmation({
   clinic,
   doctor,
+  service,
   appointmentDate,
   startTime,
   endTime,
   appointmentType,
-  notes
+  notes,
+  paymentMethod = 'cash'
 }: BookingConfirmationProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('vi-VN', {
@@ -40,15 +45,20 @@ export default function BookingConfirmation({
     });
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND"
+    }).format(price);
+  };
+
   return (
     <Card className="border-2 border-red-100">
       <CardContent className="p-6">
         <h3 className="font-bold text-lg text-gray-900 mb-6">
           Thông tin đặt lịch
         </h3>
-
         <div className="space-y-4">
-          {/* Clinic Info */}
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
@@ -96,6 +106,27 @@ export default function BookingConfirmation({
           </div>
 
           <div className="border-t border-gray-100" />
+
+          {/* Service Info */}
+          {service && (
+            <>
+              <div className="flex gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center">
+                    <Stethoscope className="w-5 h-5 text-purple-500" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600">Dịch vụ</p>
+                  <p className="font-semibold text-gray-900">{service.name}</p>
+                  <p className="text-sm text-red-500 mt-1">
+                    {formatPrice(service.basePrice)}
+                  </p>
+                </div>
+              </div>
+              <div className="border-t border-gray-100" />
+            </>
+          )}
 
           {/* Date & Time */}
           <div className="flex gap-3">
@@ -153,6 +184,27 @@ export default function BookingConfirmation({
               </div>
             </>
           )}
+
+          {/* Payment Method */}
+          <div className="border-t border-gray-100" />
+          <div className="flex gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-amber-500" />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Thanh toán</p>
+              <p className="font-semibold text-gray-900">
+                {paymentMethod === 'cash' ? '💵 Tiền mặt' : '🏦 Chuyển khoản'}
+              </p>
+              {paymentMethod === 'bank_transfer' && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Vui lòng chuyển khoản trước khi đến khám
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 p-4 bg-yellow-50 rounded-lg">

@@ -19,6 +19,7 @@ import {
 import {
   formatCurrency,
   getPaymentMethodLabel,
+  getPaymentMethodIcon,
   getPaymentStatusLabel,
   getPaymentStatusColor,
 } from "@/types/paymentTransaction";
@@ -339,7 +340,10 @@ export default function PaymentTransaction() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {getPaymentMethodLabel(payment.method)}
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getPaymentMethodIcon(payment.method)}</span>
+                              <span>{getPaymentMethodLabel(payment.method)}</span>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <span

@@ -119,7 +119,6 @@ export default function EditAppointmentDialog({
           });
         }
       } catch (error) {
-        console.error('Error loading time slots:', error);
         setAvailableTimeSlots([]);
         setAvailabilityMessage({
           type: 'error',
@@ -167,7 +166,6 @@ export default function EditAppointmentDialog({
           });
         }
       } catch (error) {
-        console.error('Error checking availability:', error);
       } finally {
         setCheckingAvailability(false);
       }
@@ -193,7 +191,6 @@ export default function EditAppointmentDialog({
       const result = await appointmentService.updateAppointment(appointment.appointmentId, updateDto);
       return result;
     } catch (error: any) {
-      console.error('Error in wrapper:', error);
       throw error;
     }
   };

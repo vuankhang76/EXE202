@@ -18,6 +18,7 @@ interface AuthContextType {
   currentUser: AuthUser | null;
   token: string | null;
   userType: UserType | null;
+  isInitialized: boolean; // Thêm flag để biết đã load xong chưa
   doctorAvatar: string | null;
   setDoctorAvatar: (avatar: string | null) => void;
   tenantCoverImage: string | null;
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [userType, setUserType] = useState<UserType | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount (runs AFTER initial render)
   useEffect(() => {
@@ -60,6 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(tenantToken);
       setUserType('tenant');
     }
+    
+    setIsInitialized(true); // Đánh dấu đã load xong
   }, []);
 
   // Cache doctor avatar in memory (persists across page navigations)
@@ -124,9 +128,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         result = await authService.staffLogin(email!, password);
       }
 
-      console.log('Login API result:', result);
-      console.log('Result.data:', result.data);
-
       if (!result.success || !result.data) {
         const errorMessage = result.message || 'Đăng nhập thất bại';
         toast.error('Đăng nhập thất bại', {
@@ -136,9 +137,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const { token: authToken, user } = result.data;
-      
-      console.log('Extracted token:', authToken);
-      console.log('Extracted user:', user);
       
       if (userType === 'patient') {
         patientAccountService.saveAuth(authToken, user);
@@ -268,7 +266,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ 
       currentUser, 
       token, 
-      userType, 
+      userType,
+      isInitialized, // Thêm vào context value
       doctorAvatar, 
       setDoctorAvatar,
       tenantCoverImage,

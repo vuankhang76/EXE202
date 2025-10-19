@@ -1,12 +1,12 @@
 import { apiUtils } from '@/api/axios';
 import type { ApiResponse } from '@/models/ApiResponse';
+import type { PagedResult } from '@/types/common';
 import type {
   AppointmentDto,
   AppointmentCreateDto,
   AppointmentFormData,
   AppointmentUpdateDto,
   AppointmentFilterDto,
-  PagedResult,
   CompleteAppointmentDto
 } from '@/types/appointment';
 
@@ -174,7 +174,6 @@ class AppointmentService {
 
   async createAppointmentFromForm(formData: AppointmentFormData): Promise<ApiResponse<AppointmentDto>> {
     const createDto = this.convertFormDataToCreateDto(formData);
-    console.log("createAppointment payload:", createDto);
     return this.createAppointment(createDto);
   }
 

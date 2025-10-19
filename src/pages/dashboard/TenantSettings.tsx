@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
-import { TimeInput } from "@/components/ui/TimeInput";
-import { Loader2, Save, AlertCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { Loader2, Save, AlertCircle, Building2, Calendar, CheckCircle2, XCircle } from "lucide-react";
 import AdminLayout from "@/layout/AdminLayout";
 import tenantService from "@/services/tenantService";
+import { tenantSettingService, type BookingConfig } from "@/services/tenantSettingService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { TenantDto, TenantUpdateDto } from "@/types";
-import { TenantImagesForm } from "@/components/tenant/TenantImageForm";
 import { TenantSettingsSkeleton } from "@/components/tenant/TenantSettingsSkeleton";
+import { ClinicInfoTab } from "@/components/tenant/ClinicInfoTab";
+import { BookingSettingsForm } from "@/components/tenant/BookingSettingsForm";
+import { validateBooking, canBookOnWeekend } from "@/utils/bookingValidation";
+import { normalizeTime, validateTimeRange } from "@/utils/timeValidation";
 
 export default function TenantSettings() {
   const { currentUser } = useAuth();
@@ -21,12 +22,30 @@ export default function TenantSettings() {
   const [tenant, setTenant] = useState<TenantDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingBooking, setSavingBooking] = useState(false);
   const [formData, setFormData] = useState<TenantUpdateDto>({});
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  // Booking settings state
+  const [bookingConfig, setBookingConfig] = useState<BookingConfig>({
+    maxAdvanceBookingDays: 90,
+    defaultSlotDurationMinutes: 30,
+    minAdvanceBookingHours: 1,
+    maxCancellationHours: 24,
+    allowWeekendBooking: true,
+  });
+  
+  // Validation preview state
+  const [validationTestDate, setValidationTestDate] = useState<Date>(new Date());
+  const [validationTestTime, setValidationTestTime] = useState('14:00');
+  const [showValidationPreview, setShowValidationPreview] = useState(false);
+  
+  // Active tab
+  const [activeTab, setActiveTab] = useState("clinic");
 
   const isAdmin = currentUser?.role?.toLowerCase() === "admin";
   const isOwner =
@@ -37,6 +56,7 @@ export default function TenantSettings() {
   useEffect(() => {
     if (currentUser?.tenantId) {
       loadTenant();
+      loadBookingConfig();
     }
   }, [currentUser?.tenantId]);
 
@@ -69,6 +89,21 @@ export default function TenantSettings() {
       toast.error("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBookingConfig = async () => {
+    if (!currentUser?.tenantId) return;
+
+    try {
+      const response = await tenantSettingService.getBookingConfig(
+        parseInt(currentUser.tenantId)
+      );
+      if (response.success && response.data) {
+        setBookingConfig(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading booking config:", error);
     }
   };
 
@@ -171,9 +206,8 @@ export default function TenantSettings() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveClinic = async () => {
     if (!currentUser?.tenantId) {
-      console.log("No tenantId found");
       return;
     }
 
@@ -191,14 +225,47 @@ export default function TenantSettings() {
       return;
     }
 
-    console.log("Saving tenant with data:", formData);
+    // Validate time format
+    const timeFields = ['weekdayOpen', 'weekdayClose', 'weekendOpen', 'weekendClose'] as const;
+    for (const field of timeFields) {
+      const value = formData[field];
+      if (value && value.trim()) {
+        const normalized = normalizeTime(value);
+        if (!normalized) {
+          toast.error("Format giờ không hợp lệ", {
+            description: `${field}: Định dạng phải là HH:mm (ví dụ: 07:30)`,
+          });
+          return;
+        }
+        formData[field] = normalized;
+      }
+    }
+
+    // Validate time range
+    if (formData.weekdayOpen && formData.weekdayClose) {
+      if (!validateTimeRange(formData.weekdayOpen, formData.weekdayClose)) {
+        toast.error("Giờ không hợp lệ", {
+          description: "Giờ đóng cửa (weekday) phải sau giờ mở cửa",
+        });
+        return;
+      }
+    }
+
+    if (formData.weekendOpen && formData.weekendClose) {
+      if (!validateTimeRange(formData.weekendOpen, formData.weekendClose)) {
+        toast.error("Giờ không hợp lệ", {
+          description: "Giờ đóng cửa (weekend) phải sau giờ mở cửa",
+        });
+        return;
+      }
+    }
+    
     setSaving(true);
     try {
       const response = await tenantService.updateTenant(
         parseInt(currentUser.tenantId),
         formData
       );
-      console.log("Update response:", response);
 
       if (response.success) {
         toast.success("Cập nhật thành công", {
@@ -237,6 +304,93 @@ export default function TenantSettings() {
     }
   };
 
+  const handleSaveBooking = async () => {
+    if (!currentUser?.tenantId) {
+      return;
+    }
+
+    if (!canEdit) {
+      toast.error("Không có quyền", {
+        description: "Chỉ quản trị viên hoặc chủ sở hữu mới có thể chỉnh sửa",
+      });
+      return;
+    }
+    
+    setSavingBooking(true);
+    try {
+      const tenantId = parseInt(currentUser.tenantId);
+      const settingsToUpdate: Record<string, string> = {
+        "Booking.MaxAdvanceBookingDays": bookingConfig.maxAdvanceBookingDays.toString(),
+        "Booking.DefaultSlotDurationMinutes": bookingConfig.defaultSlotDurationMinutes.toString(),
+        "Booking.MinAdvanceBookingHours": bookingConfig.minAdvanceBookingHours.toString(),
+        "Booking.MaxCancellationHours": bookingConfig.maxCancellationHours.toString(),
+        "Booking.AllowWeekendBooking": bookingConfig.allowWeekendBooking.toString(),
+      };
+      
+      console.log('Sending booking settings:', settingsToUpdate);
+      
+      const response = await tenantSettingService.updateSettings(
+        tenantId,
+        settingsToUpdate
+      );
+      
+      console.log('Response:', response);
+
+      if (response.success) {
+        toast.success("Cập nhật thành công", {
+          description: "Cài đặt lịch khám đã được cập nhật",
+        });
+        loadBookingConfig();
+      } else {
+        const errorMessage =
+          response.errors && response.errors.length > 0
+            ? response.errors.join(", ")
+            : response.message || "Có lỗi xảy ra";
+
+        toast.error("Cập nhật thất bại", {
+          description: errorMessage,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error updating booking settings:", error);
+      console.error("Error response data:", error.response?.data);
+      
+      if (error.response?.status === 500) {
+        try {
+          console.log('Attempting to initialize default settings...');
+          const tenantId = parseInt(currentUser.tenantId!);
+          await tenantSettingService.initializeSettings(tenantId);
+          
+          const settingsToUpdate: Record<string, string> = {
+            "Booking.MaxAdvanceBookingDays": bookingConfig.maxAdvanceBookingDays.toString(),
+            "Booking.DefaultSlotDurationMinutes": bookingConfig.defaultSlotDurationMinutes.toString(),
+            "Booking.MinAdvanceBookingHours": bookingConfig.minAdvanceBookingHours.toString(),
+            "Booking.MaxCancellationHours": bookingConfig.maxCancellationHours.toString(),
+            "Booking.AllowWeekendBooking": bookingConfig.allowWeekendBooking.toString(),
+          };
+          
+          const retryResponse = await tenantSettingService.updateSettings(tenantId, settingsToUpdate);
+          
+          if (retryResponse.success) {
+            toast.success("Cập nhật thành công", {
+              description: "Đã khởi tạo cài đặt và cập nhật thành công",
+            });
+            loadBookingConfig();
+            return;
+          }
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+        }
+      }
+      
+      toast.error("Cập nhật thất bại", {
+        description: error.response?.data?.message || error.message || "Không thể cập nhật cài đặt lịch khám. Vui lòng kiểm tra console để biết thêm chi tiết.",
+      });
+    } finally {
+      setSavingBooking(false);
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout breadcrumbTitle="Cài đặt phòng khám">
@@ -261,21 +415,22 @@ export default function TenantSettings() {
   }
 
   return (
-    <AdminLayout
+    <AdminLayout 
       breadcrumbTitle="Cài đặt phòng khám"
       actions={
-        <div className="flex items-center justify-between">
-          {canEdit && (
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Lưu thay đổi
-            </Button>
-          )}
-        </div>
+        canEdit && (
+          <Button 
+            onClick={activeTab === "clinic" ? handleSaveClinic : handleSaveBooking} 
+            disabled={activeTab === "clinic" ? saving : savingBooking}
+          >
+            {(activeTab === "clinic" ? saving : savingBooking) ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Lưu thay đổi
+          </Button>
+        )
       }
     >
       <div className="space-y-6">
@@ -291,149 +446,44 @@ export default function TenantSettings() {
           </Alert>
         )}
 
-        <TenantImagesForm
-          tenant={{
-            ...tenant,
-            thumbnailUrl: thumbnailPreview || tenant?.thumbnailUrl,
-            coverImageUrl: coverPreview || tenant?.coverImageUrl,
-          }}
-          canEdit={canEdit}
-          uploadingThumbnail={uploadingThumbnail}
-          uploadingCover={uploadingCover}
-          handleThumbnailUpload={handleThumbnailUpload}
-          handleCoverUpload={handleCoverUpload}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList>
+            <TabsTrigger value="clinic">
+              <Building2 className="h-4 w-4" />
+              Thông tin phòng khám
+            </TabsTrigger>
+            <TabsTrigger value="booking">
+              <Calendar className="h-4 w-4" />
+              Cài đặt lịch khám
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Tên phòng khám *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name || ""}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Nhập tên phòng khám"
-                    disabled={!canEdit}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="code">Mã phòng khám</Label>
-                  <Input
-                    id="code"
-                    value={tenant?.code || ""}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-              </div>
+          <TabsContent value="clinic" className="mt-6">
+            <ClinicInfoTab
+              tenant={tenant!}
+              formData={formData}
+              canEdit={canEdit}
+              bookingConfig={bookingConfig}
+              thumbnailPreview={thumbnailPreview}
+              coverPreview={coverPreview}
+              uploadingThumbnail={uploadingThumbnail}
+              uploadingCover={uploadingCover}
+              handleInputChange={handleInputChange}
+              handleThumbnailUpload={handleThumbnailUpload}
+              handleCoverUpload={handleCoverUpload}
+            />
+          </TabsContent>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email || ""}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="email@example.com"
-                    disabled={!canEdit}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Số điện thoại</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone || ""}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    disabled={!canEdit}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Địa chỉ</Label>
-                <Input
-                  id="address"
-                  value={formData.address || ""}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Nhập địa chỉ phòng khám"
-                  disabled={!canEdit}
-                />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Label className="text-base mb-3 block">
-                      Ngày thường (Thứ 2 - Thứ 6)
-                    </Label>
-                    <Label className="text-base mb-3 block">
-                      Cuối tuần (Thứ 7 - Chủ nhật)
-                    </Label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="weekdayOpen">Giờ mở cửa</Label>
-                      <TimeInput
-                        id="weekdayOpen"
-                        value={formData.weekdayOpen || ""}
-                        onChange={(value) =>
-                          handleInputChange("weekdayOpen", value)
-                        }
-                        disabled={!canEdit}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weekdayClose">Giờ đóng cửa</Label>
-                      <TimeInput
-                        id="weekdayClose"
-                        value={formData.weekdayClose || ""}
-                        onChange={(value) =>
-                          handleInputChange("weekdayClose", value)
-                        }
-                        disabled={!canEdit}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weekendOpen">Giờ mở cửa</Label>
-                      <TimeInput
-                        id="weekendOpen"
-                        value={formData.weekendOpen || ""}
-                        onChange={(value) =>
-                          handleInputChange("weekendOpen", value)
-                        }
-                        disabled={!canEdit}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="weekendClose">Giờ đóng cửa</Label>
-                      <TimeInput
-                        id="weekendClose"
-                        value={formData.weekendClose || ""}
-                        onChange={(value) =>
-                          handleInputChange("weekendClose", value)
-                        }
-                        disabled={!canEdit}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Mô tả</Label>
-                <RichTextEditor
-                  value={formData.description || ""}
-                  onChange={(value) => handleInputChange("description", value)}
-                  placeholder="Mô tả về phòng khám..."
-                  disabled={!canEdit}
-                  maxLength={5000}
-                />
-              </div>
+          <TabsContent value="booking" className="mt-6">
+            <div className="space-y-6">
+              <BookingSettingsForm
+                config={bookingConfig}
+                onChange={setBookingConfig}
+                canEdit={canEdit}
+              />
             </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );
