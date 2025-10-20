@@ -1,11 +1,9 @@
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { TimeInput } from "@/components/ui/TimeInput";
 import { TenantImagesForm } from "@/components/tenant/TenantImageForm";
-import { CheckCircle2, XCircle, Info } from "lucide-react";
-import { isTenantOpenOnWeekend } from "@/types/tenant";
+import { CheckCircle2, XCircle } from "lucide-react";
 import type { TenantDto, TenantUpdateDto } from "@/types";
 import type { BookingConfig } from "@/services/tenantSettingService";
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
-import { Loader2, Save, AlertCircle, Building2, Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Save, AlertCircle, Building2, Calendar } from "lucide-react";
 import AdminLayout from "@/layout/AdminLayout";
 import tenantService from "@/services/tenantService";
 import { tenantSettingService, type BookingConfig } from "@/services/tenantSettingService";
@@ -13,7 +13,6 @@ import type { TenantDto, TenantUpdateDto } from "@/types";
 import { TenantSettingsSkeleton } from "@/components/tenant/TenantSettingsSkeleton";
 import { ClinicInfoTab } from "@/components/tenant/ClinicInfoTab";
 import { BookingSettingsForm } from "@/components/tenant/BookingSettingsForm";
-import { validateBooking, canBookOnWeekend } from "@/utils/bookingValidation";
 import { normalizeTime, validateTimeRange } from "@/utils/timeValidation";
 
 export default function TenantSettings() {
@@ -38,12 +37,7 @@ export default function TenantSettings() {
     maxCancellationHours: 24,
     allowWeekendBooking: true,
   });
-  
-  // Validation preview state
-  const [validationTestDate, setValidationTestDate] = useState<Date>(new Date());
-  const [validationTestTime, setValidationTestTime] = useState('14:00');
-  const [showValidationPreview, setShowValidationPreview] = useState(false);
-  
+    
   // Active tab
   const [activeTab, setActiveTab] = useState("clinic");
 

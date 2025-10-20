@@ -1,6 +1,5 @@
 import AdminLayout from "@/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Button } from "@/components/ui/Button"
 import { MessageCircle, Video, Phone } from "lucide-react"
 
 export default function Consultations() {

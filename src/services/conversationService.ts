@@ -4,7 +4,6 @@ import {
   type ConversationListDTO,
   type UpdateConversationStatusDTO,
   type MessageDTO,
-  type SendMessageDTO,
   type MessageQueryDTO,
   type MessageListResponseDTO,
   type ChatStatsDTO,

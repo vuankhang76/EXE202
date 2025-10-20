@@ -14,7 +14,6 @@ import {
   Eye,
   UserCheck,
   UserX,
-  Mail,
   Plus,
 } from "lucide-react";
 import type { UserDto } from '@/types';

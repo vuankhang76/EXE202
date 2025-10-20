@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import userService from "@/services/userService";
 import doctorService from "@/services/doctorService";
 import { toast } from "sonner";
-import type { UserDto, UserCreateDto, CreateDoctorDto, UserUpdateDto, DoctorAdminUpdateDto } from "@/types";
+import type { UserDto, UserCreateDto, CreateDoctorDto } from "@/types";
 import { UserRole, AccountStatus } from "@/types/account";
 import AccountStats from "@/components/accounts/AccountStats";
 import AccountFilters from "@/components/accounts/AccountFilters";

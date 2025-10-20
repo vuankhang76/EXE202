@@ -44,7 +44,7 @@ export default function PaymentTransaction() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalCount] = useState(0);
   const pageSize = 15;
 
   const [statusFilter, setStatusFilter] = useState<string>("all");

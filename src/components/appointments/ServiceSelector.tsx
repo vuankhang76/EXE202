@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import type { Service } from "@/types/service";
 import { serviceService } from "@/services/serviceService";
 import { Loader2, CheckCircle2 } from "lucide-react";

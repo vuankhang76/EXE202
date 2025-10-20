@@ -280,32 +280,9 @@ export default function CreateAppointment() {
     if (maxBookingDate) {
       return maxBookingDate.toISOString().split("T")[0];
     }
-    // Fallback while loading
     const fallback = new Date();
     fallback.setDate(fallback.getDate() + 90);
     return fallback.toISOString().split("T")[0];
-  };
-
-  // Helper function to check if a date is weekend
-  const isWeekend = (dateStr: string): boolean => {
-    const date = new Date(dateStr);
-    const dayOfWeek = date.getDay();
-    return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
-  };
-
-  // Helper function to check if a date is disabled
-  const isDateDisabled = (dateStr: string): boolean => {
-    // If weekend booking is not allowed, disable weekends
-    if (!allowWeekendBooking && isWeekend(dateStr)) {
-      return true;
-    }
-    
-    // If available dates are loaded, only allow dates in the list
-    if (availableDates.length > 0 && !availableDates.includes(dateStr)) {
-      return true;
-    }
-    
-    return false;
   };
 
   const handleSubmit = async () => {

@@ -5,7 +5,6 @@ import {
   type PatientLoginDto,
   type ClinicPatientDto,
   type EnrollPatientDto,
-  type UpdateClinicPatientDto,
   type ApiResponse,
   type PagedResult,
   type AuthResponseDto

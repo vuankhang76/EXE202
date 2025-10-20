@@ -130,9 +130,8 @@ class MedicalRecordService {
     return response.data;
   }
 
-  // Download medical record file
   async downloadMedicalRecordFile(id: number): Promise<Blob> {
-    const response = await apiUtils.get(`${this.baseUrl}/${id}/download`, {
+    const response = await apiUtils.get<Blob>(`${this.baseUrl}/${id}/download`, {
       responseType: 'blob',
     });
     return response.data;

@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/Dialog';
 import { Badge } from '@/components/ui/Badge';
 import { Label } from '@/components/ui/Label';
-import { Separator } from '@/components/ui/Separator';
 import type { AppointmentDto } from '@/types/appointment';
 import { getStatusColor, getStatusLabel, getTypeLabel } from '@/types/appointment';
 import { Calendar, Clock, User, Stethoscope, Phone, MapPin, FileText, CalendarClock, Hospital } from 'lucide-react';
