@@ -2,7 +2,9 @@ import {
   type DoctorEditDto,
   type DoctorSelfUpdateDto,
   type DoctorAdminUpdateDto,
-  type ApiResponse
+  type DoctorDto,
+  type ApiResponse,
+  type PagedResult
 } from '@/types';
 
 import { apiUtils } from '@/api/axios';
@@ -40,6 +42,29 @@ class DoctorService {
     const response = await apiUtils.put<ApiResponse<DoctorEditDto>>(
       `${this.baseUrl}/${doctorId}`,
       data
+    );
+    return response.data;
+  }
+
+  // Get all doctors (for public display)
+  async getAllDoctors(
+    pageNumber: number = 1,
+    pageSize: number = 50,
+    searchTerm?: string
+  ): Promise<ApiResponse<PagedResult<DoctorDto>>> {
+    const params = new URLSearchParams({
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString()
+    });
+    
+    if (searchTerm) {
+      params.append('searchTerm', searchTerm);
+    }
+
+    const response = await apiUtils.get<ApiResponse<PagedResult<DoctorDto>>>(
+      `${this.baseUrl}?${params}`,
+      undefined,
+      { skipGlobalLoading: true }
     );
     return response.data;
   }

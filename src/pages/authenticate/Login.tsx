@@ -1,6 +1,6 @@
 import { Calendar, Clock, Shield, Stethoscope } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
-import LoginForm from '@/components/LoginForm';
+import UnifiedLoginForm from '@/components/UnifiedLoginForm';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -14,12 +14,9 @@ export default function Login() {
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col justify-start h-full">
               <div className="mx-auto w-full max-w-md">
-                <div className="mb-8 text-center">
-                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">Đăng nhập đối tác</h2>
-                </div>
                 <Card className="border-gray-200 bg-white shadow-xl">
-                  <CardContent>
-                    <LoginForm />
+                  <CardContent className="pt-6">
+                    <UnifiedLoginForm />
                   </CardContent>
                 </Card>
               </div>
@@ -85,7 +82,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-
       <Footer />
     </main>
   );

@@ -27,10 +27,16 @@ export interface UserUpdateDto {
   phoneE164?: string;
   role?: string;
   tenantId?: number;
+  isActive?: boolean;
 }
 
 export interface UserWithDoctorDto extends UserDto {
   doctorInfo?: DoctorDto;
+  // API also returns these fields directly when user is a doctor
+  doctorId?: number;
+  licenseNumber?: string;
+  specialty?: string;
+  avatarUrl?: string;
 }
 
 export interface DoctorDto extends BaseEntity {

@@ -2,7 +2,7 @@ import AdminLayout from "@/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Search, Filter, Calendar, User } from "lucide-react"
+import { Search, Filter, Calendar } from "lucide-react"
 
 export default function AdvancedSearch() {
   return (

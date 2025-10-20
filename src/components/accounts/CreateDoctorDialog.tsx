@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from "@/components/ui/Button";
@@ -13,18 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { Plus, Loader2 } from "lucide-react";
+import { SPECIALTIES, ACADEMIC_TITLES, POSITION_TITLES } from "@/constants/doctorOptions";
 
-// Form schema for creating doctor - comprehensive version
 const createDoctorSchema = z.object({
-  // User fields
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
-  phoneE164: z.string().regex(/^\+84\d{9,10}$/, 'Số điện thoại phải có định dạng +84xxxxxxxxx'),
+  phoneE164: z.string().regex(/^\+84\d{9}$/, 'Số điện thoại không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   confirmPassword: z.string().min(6, 'Xác nhận mật khẩu phải có ít nhất 6 ký tự'),
-  
-  // Doctor fields
   specialty: z.string().min(1, 'Chuyên khoa là bắt buộc'),
   licenseNumber: z.string().min(1, 'Số giấy phép hành nghề là bắt buộc'),
   title: z.string().optional(),
@@ -61,10 +65,37 @@ export default function CreateDoctorDialog({
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<CreateDoctorFormData>({
     resolver: zodResolver(createDoctorSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
   });
+
+  const normalizePhoneNumber = (phone: string): string => {
+    if (!phone) return phone;
+    const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+
+    let baseNumber = cleaned;
+    if (baseNumber.startsWith('+84')) {
+      baseNumber = baseNumber.substring(3);
+    } else if (baseNumber.startsWith('84')) {
+      baseNumber = baseNumber.substring(2);
+    } else if (baseNumber.startsWith('0')) {
+      baseNumber = baseNumber.substring(1);
+    }
+
+    baseNumber = baseNumber.replace(/\D/g, '').substring(0, 9);
+    return baseNumber ? '+84' + baseNumber : '';
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const formatted = normalizePhoneNumber(value);
+    setValue('phoneE164', formatted, { shouldDirty: true, shouldValidate: true });
+  };
 
   const handleClose = () => {
     onOpenChange(false);
@@ -82,10 +113,8 @@ export default function CreateDoctorDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
-            {/* User Information Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-muted-foreground">Thông tin tài khoản</h3>
-              
               <div className="space-y-2">
                 <Label htmlFor="fullName">
                   Họ và tên <span className="text-red-500">*</span>
@@ -123,6 +152,7 @@ export default function CreateDoctorDialog({
                   <Input
                     id="phoneE164"
                     {...register('phoneE164')}
+                    onChange={handlePhoneChange}
                     placeholder="+84xxxxxxxxx"
                   />
                   {errors.phoneE164 && (
@@ -164,7 +194,6 @@ export default function CreateDoctorDialog({
               </div>
             </div>
 
-            {/* Doctor Professional Information Section */}
             <div className="space-y-4 pt-4 border-t">
               <h3 className="text-sm font-semibold text-muted-foreground">Thông tin chuyên môn</h3>
               
@@ -173,10 +202,23 @@ export default function CreateDoctorDialog({
                   <Label htmlFor="specialty">
                     Chuyên khoa <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="specialty"
-                    {...register('specialty')}
-                    placeholder="Ví dụ: Nội tổng hợp"
+                  <Controller
+                    name="specialty"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn chuyên khoa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SPECIALTIES.map((specialty) => (
+                            <SelectItem key={specialty.value} value={specialty.value}>
+                              {specialty.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
                   {errors.specialty && (
                     <p className="text-xs text-red-500">{errors.specialty.message}</p>
@@ -201,10 +243,23 @@ export default function CreateDoctorDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Học hàm, học vị</Label>
-                  <Input
-                    id="title"
-                    {...register('title')}
-                    placeholder="Ví dụ: Tiến sĩ, Thạc sĩ"
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn học hàm, học vị" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ACADEMIC_TITLES.map((title) => (
+                            <SelectItem key={title.value} value={title.value}>
+                              {title.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
                   {errors.title && (
                     <p className="text-xs text-red-500">{errors.title.message}</p>
@@ -213,10 +268,23 @@ export default function CreateDoctorDialog({
 
                 <div className="space-y-2">
                   <Label htmlFor="positionTitle">Chức danh</Label>
-                  <Input
-                    id="positionTitle"
-                    {...register('positionTitle')}
-                    placeholder="Ví dụ: Trưởng khoa"
+                  <Controller
+                    name="positionTitle"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn chức danh" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {POSITION_TITLES.map((position) => (
+                            <SelectItem key={position.value} value={position.value}>
+                              {position.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
                   {errors.positionTitle && (
                     <p className="text-xs text-red-500">{errors.positionTitle.message}</p>

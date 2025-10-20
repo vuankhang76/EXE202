@@ -27,17 +27,16 @@ export interface PaymentTransactionCreateDto {
   appointmentId?: number;
   amount: number;
   currency?: string; // Default: "VND"
-  method: string; // "CASH", "CARD", "BANK_TRANSFER", "MOMO", "ZALOPAY"
+  method: string; // "Cash", "BankTransfer", "MoMo", "ZaloPay", "VNPay", "Card"
   providerRef?: string;
 }
 
 // Update Payment Transaction
 export interface PaymentTransactionUpdateDto {
-  status: string; // "PENDING", "COMPLETED", "FAILED", "REFUNDED"
+  status: string; // "Pending", "Completed", "Failed", "Refunded"
   providerRef?: string;
 }
 
-// Payment Transaction Filter
 export interface PaymentTransactionFilterDto extends BaseQueryDto, DateRangeFilter {
   tenantId?: number;
   patientId?: number;
@@ -48,13 +47,11 @@ export interface PaymentTransactionFilterDto extends BaseQueryDto, DateRangeFilt
   maxAmount?: number;
 }
 
-// Refund Request
 export interface RefundRequestDto {
   reason: string;
-  refundAmount?: number; // If null, refund full amount
+  refundAmount?: number;
 }
 
-// Payment Statistics
 export interface PaymentStatisticsDto {
   totalTransactions: number;
   totalAmount: number;
@@ -66,7 +63,6 @@ export interface PaymentStatisticsDto {
   dailySummary: DailyPaymentSummaryDto[];
 }
 
-// Daily Payment Summary
 export interface DailyPaymentSummaryDto {
   date: string;
   transactionCount: number;
@@ -74,24 +70,21 @@ export interface DailyPaymentSummaryDto {
   completedAmount: number;
 }
 
-// Complete Payment DTO
 export interface CompletePaymentDto {
   providerRef?: string;
 }
 
-// Fail Payment DTO
 export interface FailPaymentDto {
   reason?: string;
 }
 
-// Payment Method Options
 export const PAYMENT_METHODS = [
-  { value: 'CASH', label: 'Tiền mặt' },
-  { value: 'CARD', label: 'Thẻ tín dụng/ghi nợ' },
-  { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng' },
-  { value: 'MOMO', label: 'Ví MoMo' },
-  { value: 'ZALOPAY', label: 'Ví ZaloPay' },
-  { value: 'VNPAY', label: 'VNPay' },
+  { value: 'CASH', label: 'Tiền mặt', category: 'cash', icon: '💵' },
+  { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng', category: 'bank', icon: '🏦' },
+  { value: 'MOMO', label: 'Ví MoMo', category: 'ewallet', icon: '📱' },
+  { value: 'ZALOPAY', label: 'Ví ZaloPay', category: 'ewallet', icon: '📱' },
+  { value: 'VNPAY', label: 'VNPay', category: 'ewallet', icon: '💳' },
+  { value: 'CARD', label: 'Thẻ tín dụng/ghi nợ', category: 'card', icon: '💳' },
 ] as const;
 
 // Payment Status Options
@@ -107,12 +100,33 @@ export const getPaymentMethodLabel = (method: string): string => {
   return PAYMENT_METHODS.find(m => m.value === method)?.label || method;
 };
 
+export const getPaymentMethodIcon = (method: string): string => {
+  return PAYMENT_METHODS.find(m => m.value === method)?.icon || '💳';
+};
+
 export const getPaymentStatusLabel = (status: string): string => {
   return PAYMENT_STATUS.find(s => s.value === status)?.label || status;
 };
 
 export const getPaymentStatusColor = (status: string): string => {
   return PAYMENT_STATUS.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-800';
+};
+
+// Filter available payment methods based on tenant settings
+export const getAvailablePaymentMethods = (config?: {
+  cashEnabled?: boolean;
+  bankTransferEnabled?: boolean;
+  eWalletEnabled?: boolean;
+}) => {
+  if (!config) return PAYMENT_METHODS;
+
+  return PAYMENT_METHODS.filter(method => {
+    if (method.category === 'cash') return config.cashEnabled !== false; // Always enabled by default
+    if (method.category === 'bank') return config.bankTransferEnabled === true;
+    if (method.category === 'ewallet') return config.eWalletEnabled === true;
+    if (method.category === 'card') return true; // Card always available
+    return true;
+  });
 };
 
 // Format currency

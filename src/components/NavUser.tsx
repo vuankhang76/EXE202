@@ -7,7 +7,9 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import userService from "@/services/userService"
+import doctorService from "@/services/doctorService"
 import {
   Avatar,
   AvatarFallback,
@@ -30,8 +32,72 @@ import {
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { logout, currentUser } = useAuth()
+  const { logout, currentUser, doctorAvatar, setDoctorAvatar } = useAuth()
   const navigate = useNavigate()
+  const [hasDocInfo, setHasDocInfo] = useState(false)
+
+  useEffect(() => {
+    const checkDoctorInfo = async () => {
+      if (!currentUser) {
+        setHasDocInfo(false);
+        setDoctorAvatar(null);
+        return;
+      }
+      
+      const isDoctorOrAdmin = currentUser.role === 'Doctor' || currentUser.role === 'ClinicAdmin';
+      
+      if (currentUser.doctorId) {
+        setHasDocInfo(true);
+      }
+
+      if (isDoctorOrAdmin) {
+        setHasDocInfo(true);
+      }
+
+      if (!doctorAvatar && (isDoctorOrAdmin || currentUser.doctorId)) {
+        try {
+          const response = await userService.getUserWithDoctorInfo(Number(currentUser.userId));          
+          if (response.success && response.data?.doctorId) {
+            setHasDocInfo(true);
+            const doctorResponse = await doctorService.getDoctorById(response.data.doctorId);
+            if (doctorResponse.success && doctorResponse.data?.avatarUrl) {
+              setDoctorAvatar(doctorResponse.data.avatarUrl);
+            }
+          }
+        } catch (error) {
+          // Error silently handled
+        }
+        return;
+      }
+
+      if (!doctorAvatar && !isDoctorOrAdmin && !currentUser.doctorId) {
+        try {
+          const response = await userService.getUserWithDoctorInfo(Number(currentUser.userId));
+          
+          if (response.success && response.data?.doctorId) {
+            setHasDocInfo(true);
+            
+            try {
+              const doctorResponse = await doctorService.getDoctorById(response.data.doctorId);
+              
+              if (doctorResponse.success && doctorResponse.data?.avatarUrl) {
+                setDoctorAvatar(doctorResponse.data.avatarUrl);
+              }
+            } catch (error) {
+            }
+          } else {
+            setHasDocInfo(false);
+            setDoctorAvatar(null);
+          }
+        } catch (error) {
+          setHasDocInfo(false);
+          setDoctorAvatar(null);
+        }
+      }
+    };
+
+    checkDoctorInfo();
+  }, [currentUser, doctorAvatar, setDoctorAvatar]);
 
   const handleLogout = async () => {
       await logout()
@@ -44,8 +110,8 @@ export function NavUser() {
 
   const user = {
     name: currentUser.fullName,
-    email: currentUser.email || currentUser.phoneE164 || '',
-    avatar: ''
+    email: currentUser.email,
+    avatar: doctorAvatar || undefined
   }
 
   const FallbackAvatar = () => (
@@ -97,7 +163,7 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {currentUser.role === 'Tenant' && (
+            {hasDocInfo && (
               <>
                 <DropdownMenuItem onClick={() => navigate('/doctor/profile/edit')}>
                   <Edit />

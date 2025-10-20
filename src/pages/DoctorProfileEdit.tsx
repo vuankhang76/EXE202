@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -23,12 +23,21 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/Card';
 import { ImageUploadField } from '@/components/ui/ImageUploadField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select';
 import AdminLayout from '@/layout/AdminLayout';
 import doctorService from '@/services/doctorService';
 import tenantService from '@/services/tenantService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { DoctorEditDto, DoctorSelfUpdateDto } from '@/types';
+import { SPECIALTIES, ACADEMIC_TITLES, POSITION_TITLES } from '@/constants/doctorOptions';
+import { DoctorProfileEditSkeleton } from '@/components/doctor/DoctorProfileEditSkeleton';
 
 const doctorProfileSchema = z.object({
   fullName: z
@@ -37,7 +46,7 @@ const doctorProfileSchema = z.object({
     .max(120, 'Họ tên không được vượt quá 120 ký tự'),
   phoneE164: z
     .string()
-    .regex(/^\+84\d{9,10}$/, 'Số điện thoại phải có định dạng +84xxxxxxxxx')
+    .regex(/^\+84\d{9}$/, 'Số điện thoại phải có định dạng +84xxxxxxxxx')
     .optional()
     .or(z.literal('')),
   avatarUrl: z.string().url('URL không hợp lệ').optional().or(z.literal('')),
@@ -85,14 +94,39 @@ export default function DoctorProfileEdit() {
     setValue,
     watch,
     reset,
+    control,
     formState: { errors, isDirty: formIsDirty },
   } = useForm<DoctorProfileFormData>({
     resolver: zodResolver(doctorProfileSchema),
-    mode: 'onBlur',
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
   });
 
-  // Combine react-hook-form's isDirty with manual tracking for avatar/richtext
   const isDirty = formIsDirty || manualDirty;
+
+  const normalizePhoneNumber = (phone: string): string => {
+    if (!phone) return phone;
+    const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+
+    let baseNumber = cleaned;
+    if (baseNumber.startsWith('+84')) {
+      baseNumber = baseNumber.substring(3);
+    } else if (baseNumber.startsWith('84')) {
+      baseNumber = baseNumber.substring(2);
+    } else if (baseNumber.startsWith('0')) {
+      baseNumber = baseNumber.substring(1);
+    }
+
+    baseNumber = baseNumber.replace(/\D/g, '').substring(0, 9);
+
+    return baseNumber ? '+84' + baseNumber : '';
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const formatted = normalizePhoneNumber(value);
+    setValue('phoneE164', formatted, { shouldDirty: true, shouldValidate: true });
+  };
 
   useEffect(() => {
     if (!currentUser?.userId) {
@@ -100,10 +134,8 @@ export default function DoctorProfileEdit() {
       return;
     }
     loadDoctorProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.userId]);
 
-  // Warn before leaving if form is dirty
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -125,7 +157,6 @@ export default function DoctorProfileEdit() {
       if (response.success && response.data) {
         setDoctor(response.data);
 
-        // Populate form and reset dirty state
         reset({
           fullName: response.data.fullName,
           phoneE164: response.data.phoneE164 || '',
@@ -160,7 +191,6 @@ export default function DoctorProfileEdit() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file
     if (!file.type.startsWith('image/')) {
       toast.error('File không hợp lệ', {
         description: 'Vui lòng chọn file ảnh',
@@ -258,20 +288,15 @@ export default function DoctorProfileEdit() {
 
   if (loading) {
     return (
-      <AdminLayout breadcrumbTitle="Chỉnh sửa hồ sơ bác sĩ">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-red-500 mx-auto mb-4" />
-            <p className="text-muted-foreground">Đang tải thông tin...</p>
-          </div>
-        </div>
+      <AdminLayout breadcrumbTitle="Chỉnh sửa hồ sơ">
+        <DoctorProfileEditSkeleton />
       </AdminLayout>
     );
   }
 
   if (!doctor) {
     return (
-      <AdminLayout breadcrumbTitle="Chỉnh sửa hồ sơ bác sĩ">
+      <AdminLayout breadcrumbTitle="Chỉnh sửa hồ">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Alert variant="destructive" className="max-w-lg">
             <AlertCircle className="h-4 w-4" />
@@ -284,7 +309,7 @@ export default function DoctorProfileEdit() {
 
   return (
     <AdminLayout
-      breadcrumbTitle="Chỉnh sửa hồ sơ bác sĩ"
+      breadcrumbTitle="Chỉnh sửa hồ sơ"
       actions={
         <div className="flex items-center gap-2">
           {isDirty && (
@@ -364,27 +389,38 @@ export default function DoctorProfileEdit() {
                   <Input id="email" value={doctor.email} disabled className="bg-muted" />
                 </div>
               </div>
-
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phoneE164" className="flex items-center gap-1">
                     <Phone className="w-4 h-4" />Số điện thoại
                   </Label>
-                  <Input id="phoneE164" {...register('phoneE164')} placeholder="+84xxxxxxxxx" />
+                  <Input 
+                    id="phoneE164" 
+                    {...register('phoneE164')} 
+                    onChange={handlePhoneChange}
+                    placeholder="+84xxxxxxxxx" 
+                  />
                   {errors.phoneE164 && (
                     <p className="text-xs text-red-500">{errors.phoneE164.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialty" className="flex items-center gap-1">
-                    <Stethoscope className="w-4 h-4" />Chuyên khoa
-                  </Label>
-                  <Input id="specialty" {...register('specialty')} placeholder="Ví dụ: Nội tổng hợp" />
-                  {errors.specialty && (
-                    <p className="text-xs text-red-500">{errors.specialty.message}</p>
-                  )}
-                </div>
+                <Label htmlFor="yearStarted" className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />Năm bắt đầu hành nghề
+                </Label>
+                <Input
+                  id="yearStarted"
+                  type="number"
+                  {...register('yearStarted', { valueAsNumber: true })}
+                  placeholder="2010"
+                  min={1950}
+                  max={new Date().getFullYear()}
+                />
+                {errors.yearStarted && (
+                  <p className="text-xs text-red-500">{errors.yearStarted.message}</p>
+                )}
+              </div>
               </div>
 
               <div className="space-y-2">
@@ -409,35 +445,78 @@ export default function DoctorProfileEdit() {
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Danh xưng</Label>
-                <Input id="title" {...register('title')} placeholder="BS, ThS.BS, PGS.TS.BS" />
+                <Label htmlFor="title">Học hàm, học vị</Label>
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Chọn học hàm, học vị" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACADEMIC_TITLES.map((title) => (
+                          <SelectItem key={title.value} value={title.value}>
+                            {title.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="positionTitle">Chức vụ</Label>
-                <Input id="positionTitle" {...register('positionTitle')} placeholder="Trưởng khoa, Phó giám đốc" />
+                <Label htmlFor="positionTitle">Chức danh</Label>
+                <Controller
+                  name="positionTitle"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <SelectTrigger className="w-full ">
+                        <SelectValue placeholder="Chọn chức danh" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {POSITION_TITLES.map((position) => (
+                          <SelectItem key={position.value} value={position.value}>
+                            {position.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 {errors.positionTitle && (
                   <p className="text-xs text-red-500">{errors.positionTitle.message}</p>
                 )}
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="yearStarted" className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />Năm bắt đầu hành nghề
-                </Label>
-                <Input
-                  id="yearStarted"
-                  type="number"
-                  {...register('yearStarted', { valueAsNumber: true })}
-                  placeholder="2010"
-                  min={1950}
-                  max={new Date().getFullYear()}
-                />
-                {errors.yearStarted && (
-                  <p className="text-xs text-red-500">{errors.yearStarted.message}</p>
-                )}
-              </div>
+                  <Label htmlFor="specialty" className="flex items-center gap-1">
+                    <Stethoscope className="w-4 h-4" />Chuyên khoa
+                  </Label>
+                  <Controller
+                    name="specialty"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn chuyên khoa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SPECIALTIES.map((specialty) => (
+                            <SelectItem key={specialty.value} value={specialty.value}>
+                              {specialty.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.specialty && (
+                    <p className="text-xs text-red-500">{errors.specialty.message}</p>
+                  )}
+                </div>
             </div>
           </CardContent>
         </Card>

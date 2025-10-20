@@ -10,16 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import {
-  Loader2,
   Edit,
-  Trash2,
-  UserPlus,
-  Mail,
-  Phone as PhoneIcon,
+  Eye,
+  UserCheck,
+  UserX,
   Plus,
 } from "lucide-react";
 import type { UserDto } from '@/types';
 import { getRoleLabel, getRoleBadgeVariant, getStatusBadgeClass } from '@/types/account';
+import { TableSkeleton } from "@/components/ui/TableSkeleton";
 
 interface AccountTableProps {
   users: UserDto[];
@@ -29,7 +28,8 @@ interface AccountTableProps {
   onPageChange: (page: number) => void;
   onAddClick: () => void;
   onEditClick?: (user: UserDto) => void;
-  onDeleteClick?: (user: UserDto) => void;
+  onViewClick?: (user: UserDto) => void;
+  onToggleActiveClick?: (user: UserDto) => void;
 }
 
 export default function AccountTable({
@@ -38,14 +38,13 @@ export default function AccountTable({
   currentPage,
   totalPages,
   onPageChange,
-  onAddClick,
   onEditClick,
-  onDeleteClick
+  onViewClick,
+  onToggleActiveClick
 }: AccountTableProps) {
   const getRoleBadge = (role: string) => {
     return <Badge variant={getRoleBadgeVariant(role)}>{getRoleLabel(role)}</Badge>;
   };
-
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
@@ -136,9 +135,8 @@ export default function AccountTable({
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto" />
-        <p className="text-muted-foreground mt-2">Đang tải...</p>
+      <div>
+        <TableSkeleton rows={10} columns={6} />
       </div>
     );
   }
@@ -146,11 +144,28 @@ export default function AccountTable({
   if (!users || users.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <UserPlus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <Plus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
         <p>Chưa có tài khoản nào</p>
       </div>
     );
   }
+
+  const formatPhone = (phone?: string) => {
+    if (!phone) return "N/A";
+
+    const digits = phone.replace(/\D/g, "");
+
+    if (/^0\d{9}$/.test(digits)) {
+      return digits.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+    }
+
+    if (/^84\d{9}$/.test(digits)) {
+      const local = "0" + digits.slice(2);
+      return local.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+    }
+
+    return phone;
+  };
 
   return (
     <div>
@@ -174,14 +189,12 @@ export default function AccountTable({
                     <TableCell className="font-medium">{user.fullName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
                         {user.email}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <PhoneIcon className="h-4 w-4 text-muted-foreground" />
-                        {user.phoneE164 || 'N/A'}
+                        {formatPhone(user.phoneE164) || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>{getRoleBadge(user.role)}</TableCell>
@@ -195,16 +208,30 @@ export default function AccountTable({
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => onViewClick?.(user)}
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => onEditClick?.(user)}
+                          title="Chỉnh sửa"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => onDeleteClick?.(user)}
+                          onClick={() => onToggleActiveClick?.(user)}
+                          title={user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {user.isActive ? (
+                            <UserX className="h-4 w-4 text-orange-600" />
+                          ) : (
+                            <UserCheck className="h-4 w-4 text-green-600" />
+                          )}
                         </Button>
                       </div>
                     </TableCell>

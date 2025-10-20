@@ -40,10 +40,13 @@ export function LoadingSpinner({
   return (
     <div 
       className={cn(
-        'flex items-center justify-center',
-        showText && 'flex-col gap-2',
+        'flex items-center justify-center gap-2',
+        showText && 'flex-col',
         className
       )}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       {...props}
     >
       <Loader2 
@@ -52,6 +55,7 @@ export function LoadingSpinner({
           sizeClasses[size],
           variantClasses[variant]
         )}
+        aria-hidden="true"
       />
       {showText && text && (
         <span className={cn(

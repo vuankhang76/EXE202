@@ -51,7 +51,7 @@ export default function AccountFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả vai trò</SelectItem>
-            <SelectItem value={UserRole.TENANT}>{getRoleLabel(UserRole.TENANT)}</SelectItem>
+            <SelectItem value={UserRole.DOCTOR}>{getRoleLabel(UserRole.DOCTOR)}</SelectItem>
             <SelectItem value={UserRole.NURSE}>{getRoleLabel(UserRole.NURSE)}</SelectItem>
             <SelectItem value={UserRole.RECEPTIONIST}>{getRoleLabel(UserRole.RECEPTIONIST)}</SelectItem>
             <SelectItem value={UserRole.CLINIC_ADMIN}>{getRoleLabel(UserRole.CLINIC_ADMIN)}</SelectItem>
@@ -72,7 +72,7 @@ export default function AccountFilters({
         </Select>
       </div>
 
-      <Button onClick={onSearch} className="h-10 shrink-0">
+      <Button onClick={onSearch} className="h-9 shrink-0">
         <Search className="h-4 w-4 mr-2" />
         Tìm kiếm
       </Button>

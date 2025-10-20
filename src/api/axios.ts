@@ -11,6 +11,9 @@ declare module 'axios' {
 let activeRequestsCount = 0;
 let loadingChangeCallback: ((isLoading: boolean) => void) | null = null;
 
+// NOTE: Global loading overlay is disabled for better UX
+// Each component manages its own loading state with skeleton screens
+// This callback is kept for backward compatibility and potential custom usage
 export const setLoadingCallback = (callback: (isLoading: boolean) => void) => {
   loadingChangeCallback = callback;
 };

@@ -1,6 +1,5 @@
-// Account roles
 export const UserRole = {
-  TENANT: 'Tenant',
+  DOCTOR: 'Doctor',
   NURSE: 'Nurse',
   RECEPTIONIST: 'Receptionist',
   CLINIC_ADMIN: 'ClinicAdmin'
@@ -8,7 +7,6 @@ export const UserRole = {
 
 export type UserRoleType = typeof UserRole[keyof typeof UserRole];
 
-// Account status
 export const AccountStatus = {
   ACTIVE: 'True',
   INACTIVE: 'False'
@@ -16,10 +14,9 @@ export const AccountStatus = {
 
 export type AccountStatusType = typeof AccountStatus[keyof typeof AccountStatus];
 
-// Get role label in Vietnamese
 export const getRoleLabel = (role: string): string => {
   switch (role) {
-    case UserRole.TENANT:
+    case UserRole.DOCTOR:
       return 'Bác sĩ';
     case UserRole.NURSE:
       return 'Y tá';
@@ -32,10 +29,9 @@ export const getRoleLabel = (role: string): string => {
   }
 };
 
-// Get role badge variant
 export const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (role) {
-    case UserRole.TENANT:
+    case UserRole.DOCTOR:
       return 'default';
     case UserRole.NURSE:
       return 'secondary';
@@ -48,7 +44,6 @@ export const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'de
   }
 };
 
-// Get status label in Vietnamese
 export const getStatusLabel = (status: string | boolean): string => {
   const statusStr = typeof status === 'boolean' ? (status ? 'True' : 'False') : status;
   switch (statusStr) {
@@ -61,7 +56,6 @@ export const getStatusLabel = (status: string | boolean): string => {
   }
 };
 
-// Get status badge class
 export const getStatusBadgeClass = (isActive: boolean): string => {
   return isActive 
     ? 'bg-green-50 text-green-700 border-green-200'

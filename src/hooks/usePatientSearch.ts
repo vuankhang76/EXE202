@@ -72,3 +72,5 @@ export function usePatientSearch(tenantId: number) {
     patients
   };
 }
+
+export type UsePatientSearchReturn = ReturnType<typeof usePatientSearch>;

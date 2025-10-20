@@ -156,4 +156,4 @@ class PaymentTransactionService {
 }
 
 export const paymentTransactionService = new PaymentTransactionService();
-
+export default paymentTransactionService;

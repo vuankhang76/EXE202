@@ -3,13 +3,15 @@ import { lazy } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
 import { Toaster } from './components/ui/Sonner';
 
 const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
 const PatientAuth = lazy(() => import('./pages/authenticate/PatientAuth'))
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
+const PatientAppointments = lazy(() => import('./pages/patient/Appointments'))
+const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment'))
+const PaymentPage = lazy(() => import('./pages/patient/PaymentPage'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -40,7 +42,6 @@ function HomeRedirect() {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // Patient hoặc chưa đăng nhập -> hiển thị Home
   return <Home />;
 }
 
@@ -64,7 +65,6 @@ function App() {
           v7_relativeSplatPath: true
         }}>
           <Toaster />
-          <GlobalLoadingOverlay showOnGlobalLoading={true} text="Đang xử lý..." />
           <Routes>
           <Route path="/" element={<HomeRedirect />} />
           
@@ -78,6 +78,21 @@ function App() {
           <Route path="/patient/dashboard" element={
             <ProtectedRoute allowedUserTypes={['patient']}>
               <PatientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/appointments" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <PatientAppointments />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/appointments/create" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <CreateAppointment />
+            </ProtectedRoute>
+          } />
+          <Route path="/patient/payment" element={
+            <ProtectedRoute allowedUserTypes={['patient']}>
+              <PaymentPage />
             </ProtectedRoute>
           } />
           

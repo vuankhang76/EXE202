@@ -1,18 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import AdminLayout from "@/layout/AdminLayout";
 import { Button } from "@/components/ui/Button";
-import {
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  Trash2,
-} from "lucide-react";
+import { RefreshCw, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import CreatePaymentDialog from "@/components/payments/CreatePaymentDialog";
 import PaymentStats from "@/components/payments/PaymentStats";
 import PaymentFilters from "@/components/payments/PaymentFilters";
 import { paymentTransactionService } from "@/services/paymentTransactionService";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -24,83 +19,108 @@ import {
 import {
   formatCurrency,
   getPaymentMethodLabel,
+  getPaymentMethodIcon,
   getPaymentStatusLabel,
   getPaymentStatusColor,
 } from "@/types/paymentTransaction";
 import type {
   PaymentTransactionDto,
   PaymentStatisticsDto,
-  PaymentTransactionFilterDto
+  PaymentTransactionFilterDto,
 } from "@/types/paymentTransaction";
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export default function PaymentTransaction() {
   const { currentUser } = useAuth();
   const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : 0;
 
-  const [stats, setStats] = useState<PaymentStatisticsDto | undefined>(undefined);
+  const [stats, setStats] = useState<PaymentStatisticsDto | undefined>(
+    undefined
+  );
   const [payments, setPayments] = useState<PaymentTransactionDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalCount] = useState(0);
   const pageSize = 15;
 
-  // Filter states (temporary, before search)
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [methodFilter, setMethodFilter] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
 
-  // Applied filters (after search button clicked)
-  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>('');
-  const [appliedMethodFilter, setAppliedMethodFilter] = useState<string>('');
-  const [appliedFromDate, setAppliedFromDate] = useState<Date | undefined>(undefined);
-  const [appliedToDate, setAppliedToDate] = useState<Date | undefined>(undefined);
+  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
+  const [appliedMethodFilter, setAppliedMethodFilter] = useState<string>("");
+  const [appliedFromDate, setAppliedFromDate] = useState<Date | undefined>(
+    undefined
+  );
+  const [appliedToDate, setAppliedToDate] = useState<Date | undefined>(
+    undefined
+  );
 
-  const loadPayments = useCallback(async (page: number = 1) => {
-    try {
-      setLoading(true);
+  const loadPayments = useCallback(
+    async (page: number = 1) => {
+      try {
+        setLoading(true);
 
-      if (!tenantId) {
-        toast.error('Không thể tải danh sách giao dịch. Vui lòng liên hệ quản trị viên.');
-        return;
-      }
+        if (!tenantId) {
+          toast.error(
+            "Không thể tải danh sách giao dịch. Vui lòng liên hệ quản trị viên."
+          );
+          return;
+        }
 
-      const filter: PaymentTransactionFilterDto = {
-        pageNumber: page,
-        pageSize: pageSize,
-        tenantId,
-        status: appliedStatusFilter && appliedStatusFilter !== 'all' ? appliedStatusFilter : undefined,
-        method: appliedMethodFilter && appliedMethodFilter !== 'all' ? appliedMethodFilter : undefined,
-        fromDate: appliedFromDate ? appliedFromDate.toISOString() : undefined,
-        toDate: appliedToDate ? appliedToDate.toISOString() : undefined,
-      };
+        const filter: PaymentTransactionFilterDto = {
+          pageNumber: page,
+          pageSize: pageSize,
+          tenantId,
+          status:
+            appliedStatusFilter && appliedStatusFilter !== "all"
+              ? appliedStatusFilter
+              : undefined,
+          method:
+            appliedMethodFilter && appliedMethodFilter !== "all"
+              ? appliedMethodFilter
+              : undefined,
+          fromDate: appliedFromDate ? appliedFromDate.toISOString() : undefined,
+          toDate: appliedToDate ? appliedToDate.toISOString() : undefined,
+        };
 
-      const result = await paymentTransactionService.getPaymentTransactions(filter);
+        const result = await paymentTransactionService.getPaymentTransactions(
+          filter
+        );
 
-      if (result.success && result.data) {
-        setPayments(result.data.data || []);
-        setTotalPages(result.data.totalPages || 0);
-        setTotalCount(result.data.totalCount || 0);
-        setCurrentPage(page);
-      } else {
+        if (result.success && result.data) {
+          setPayments(result.data.data || []);
+          setTotalPages(result.data.totalPages || 0);
+          setTotalCount(result.data.totalCount || 0);
+          setCurrentPage(page);
+        } else {
+          setPayments([]);
+          setTotalPages(0);
+          setTotalCount(0);
+        }
+      } catch (error) {
+        console.error("Error loading payments:", error);
+        toast.error("Có lỗi xảy ra khi tải danh sách giao dịch");
         setPayments([]);
-        setTotalPages(0);
-        setTotalCount(0);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading payments:', error);
-      toast.error('Có lỗi xảy ra khi tải danh sách giao dịch');
-      setPayments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [tenantId, appliedStatusFilter, appliedMethodFilter, appliedFromDate, appliedToDate, pageSize]);
+    },
+    [
+      tenantId,
+      appliedStatusFilter,
+      appliedMethodFilter,
+      appliedFromDate,
+      appliedToDate,
+      pageSize,
+    ]
+  );
 
   const loadStats = useCallback(async () => {
     try {
@@ -110,13 +130,15 @@ export default function PaymentTransaction() {
         return;
       }
 
-      const result = await paymentTransactionService.getPaymentStatistics(tenantId);
+      const result = await paymentTransactionService.getPaymentStatistics(
+        tenantId
+      );
 
       if (result.success && result.data) {
         setStats(result.data);
       }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error("Error loading stats:", error);
     } finally {
       setStatsLoading(false);
     }
@@ -153,44 +175,50 @@ export default function PaymentTransaction() {
     try {
       const result = await paymentTransactionService.completePayment(paymentId);
       if (result.success) {
-        toast.success('Đã hoàn thành giao dịch');
+        toast.success("Đã hoàn thành giao dịch");
         loadPayments(currentPage);
         loadStats();
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi hoàn thành giao dịch');
+      toast.error("Có lỗi xảy ra khi hoàn thành giao dịch");
     }
   };
 
   const handleFailPayment = async (paymentId: number) => {
     try {
       const result = await paymentTransactionService.failPayment(paymentId, {
-        reason: 'Đánh dấu thất bại bởi quản trị viên'
+        reason: "Đánh dấu thất bại bởi quản trị viên",
       });
       if (result.success) {
-        toast.success('Đã đánh dấu giao dịch thất bại');
+        toast.success("Đã đánh dấu giao dịch thất bại");
         loadPayments(currentPage);
         loadStats();
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi đánh dấu thất bại');
+      toast.error("Có lỗi xảy ra khi đánh dấu thất bại");
     }
   };
 
   const handleDeletePayment = async (paymentId: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa giao dịch này? (Chỉ có thể xóa giao dịch PENDING)')) {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn xóa giao dịch này? (Chỉ có thể xóa giao dịch PENDING)"
+      )
+    ) {
       return;
     }
 
     try {
-      const result = await paymentTransactionService.deletePaymentTransaction(paymentId);
+      const result = await paymentTransactionService.deletePaymentTransaction(
+        paymentId
+      );
       if (result.success) {
-        toast.success('Đã xóa giao dịch');
+        toast.success("Đã xóa giao dịch");
         loadPayments(currentPage);
         loadStats();
       }
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi xóa giao dịch');
+      toast.error("Có lỗi xảy ra khi xóa giao dịch");
     }
   };
 
@@ -202,7 +230,7 @@ export default function PaymentTransaction() {
     loadPayments(1);
   };
 
-  const filteredPayments = payments.filter(payment => {
+  const filteredPayments = payments.filter((payment) => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     return (
@@ -213,22 +241,25 @@ export default function PaymentTransaction() {
   });
 
   return (
-    <AdminLayout 
-    breadcrumbTitle="Giao dịch thanh toán"
-    actions={
+    <AdminLayout
+      breadcrumbTitle="Giao dịch thanh toán"
+      actions={
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
             Làm mới
-        </Button>
-          <CreatePaymentDialog onSuccess={() => {
-            loadPayments(1);
-            loadStats();
-          }} />
+          </Button>
+          <CreatePaymentDialog
+            onSuccess={() => {
+              loadPayments(1);
+              loadStats();
+            }}
+          />
         </div>
       }
     >
-
       <PaymentStats stats={stats} loading={statsLoading} />
 
       <PaymentFilters
@@ -288,46 +319,59 @@ export default function PaymentTransaction() {
                                 #{payment.appointmentId}
                               </div>
                             ) : (
-                              <span className="text-sm text-muted-foreground">-</span>
+                              <span className="text-sm text-muted-foreground">
+                                -
+                              </span>
                             )}
                           </TableCell>
                           <TableCell>
-                            <div>
-                              {formatPhone(payment.patientPhone)}
+                            <div>{formatPhone(payment.patientPhone)}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">
+                              {payment.patientName}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="font-medium">{payment.patientName}</div>
-                          </TableCell>
-                          <TableCell>
-                            {payment.doctorName}
-                          </TableCell>
-                          <TableCell>
-                            {payment.appointmentType}
-                          </TableCell>
+                          <TableCell>{payment.doctorName}</TableCell>
+                          <TableCell>{payment.appointmentType}</TableCell>
                           <TableCell>
                             <div className="font-semibold">
                               {formatCurrency(payment.amount, payment.currency)}
                             </div>
                           </TableCell>
                           <TableCell>
-                            {getPaymentMethodLabel(payment.method)}
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getPaymentMethodIcon(payment.method)}</span>
+                              <span>{getPaymentMethodLabel(payment.method)}</span>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(payment.status)}`}>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                                payment.status
+                              )}`}
+                            >
                               {getPaymentStatusLabel(payment.status)}
                             </span>
                           </TableCell>
                           <TableCell>
-                            {payment.createdAt ? format(new Date(payment.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi }) : '-'}
+                            {payment.createdAt
+                              ? format(
+                                  new Date(payment.createdAt),
+                                  "dd/MM/yyyy HH:mm",
+                                  { locale: vi }
+                                )
+                              : "-"}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
                                 variant="default"
-                                onClick={() => handleCompletePayment(payment.paymentId)}
-                                disabled={payment.status !== 'PENDING'}
+                                onClick={() =>
+                                  handleCompletePayment(payment.paymentId)
+                                }
+                                disabled={payment.status !== "PENDING"}
                                 className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                               >
                                 <CheckCircle className="h-4 w-4 mr-1" />
@@ -336,18 +380,22 @@ export default function PaymentTransaction() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleFailPayment(payment.paymentId)}
-                                disabled={payment.status !== 'PENDING'}
+                                onClick={() =>
+                                  handleFailPayment(payment.paymentId)
+                                }
+                                disabled={payment.status !== "PENDING"}
                                 className="disabled:cursor-not-allowed"
                               >
                                 <XCircle className="h-4 w-4 mr-1" />
                                 Thất bại
                               </Button>
-                              {payment.status === 'PENDING' && (
+                              {payment.status === "PENDING" && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleDeletePayment(payment.paymentId)}
+                                  onClick={() =>
+                                    handleDeletePayment(payment.paymentId)
+                                  }
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -358,7 +406,7 @@ export default function PaymentTransaction() {
                       ))}
                     </TableBody>
                   </Table>
-      </div>
+                </div>
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4">
@@ -389,7 +437,7 @@ export default function PaymentTransaction() {
             </div>
           </>
         )}
-          </div>
+      </div>
     </AdminLayout>
   );
 }
