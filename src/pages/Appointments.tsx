@@ -8,6 +8,7 @@ import EditAppointmentDialog from "@/components/appointments/EditAppointmentDial
 import AppointmentStats from "@/components/appointments/AppointmentStats";
 import AppointmentFilters from "@/components/appointments/AppointmentFilters";
 import AppointmentTable from "@/components/appointments/AppointmentTable";
+import AppointmentsSkeleton from "@/components/appointments/AppointmentsSkeleton";
 import type { AppointmentDto } from "@/types/appointment";
 import appointmentService from "@/services/appointmentService";
 import { toast } from 'sonner';
@@ -270,35 +271,41 @@ export default function Appointments() {
         </div>
       }
     >
-      <AppointmentStats stats={stats} />
+      {loading ? (
+        <AppointmentsSkeleton />
+      ) : (
+        <>
+          <AppointmentStats stats={stats} />
 
-      <AppointmentFilters
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        typeFilter={typeFilter}
-        fromDate={fromDate}
-        toDate={toDate}
-        onSearchChange={setSearchTerm}
-        onStatusFilterChange={setStatusFilter}
-        onTypeFilterChange={setTypeFilter}
-        onFromDateChange={setFromDate}
-        onToDateChange={setToDate}
-        onSearch={() => {
-          loadAppointments(1);
-        }}
-      />
+          <AppointmentFilters
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            typeFilter={typeFilter}
+            fromDate={fromDate}
+            toDate={toDate}
+            onSearchChange={setSearchTerm}
+            onStatusFilterChange={setStatusFilter}
+            onTypeFilterChange={setTypeFilter}
+            onFromDateChange={setFromDate}
+            onToDateChange={setToDate}
+            onSearch={() => {
+              loadAppointments(1);
+            }}
+          />
 
-      <AppointmentTable
-        appointments={appointments}
-        currentLoading={loading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onStatusChange={handleStatusChange}
-        onView={handleView}
-        onEdit={handleEdit}
-        onPageChange={handlePageChange}
-      />
+          <AppointmentTable
+            appointments={appointments}
+            currentLoading={loading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onStatusChange={handleStatusChange}
+            onView={handleView}
+            onEdit={handleEdit}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
 
       <ViewAppointmentDialog
         appointment={selectedAppointment}

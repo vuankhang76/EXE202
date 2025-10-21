@@ -172,7 +172,6 @@ export default function UnifiedLoginForm({ onSwitchToRegister, onForgotPassword 
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold">Đăng nhập</h2>
-        <p className="text-muted-foreground mt-2">Nhập thông tin để tiếp tục</p>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -275,14 +274,16 @@ export default function UnifiedLoginForm({ onSwitchToRegister, onForgotPassword 
               className={`pr-10 ${errors.password ? 'border-destructive' : ''}`}
               disabled={isLoading}
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
               disabled={isLoading}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+            </Button>
           </div>
           {errors.password && (
             <p className="text-sm text-destructive">{errors.password}</p>

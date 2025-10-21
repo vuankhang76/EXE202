@@ -173,7 +173,7 @@ export default function Home() {
               </div>
               <Button 
                 variant="default"
-                onClick={() => navigate('/patient/auth')}
+                onClick={() => navigate('/login')}
                 className="rounded-full bg-red-500 hover:bg-red-600 text-white"
               >
                 Xem thêm
@@ -285,7 +285,7 @@ export default function Home() {
               </div>
               <Button 
                 variant="default"
-                onClick={() => navigate('/patient/auth')}
+                onClick={() => navigate('/login')}
                 className="rounded-full bg-red-500 hover:bg-red-600 text-white"
               >
                 Xem thêm

@@ -68,13 +68,11 @@ function App() {
           <Routes>
           <Route path="/" element={<HomeRedirect />} />
           
-          {/* Public Clinic Detail Route */}
           <Route path="/clinics/:id" element={<ClinicDetail />} />
           
           <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
-          <Route path="/patient/auth" element={<PatientAuthRedirect />} />
+          <Route path="/login" element={<PatientAuthRedirect />} />
           
-          {/* Patient Only Routes */}
           <Route path="/patient/dashboard" element={
             <ProtectedRoute allowedUserTypes={['patient']}>
               <PatientDashboard />
@@ -95,14 +93,13 @@ function App() {
               <PaymentPage />
             </ProtectedRoute>
           } />
-          
-          {/* Tenant Only Routes */}
-          <Route path="/dashboard" element={
+
+          <Route path="/clinic/dashboard" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Dashboard />
             </ProtectedRoute>
           } />
-          <Route path="/settings" element={
+          <Route path="/clinic/settings" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <TenantSettings />
             </ProtectedRoute>
@@ -112,32 +109,32 @@ function App() {
               <DoctorProfileEdit />
             </ProtectedRoute>
           } />
-          <Route path="/patients" element={
+          <Route path="/clinic/patients" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Patients />
             </ProtectedRoute>
           } />
-          <Route path="/appointments" element={
+          <Route path="/clinic/appointments" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Appointments />
             </ProtectedRoute>
           } />
-          <Route path="/orders" element={
+          <Route path="/clinic/orders" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Orders />
             </ProtectedRoute>
           } />
-          <Route path="/consultations" element={
+          <Route path="/clinic/consultations" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Consultations />
             </ProtectedRoute>
           } />
-          <Route path="/accounts" element={
+          <Route path="/clinic/accounts" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Accounts />
             </ProtectedRoute>
           } />
-          <Route path="/reports" element={
+          <Route path="/clinic/reports" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Reports />
             </ProtectedRoute>

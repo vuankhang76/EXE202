@@ -1,5 +1,4 @@
-"use client"
-
+import type { DayPickerProps } from "react-day-picker";
 import * as React from "react"
 import {
   ChevronDownIcon,
@@ -15,13 +14,13 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "label",
+  captionLayout = "dropdown-years",
   buttonVariant = "ghost",
   formatters,
   components,
   ...props
-}: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+}: DayPickerProps & {
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames()
 
@@ -37,7 +36,11 @@ function Calendar({
       captionLayout={captionLayout}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+          date.toLocaleString("vi-VN", { month: "long" }),
+        formatWeekdayName: (date) =>
+          date.toLocaleString("vi-VN", { weekday: "short" }),
+        formatCaption: (date) =>
+          date.toLocaleString("vi-VN", { month: "long", year: "numeric" }),
         ...formatters,
       }}
       classNames={{

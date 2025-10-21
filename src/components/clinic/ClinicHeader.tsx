@@ -37,7 +37,7 @@ export default function ClinicHeader({ clinic }: ClinicHeaderProps) {
   return (
     <section className="bg-white py-4">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 gap-8">
           <div className="md:col-span-1">
             <div className="relative rounded-2xl overflow-hidden items-center justify-center flex">
               <img

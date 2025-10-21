@@ -18,7 +18,7 @@ interface AuthContextType {
   currentUser: AuthUser | null;
   token: string | null;
   userType: UserType | null;
-  isInitialized: boolean; // Thêm flag để biết đã load xong chưa
+  isInitialized: boolean;
   doctorAvatar: string | null;
   setDoctorAvatar: (avatar: string | null) => void;
   tenantCoverImage: string | null;
@@ -46,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userType, setUserType] = useState<UserType | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load from localStorage on mount (runs AFTER initial render)
   useEffect(() => {
     const patientToken = patientAccountService.getToken();
     const patientUser = patientAccountService.getUser();
@@ -62,20 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(tenantToken);
       setUserType('tenant');
     }
-    
-    setIsInitialized(true); // Đánh dấu đã load xong
+    setIsInitialized(true);
   }, []);
 
-  // Cache doctor avatar in memory (persists across page navigations)
   const [doctorAvatar, setDoctorAvatar] = useState<string | null>(() => {
     return localStorage.getItem('doctorAvatar');
   });
 
-  // Cache tenant cover image
   const [tenantCoverImage, setTenantCoverImage] = useState<string | null>(() => {
-    // Migration: Clear old cache to force refetch with thumbnailUrl
     const cachedValue = localStorage.getItem('tenantCoverImage');
-    // If user is logged in but we have cached data, clear it once to get fresh thumbnailUrl
     if (cachedValue && !localStorage.getItem('thumbnailMigrated')) {
       localStorage.removeItem('tenantCoverImage');
       localStorage.setItem('thumbnailMigrated', 'true');
@@ -84,13 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return cachedValue;
   });
 
-  // Cache tenant info in memory to avoid refetching
   const [tenantInfo, setTenantInfo] = useState<TenantDto | null>(() => {
     const cached = sessionStorage.getItem('tenantInfo');
     return cached ? JSON.parse(cached) : null;
   });
 
-  // Persist avatar to localStorage when it changes
   useEffect(() => {
     if (doctorAvatar) {
       localStorage.setItem('doctorAvatar', doctorAvatar);
@@ -99,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [doctorAvatar]);
 
-  // Persist tenant cover image to localStorage
   useEffect(() => {
     if (tenantCoverImage) {
       localStorage.setItem('tenantCoverImage', tenantCoverImage);
@@ -108,7 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [tenantCoverImage]);
 
-  // Persist tenant info to sessionStorage
   useEffect(() => {
     if (tenantInfo) {
       sessionStorage.setItem('tenantInfo', JSON.stringify(tenantInfo));
@@ -151,7 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       toast.success(`Chào mừng ${user.fullName}!`, { description: 'Đăng nhập thành công' });
     } catch (err: any) {
-      // Chỉ hiển thị toast nếu chưa có toast từ API interceptor
       if (!err.toastShown) {
         let errorTitle = 'Đăng nhập thất bại';
         let errorDescription = 'Vui lòng kiểm tra lại thông tin đăng nhập';
@@ -178,7 +167,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (err.message && !err.message.includes('Đăng nhập thất bại')) {
           errorDescription = err.message;
         }
-
         toast.error(errorTitle, {
           description: errorDescription
         });
@@ -242,9 +230,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(null);
       setCurrentUser(null);
       setUserType(null);
-      setDoctorAvatar(null); // Clear avatar on logout
-      setTenantCoverImage(null); // Clear tenant cover image on logout
-      setTenantInfo(null); // Clear tenant info on logout
+      setDoctorAvatar(null);
+      setTenantCoverImage(null);
+      setTenantInfo(null);
       toast.success('Đăng xuất thành công');
     }
   };
@@ -267,7 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       currentUser, 
       token, 
       userType,
-      isInitialized, // Thêm vào context value
+      isInitialized,
       doctorAvatar, 
       setDoctorAvatar,
       tenantCoverImage,

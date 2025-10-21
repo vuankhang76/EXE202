@@ -49,7 +49,7 @@ export default function ClinicDetail() {
 
     const handleBookAppointment = () => {
         if (!currentUser || userType !== 'patient') {
-            navigate('/patient/auth', {
+            navigate('/login', {
                 state: {
                     from: `/clinics/${id}`,
                     message: 'Vui lòng đăng nhập để đặt lịch hẹn'
