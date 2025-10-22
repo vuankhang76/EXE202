@@ -77,7 +77,7 @@ export default function TenantSettings() {
         });
       } else {
         toast.error("Không thể tải thông tin phòng khám");
-        navigate("/dashboard");
+        navigate("/clinic/dashboard");
       }
     } catch (error) {
       toast.error("Có lỗi xảy ra khi tải dữ liệu");

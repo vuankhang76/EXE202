@@ -54,7 +54,7 @@ export default function OtpForm({ phoneNumber, onBack }: OtpFormProps) {
 
     try {
       await verifyOtp(phoneNumber, otpCode);
-      navigate('/dashboard');
+      navigate('/clinic/dashboard');
     } catch (error: any) {
       setErrors({
         general: error.message || 'Có lỗi xảy ra khi xác thực OTP'
