@@ -147,7 +147,7 @@ export default function UnifiedLoginForm({ onSwitchToRegister, onForgotPassword 
       if (isEmail) {
         const tenantSuccess = await tryTenantLogin(identifier, password, isEmail);
         if (tenantSuccess) {
-          navigate('/dashboard');
+          navigate('/clinic/dashboard');
           return;
         }
       }

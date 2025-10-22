@@ -175,7 +175,7 @@ export default function DoctorProfileEdit() {
         toast.error('Không thể tải thông tin', {
           description: response.message || 'Có lỗi xảy ra',
         });
-        navigate('/dashboard');
+        navigate('/clinic/dashboard');
       }
     } catch (error: any) {
       console.error('Error loading doctor profile:', error);
@@ -283,7 +283,7 @@ export default function DoctorProfileEdit() {
       );
       if (!confirmed) return;
     }
-    navigate('/dashboard');
+    navigate('/clinic/dashboard');
   };
 
   if (loading) {

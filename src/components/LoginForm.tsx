@@ -95,7 +95,7 @@ export default function LoginForm() {
     try {
       if (loginMode === 'staff-email') {
         await login({ email: formData.email, password: formData.password, userType: 'tenant' });
-        navigate('/dashboard');
+        navigate('/clinic/dashboard');
       } else if (loginMode === 'staff-otp') {
         const phone = normalizePhoneNumber(formData.phone);
         await requestOtp(phone);
