@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
+import { Calendar } from '@/components/ui/Calendar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -12,6 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/Popover';
 
 import patientAccountService from '@/services/patientAccountService';
 import type { PatientAccountRegisterDto } from '@/types/patientAccount';
@@ -21,24 +29,38 @@ interface PatientRegisterFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: PatientRegisterFormProps) {
+export default function PatientRegisterForm({
+  onSuccess,
+  onSwitchToLogin,
+}: PatientRegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('+84');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [gender, setGender] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [address, setAddress] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    gender: '',
+    dateOfBirth: '',
+    address: '',
+  });
+
+  const [openCalendar, setOpenCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    if (!fullName || !email || !phone || !password || !confirmPassword) {
+    const { fullName, email, phone, password, confirmPassword, gender, dateOfBirth, address } = formData;
+
+    if (!fullName || !email || !phone || !password || !gender || !dateOfBirth || !address || !confirmPassword) {
       toast.error('Vui lòng nhập đầy đủ thông tin bắt buộc');
       return;
     }
@@ -61,9 +83,9 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
         phoneE164: phone,
         password,
         confirmPassword,
-        gender: gender || undefined,
-        dateOfBirth: dateOfBirth || undefined,
-        address: address || undefined,
+        gender: gender,
+        dateOfBirth: dateOfBirth,
+        address: address,
       };
 
       const response = await patientAccountService.register(registerData);
@@ -72,15 +94,16 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
         toast.success('Đăng ký thành công!', {
           description: 'Vui lòng đăng nhập để tiếp tục.',
         });
-        // Reset form
-        setFullName('');
-        setEmail('');
-        setPhone('+84');
-        setPassword('');
-        setConfirmPassword('');
-        setGender('');
-        setDateOfBirth('');
-        setAddress('');
+        setFormData({
+          fullName: '',
+          email: '',
+          phone: '',
+          password: '',
+          confirmPassword: '',
+          gender: '',
+          dateOfBirth: '',
+          address: '',
+        });
         onSuccess?.();
       } else {
         toast.error('Đăng ký thất bại', {
@@ -88,7 +111,6 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
         });
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
       toast.error('Đăng ký thất bại', {
         description: error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.',
       });
@@ -100,117 +122,139 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Đăng ký tài khoản</h2>
-        <p className="text-muted-foreground mt-2">Tạo tài khoản mới để đặt lịch khám</p>
+        <h2 className="text-2xl font-bold text-gray-900">Đăng ký tài khoản</h2>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">
-            Họ và tên <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="fullName"
-            placeholder="Nguyễn Văn A"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="fullName" className='mb-2'>
+              Họ và tên <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="fullName"
+              placeholder="Nguyễn Văn A"
+              value={formData.fullName}
+              onChange={(e) => handleChange('fullName', e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="email" className='mb-2'>
+              Email <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="email@example.com"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              required
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">
-            Email <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Nhập email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="phone" className='mb-2'>
+              Số điện thoại <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="0xxxxxxxxx"
+              value={formData.phone}
+              onChange={(e) => handleChange('phone', e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="gender" className='mb-2'>Giới tính</Label>
+            <Select value={formData.gender} onValueChange={(v) => handleChange('gender', v)}>
+              <SelectTrigger className='w-full !h-12'>
+                <SelectValue placeholder="Chọn giới tính"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="M">Nam</SelectItem>
+                <SelectItem value="F">Nữ</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">
-            Số điện thoại <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="+84901234567"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="mb-2">Ngày sinh</Label>
+            <Popover open={openCalendar} onOpenChange={setOpenCalendar}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal !h-12"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
+                  {selectedDate
+                    ? format(selectedDate, 'dd/MM/yyyy', { locale: vi })
+                    : 'Chọn ngày sinh'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="p-2 w-auto">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setOpenCalendar(false);
+                    handleChange('dateOfBirth', date ? date.toISOString().split('T')[0] : '');
+                  }}
+                  captionLayout="dropdown-years"
+                  startMonth={new Date(1950, 0, 1)}
+                  endMonth={new Date(new Date().getFullYear() - 5, 11, 31)}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Label htmlFor="address" className="mb-2">
+              Địa chỉ
+            </Label>
+            <Input
+              id="address"
+              placeholder="123 Nguyễn Huệ, Q.1, TP.HCM"
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="gender">Giới tính</Label>
-          <Select value={gender} onValueChange={setGender}>
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn giới tính" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="M">Nam</SelectItem>
-              <SelectItem value="F">Nữ</SelectItem>
-              <SelectItem value="O">Khác</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">Ngày sinh</Label>
-          <Input
-            id="dateOfBirth"
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">Địa chỉ</Label>
-          <Input
-            id="address"
-            placeholder="123 Nguyễn Huệ, Q.1, TP.HCM"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">
+        {/* Password */}
+        <div>
+          <Label htmlFor="password" className='mb-2'>
             Mật khẩu <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Tối thiểu 6 ký tự"
+              value={formData.password}
+              onChange={(e) => handleChange('password', e.target.value)}
               required
             />
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">
+        {/* Confirm password */}
+        <div>
+          <Label htmlFor="confirmPassword" className='mb-2'>
             Xác nhận mật khẩu <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
@@ -218,27 +262,23 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Nhập lại mật khẩu"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange('confirmPassword', e.target.value)}
               required
             />
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full font-medium mt-4" disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -251,11 +291,11 @@ export default function PatientRegisterForm({ onSuccess, onSwitchToLogin }: Pati
       </form>
 
       {onSwitchToLogin && (
-        <div className="mt-4 text-center text-sm">
+        <div className="mt-4 text-center text-sm text-gray-600">
           Đã có tài khoản?{' '}
           <button
             onClick={onSwitchToLogin}
-            className="text-primary hover:underline font-medium"
+            className="text-primary font-medium hover:underline"
           >
             Đăng nhập ngay
           </button>

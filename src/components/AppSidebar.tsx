@@ -24,22 +24,22 @@ const navigationData = {
   navMain: [
     {
       title: "Lịch hẹn và tái khám",
-      url: "/appointments",
+      url: "/clinic/appointments",
       icon: CalendarDays,
     },
     {
       title: "Đơn dịch vụ và thanh toán",
-      url: "/orders",
+      url: "/clinic/orders",
       icon: ClipboardList,
     },
     {
       title: "Quản lý hồ sơ bệnh nhân",
-      url: "/patients",
+      url: "/clinic/patients",
       icon: UserRound,
     },
     {
       title: "Giao tiếp và tư vấn từ xa",
-      url: "/consultations",
+      url: "/clinic/consultations",
       icon: MessageCirclePlus,
     },
   ],
@@ -47,22 +47,22 @@ const navigationData = {
   navServices: [
     {
       title: "Tổng quan",
-      url: "/dashboard",
+      url: "/clinic/dashboard",
       icon: Home,
     },
     {
       title: "Tài khoản",
-      url: "/accounts",
+      url: "/clinic/accounts",
       icon: UserCog,
     },
     {
       title: "Báo cáo & Thống kê",
-      url: "/reports",
+      url: "/clinic/reports",
       icon: UserCog,
     },
     {
       title: "Cài đặt",
-      url: "/settings",
+      url: "/clinic/settings",
       icon: Settings,
     },
   ],

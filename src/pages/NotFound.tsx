@@ -74,7 +74,7 @@ export default function NotFound() {
             <p className="text-sm text-gray-500 mb-4">Có thể bạn đang tìm kiếm:</p>
             <div className="flex flex-wrap gap-3 justify-center">
               <button
-                onClick={() => navigate('/patient/auth')}
+                onClick={() => navigate('/login')}
                 className="text-sm text-red-600 hover:text-red-700 hover:underline"
               >
                 Đăng nhập bệnh nhân

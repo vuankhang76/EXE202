@@ -67,7 +67,7 @@ export default function HeroSection() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     size="lg"
-                    onClick={() => navigate('/patient/auth')}
+                    onClick={() => navigate('/login')}
                     className="bg-red-500 hover:bg-red-600 text-white text-base px-8"
                   >
                     Đăng ký ngay
@@ -76,7 +76,7 @@ export default function HeroSection() {
                   <Button 
                     size="lg"
                     variant="outline"
-                    onClick={() => navigate('/patient/auth')}
+                    onClick={() => navigate('/login')}
                     className="text-base px-8"
                   >
                     Đăng nhập

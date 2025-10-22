@@ -102,7 +102,7 @@ export default function Header() {
               </DropdownMenu>
             ) : (
               <Button 
-                onClick={() => navigate('/patient/auth')}
+                onClick={() => navigate('/login')}
                 className="bg-red-500 hover:bg-red-600 text-white"
               >
                 Đăng nhập
@@ -159,7 +159,7 @@ export default function Header() {
               </DropdownMenu>
             ) : (
               <Button 
-                onClick={() => navigate('/patient/auth')}
+                onClick={() => navigate('/login')}
                 className="bg-red-500 hover:bg-red-600 text-white"
                 size="sm"
               >

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { convertToE164Format } from '@/utils/formatPhone';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PatientLoginFormProps {
@@ -24,24 +25,6 @@ export default function PatientLoginForm({ onSuccess, onSwitchToRegister, onForg
 
   const [phone, setPhone] = useState('');
   const [phonePassword, setPhonePassword] = useState('');
-
-  const normalizePhoneNumber = (phone: string): string => {
-    phone = phone.trim().replace(/\s/g, '');
-    
-    if (phone.startsWith('0')) {
-      return '+84' + phone.substring(1);
-    }
-    if (phone.startsWith('84') && !phone.startsWith('+84')) {
-      return '+' + phone;
-    }
-    if (phone.startsWith('+84')) {
-      return phone;
-    }
-    if (/^\d+$/.test(phone)) {
-      return '+84' + phone;
-    }
-    return phone;
-  };
 
   const onEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -72,7 +55,7 @@ export default function PatientLoginForm({ onSuccess, onSwitchToRegister, onForg
 
     setIsLoading(true);
     try {
-      const normalizedPhone = normalizePhoneNumber(phone);
+      const normalizedPhone = convertToE164Format(phone);
       await login({ phone: normalizedPhone, password: phonePassword, userType: 'patient' });
       onSuccess?.('', {});
     } catch (error: any) {

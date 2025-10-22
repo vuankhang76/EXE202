@@ -9,7 +9,6 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, allowedUserTypes }: ProtectedRouteProps) {
   const { currentUser, token, userType, isInitialized } = useAuth();
 
-  // Chờ AuthContext load xong từ localStorage
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
