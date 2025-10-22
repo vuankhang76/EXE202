@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from './components/ui/Sonner';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
@@ -65,6 +66,7 @@ function App() {
           v7_relativeSplatPath: true
         }}>
           <Toaster />
+          <SpeedInsights />
           <Routes>
           <Route path="/" element={<HomeRedirect />} />
           
