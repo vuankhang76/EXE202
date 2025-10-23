@@ -8,7 +8,6 @@ import EditAppointmentDialog from "@/components/appointments/EditAppointmentDial
 import AppointmentStats from "@/components/appointments/AppointmentStats";
 import AppointmentFilters from "@/components/appointments/AppointmentFilters";
 import AppointmentTable from "@/components/appointments/AppointmentTable";
-import AppointmentsSkeleton from "@/components/appointments/AppointmentsSkeleton";
 import type { AppointmentDto } from "@/types/appointment";
 import appointmentService from "@/services/appointmentService";
 import { toast } from 'sonner';

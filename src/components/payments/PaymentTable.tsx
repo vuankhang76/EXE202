@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { CheckCircle, XCircle, Trash2, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,

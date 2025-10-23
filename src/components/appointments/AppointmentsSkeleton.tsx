@@ -6,10 +6,8 @@ import { TableSkeleton } from "@/components/ui/TableSkeleton";
 export default function AppointmentsSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
       <StatsGridSkeleton count={6} />
 
-      {/* Filters Section */}
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-40 mb-4" />
