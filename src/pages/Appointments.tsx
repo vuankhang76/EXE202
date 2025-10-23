@@ -271,11 +271,8 @@ export default function Appointments() {
         </div>
       }
     >
-      {loading ? (
-        <AppointmentsSkeleton />
-      ) : (
-        <>
-          <AppointmentStats stats={stats} />
+
+          <AppointmentStats stats={stats} loading={loading}/>
 
           <AppointmentFilters
             searchTerm={searchTerm}
@@ -304,8 +301,6 @@ export default function Appointments() {
             onEdit={handleEdit}
             onPageChange={handlePageChange}
           />
-        </>
-      )}
 
       <ViewAppointmentDialog
         appointment={selectedAppointment}

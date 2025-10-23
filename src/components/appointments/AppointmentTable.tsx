@@ -8,6 +8,7 @@ import { Calendar, Eye, Edit } from "lucide-react";
 import type { AppointmentDto } from "@/types/appointment";
 import { getStatusColor, getStatusLabel, getTypeLabel, AppointmentStatus } from "@/types/appointment";
 import { Mars, Venus } from "lucide-react";
+import TableSkeleton from "../ui/TableSkeleton";
 
 interface AppointmentTableProps {
   appointments?: AppointmentDto[];
@@ -332,9 +333,9 @@ export default function AppointmentTable({
   return (
     <div>
       {currentLoading ? (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" showText text="Đang tải lịch hẹn..." />
-        </div>
+        <div>
+          <TableSkeleton rows={10} columns={6} />
+      </div>
       ) : safeAppointments.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
