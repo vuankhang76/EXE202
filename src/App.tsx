@@ -28,7 +28,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 function TenantAuthRedirect() {
   const { currentUser, userType } = useAuth();
   if (currentUser && userType === 'tenant') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/clinic/dashboard" replace />;
   }
   if (currentUser && userType === 'patient') {
     return <Navigate to="/" replace />;
@@ -40,7 +40,7 @@ function HomeRedirect() {
   const { currentUser, userType } = useAuth();
   
   if (currentUser && userType === 'tenant') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/clinic/dashboard" replace />;
   }
   
   return <Home />;
@@ -52,7 +52,7 @@ function PatientAuthRedirect() {
     return <Navigate to="/" replace />;
   }
   if (currentUser && userType === 'tenant') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/clinic/dashboard" replace />;
   }
   return <PatientAuth />;
 }
