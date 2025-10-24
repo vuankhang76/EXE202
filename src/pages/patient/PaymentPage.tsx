@@ -10,6 +10,7 @@ import type { PaymentTransactionCreateDto } from '@/types/paymentTransaction';
 import type { AppointmentCreateDto } from '@/types/appointment';
 import type { TenantDto, DoctorDto } from '@/types';
 import type { Service } from '@/types/service';
+import { toast } from 'sonner';
 
 interface PaymentPageState {
   appointmentData: AppointmentCreateDto; // Data to create appointment after payment
@@ -36,7 +37,7 @@ export default function PaymentPage() {
 
   useEffect(() => {
     if (!state || !state.appointmentData) {
-      alert('Không tìm thấy thông tin đặt lịch');
+      toast.error('Không tìm thấy thông tin đặt lịch');
       navigate('/patient/appointments');
     }
   }, [state, navigate]);
@@ -45,29 +46,27 @@ export default function PaymentPage() {
     if (!state) return;
 
     if (paymentMethod === 'bank_transfer' && !selectedBank) {
-      alert('Vui lòng chọn ngân hàng');
+      toast.error('Vui lòng chọn ngân hàng');
       return;
     }
 
     if (paymentMethod === 'e_wallet' && !selectedEWallet) {
-      alert('Vui lòng chọn ví điện tử');
+      toast.error('Vui lòng chọn ví điện tử');
       return;
     }
 
     setLoading(true);
     try {
-      // Step 1: Create appointment first
       const appointmentResponse = await appointmentService.createAppointment(state.appointmentData);
       
       if (!appointmentResponse.success || !appointmentResponse.data) {
         console.error('Appointment creation failed:', appointmentResponse);
-        alert(appointmentResponse.message || 'Không thể tạo lịch hẹn. Vui lòng thử lại.');
+        toast.error(appointmentResponse.message || 'Không thể tạo lịch hẹn. Vui lòng thử lại.');
         return;
       }
 
       const createdAppointment = appointmentResponse.data;
 
-      // Step 2: Create payment transaction
       const paymentData: PaymentTransactionCreateDto = {
         tenantId: state.tenantId,
         patientId: state.patientId,
@@ -89,16 +88,16 @@ export default function PaymentPage() {
       
       if (!paymentResponse.success) {
         console.error('Failed to create payment transaction:', paymentResponse.message, paymentResponse.errors);
-        alert('Lịch hẹn đã được tạo nhưng không thể tạo giao dịch thanh toán. Vui lòng thanh toán tại phòng khám.');
+        toast.error('Lịch hẹn đã được tạo nhưng không thể tạo giao dịch thanh toán. Vui lòng thanh toán tại phòng khám.');
         navigate('/patient/appointments');
         return;
       }
 
-      alert('Đặt lịch và thanh toán thành công!');
+      toast.success('Đặt lịch và thanh toán thành công!');
       navigate('/patient/appointments');
     } catch (error: any) {
       console.error('Error creating appointment/payment:', error);
-      alert(error.response?.data?.message || 'Đã xảy ra lỗi khi đặt lịch và thanh toán');
+      toast.error(error.response?.data?.message || 'Đã xảy ra lỗi khi đặt lịch và thanh toán');
     } finally {
       setLoading(false);
     }

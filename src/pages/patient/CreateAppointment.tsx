@@ -14,6 +14,7 @@ import { tenantSettingService } from '@/services/tenantSettingService';
 import type { TenantDto, DoctorDto } from '@/types';
 import type { Service } from '@/types/service';
 import { AppointmentType } from "@/types/appointment";
+import { toast } from "sonner";
 
 export default function CreateAppointment() {
   const navigate = useNavigate();
@@ -249,13 +250,13 @@ export default function CreateAppointment() {
     if (!allowWeekendBooking) {
       const dayOfWeek = date.getDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday = 0, Saturday = 6
-        alert("Phòng khám không cho phép đặt lịch vào cuối tuần (Thứ 7 và Chủ nhật).");
+        toast.error("Phòng khám không cho phép đặt lịch vào cuối tuần (Thứ 7 và Chủ nhật).");
         return;
       }
     }
 
     if (availableDates.length > 0 && !availableDates.includes(dateStr)) {
-      alert("Ngày này không có lịch trống. Vui lòng chọn ngày khác.");
+      toast.error("Ngày này không có lịch trống. Vui lòng chọn ngày khác.");
       return;
     }
 
@@ -295,7 +296,7 @@ export default function CreateAppointment() {
       !selectedService ||
       !appointmentType
     ) {
-      alert("Vui lòng điền đầy đủ thông tin");
+      toast.error("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -303,7 +304,7 @@ export default function CreateAppointment() {
     const appointmentStart = new Date(startTime);
 
     if (appointmentStart < now) {
-      alert(
+      toast.error(
         "Không thể đặt lịch vào thời gian trong quá khứ. Vui lòng chọn thời gian trong tương lai."
       );
       return;

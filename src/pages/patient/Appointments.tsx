@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import appointmentService from '@/services/appointmentService';
 import { paymentTransactionService } from '@/services/paymentTransactionService';
+import { toast } from 'sonner';
 import type { AppointmentDto } from '@/types/appointment';
 import type { PaymentTransactionDto } from '@/types/paymentTransaction';
 import {
@@ -113,11 +114,15 @@ export default function PatientAppointments() {
 
     try {
       const res = await appointmentService.cancelAppointment(appointmentId, 'Bệnh nhân hủy lịch');
-      alert(res.success ? 'Hủy lịch hẹn thành công' : res.message || 'Không thể hủy lịch hẹn');
-      if (res.success) loadAppointments();
+      if (res.success) {
+        toast.success('Hủy lịch hẹn thành công');
+        loadAppointments();
+      } else {
+        toast.error(res.message || 'Không thể hủy lịch hẹn');
+      }
     } catch (err) {
       console.error('Error cancelling appointment:', err);
-      alert('Đã xảy ra lỗi khi hủy lịch hẹn');
+      toast.error('Đã xảy ra lỗi khi hủy lịch hẹn');
     }
   };
 
