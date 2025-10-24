@@ -196,7 +196,7 @@ export default function BookingConfirmation({
             <div>
               <p className="text-sm text-gray-600">Thanh toán</p>
               <p className="font-semibold text-gray-900">
-                {paymentMethod === 'cash' ? '💵 Tiền mặt' : '🏦 Chuyển khoản'}
+                {paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản'}
               </p>
               {paymentMethod === 'bank_transfer' && (
                 <p className="text-xs text-amber-600 mt-1">

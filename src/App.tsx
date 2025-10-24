@@ -22,7 +22,6 @@ const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/PaymentTransaction'))
 const Consultations = lazy(() => import('./pages/Consultations'))
 const Accounts = lazy(() => import('./pages/Accounts'))
-const Reports = lazy(() => import('./pages/Reports'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function TenantAuthRedirect() {
@@ -134,11 +133,6 @@ function App() {
           <Route path="/clinic/accounts" element={
             <ProtectedRoute allowedUserTypes={['tenant']}>
               <Accounts />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/reports" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Reports />
             </ProtectedRoute>
           } />
           

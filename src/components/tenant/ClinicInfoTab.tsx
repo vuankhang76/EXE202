@@ -144,6 +144,33 @@ export function ClinicInfoTab({
                       disabled={!canEdit}
                     />
                   </div>
+                  
+                  {bookingConfig?.allowWeekendBooking && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="weekendOpen">Giờ mở cửa</Label>
+                        <TimeInput
+                          id="weekendOpen"
+                          value={formData.weekendOpen || ""}
+                          onChange={(value) =>
+                            handleInputChange("weekendOpen", value)
+                          }
+                          disabled={!canEdit}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="weekendClose">Giờ đóng cửa</Label>
+                        <TimeInput
+                          id="weekendClose"
+                          value={formData.weekendClose || ""}
+                          onChange={(value) =>
+                            handleInputChange("weekendClose", value)
+                          }
+                          disabled={!canEdit}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {formData.weekdayOpen && formData.weekdayClose && (

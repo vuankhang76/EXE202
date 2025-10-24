@@ -51,17 +51,12 @@ const navigationData = {
       icon: Home,
     },
     {
-      title: "Tài khoản",
+      title: "Quản lý tài khoản",
       url: "/clinic/accounts",
       icon: UserCog,
     },
     {
-      title: "Báo cáo & Thống kê",
-      url: "/clinic/reports",
-      icon: UserCog,
-    },
-    {
-      title: "Cài đặt",
+      title: "Cài đặt phòng khám",
       url: "/clinic/settings",
       icon: Settings,
     },
