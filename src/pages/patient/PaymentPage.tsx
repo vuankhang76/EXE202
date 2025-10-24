@@ -13,7 +13,7 @@ import type { Service } from '@/types/service';
 import { toast } from 'sonner';
 
 interface PaymentPageState {
-  appointmentData: AppointmentCreateDto; // Data to create appointment after payment
+  appointmentData: AppointmentCreateDto;
   tenantId: number;
   patientId: number;
   amount: number;
@@ -30,10 +30,8 @@ export default function PaymentPage() {
   const location = useLocation();
   const state = location.state as PaymentPageState;
 
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer' | 'e_wallet'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
   const [loading, setLoading] = useState(false);
-  const [selectedBank, setSelectedBank] = useState<string>('');
-  const [selectedEWallet, setSelectedEWallet] = useState<string>('');
 
   useEffect(() => {
     if (!state || !state.appointmentData) {
@@ -44,16 +42,6 @@ export default function PaymentPage() {
 
   const handlePayment = async () => {
     if (!state) return;
-
-    if (paymentMethod === 'bank_transfer' && !selectedBank) {
-      toast.error('Vui lòng chọn ngân hàng');
-      return;
-    }
-
-    if (paymentMethod === 'e_wallet' && !selectedEWallet) {
-      toast.error('Vui lòng chọn ví điện tử');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -75,13 +63,7 @@ export default function PaymentPage() {
         currency: 'VND',
         method: paymentMethod === 'cash' 
           ? 'CASH' 
-          : paymentMethod === 'bank_transfer' 
-            ? 'BANK_TRANSFER' 
-            : selectedEWallet === 'MoMo'
-              ? 'MOMO'
-              : selectedEWallet === 'ZaloPay'
-                ? 'ZALOPAY'
-                : 'VNPAY'
+          : 'BANK_TRANSFER'
       };
 
       const paymentResponse = await paymentTransactionService.createPaymentTransaction(paymentData);
@@ -93,7 +75,7 @@ export default function PaymentPage() {
         return;
       }
 
-      toast.success('Đặt lịch và thanh toán thành công!');
+      toast.success('Đặt lịch thành công!');
       navigate('/patient/appointments');
     } catch (error: any) {
       console.error('Error creating appointment/payment:', error);
@@ -134,7 +116,6 @@ export default function PaymentPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Payment Methods */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -142,12 +123,9 @@ export default function PaymentPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  {/* Cash Payment */}
                   <button
                     onClick={() => {
                       setPaymentMethod('cash');
-                      setSelectedBank('');
-                      setSelectedEWallet('');
                     }}
                     className={`w-full p-5 border-2 rounded-lg transition-all text-left ${
                       paymentMethod === 'cash'
@@ -175,7 +153,6 @@ export default function PaymentPage() {
                     </div>
                   </button>
 
-                  {/* Bank Transfer */}
                   <div
                     className={`border-2 rounded-lg transition-all ${
                       paymentMethod === 'bank_transfer'
@@ -186,7 +163,6 @@ export default function PaymentPage() {
                     <button
                       onClick={() => {
                         setPaymentMethod('bank_transfer');
-                        setSelectedEWallet('');
                       }}
                       className="w-full p-5 text-left"
                     >
@@ -212,102 +188,7 @@ export default function PaymentPage() {
 
                     {paymentMethod === 'bank_transfer' && (
                       <div className="px-5 pb-5">
-                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-sm font-medium text-blue-900 mb-3">
-                            Thông tin chuyển khoản:
-                          </p>
-                          <div className="text-sm text-blue-800 space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Ngân hàng:</span>
-                              <span className="font-semibold">Vietcombank</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Số tài khoản:</span>
-                              <span className="font-semibold font-mono">1234567890</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Chủ tài khoản:</span>
-                              <span className="font-semibold">{clinic.name.toUpperCase()}</span>
-                            </div>
-                            <div className="flex flex-col mt-3 pt-3 border-t border-blue-200">
-                              <span className="text-gray-600 mb-1">Nội dung chuyển khoản:</span>
-                              <span className="font-semibold font-mono bg-white px-2 py-1 rounded">
-                                DATLICH {state.patientId}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                            <p className="text-xs text-blue-900 font-medium">
-                              💡 Lưu ý quan trọng:
-                            </p>
-                            <ul className="text-xs text-blue-800 mt-2 space-y-1 list-disc list-inside">
-                              <li>Vui lòng chuyển khoản đúng nội dung để tự động xác nhận</li>
-                              <li>Giữ lại biên lai/ảnh chụp màn hình để xuất trình khi cần</li>
-                              <li>Lịch hẹn sẽ được xác nhận sau khi nhận được thanh toán</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* E-Wallet (Future expansion) */}
-                  <div
-                    className={`border-2 rounded-lg transition-all ${
-                      paymentMethod === 'e_wallet'
-                        ? 'border-red-500 bg-red-50'
-                        : 'border-gray-200'
-                    }`}
-                  >
-                    <button
-                      onClick={() => {
-                        setPaymentMethod('e_wallet');
-                        setSelectedBank('');
-                      }}
-                      className="w-full p-5 text-left"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                            <CreditCard className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 text-lg">
-                              Ví điện tử
-                            </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Thanh toán nhanh qua ví điện tử
-                            </p>
-                          </div>
-                        </div>
-                        {paymentMethod === 'e_wallet' && (
-                          <Check className="w-6 h-6 text-red-500 flex-shrink-0" />
-                        )}
-                      </div>
-                    </button>
-
-                    {paymentMethod === 'e_wallet' && (
-                      <div className="px-5 pb-5">
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                          {['MoMo', 'ZaloPay', 'VNPay'].map((wallet) => (
-                            <button
-                              key={wallet}
-                              onClick={() => setSelectedEWallet(wallet)}
-                              className={`p-4 border-2 rounded-lg transition-all ${
-                                selectedEWallet === wallet
-                                  ? 'border-red-500 bg-red-50'
-                                  : 'border-gray-200 hover:border-red-300'
-                              }`}
-                            >
-                              <p className="text-sm font-medium text-gray-900 text-center">
-                                {wallet}
-                              </p>
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-3 text-center">
-                          Bạn sẽ được chuyển đến trang thanh toán của ví điện tử
-                        </p>
+                        <label className="block text-sm font-medium text-gray-700">Lưu ý: Thanh toán tại phòng khám sau khi khám.</label>
                       </div>
                     )}
                   </div>
