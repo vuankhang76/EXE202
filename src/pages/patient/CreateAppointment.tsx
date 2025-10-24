@@ -4,6 +4,7 @@ import { Calendar, ArrowLeft, Check, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CreateAppointmentSkeleton from "@/components/appointments/CreateAppointmentSkeleton";
 import { ServiceSelector } from "@/components/appointments/ServiceSelector";
 import DoctorSelector from "@/components/appointments/DoctorSelector";
 import GeneralTimeSlotPicker from "@/components/appointments/GeneralTimeSlotPicker";
@@ -26,6 +27,7 @@ export default function CreateAppointment() {
   const [availableDoctors, setAvailableDoctors] = useState<DoctorDto[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loadingDates, setLoadingDates] = useState(false);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorDto | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -37,6 +39,7 @@ export default function CreateAppointment() {
   const [maxBookingDays, setMaxBookingDays] = useState<number>(90);
   const [slotDurationMinutes, setSlotDurationMinutes] = useState<number>(30);
   const [allowWeekendBooking, setAllowWeekendBooking] = useState<boolean>(true); // Default allow weekend
+  const [loading, setLoading] = useState(true);
 
   const [isServiceCollapsed, setIsServiceCollapsed] = useState(false);
   const [isDateCollapsed, setIsDateCollapsed] = useState(false);
@@ -56,6 +59,44 @@ export default function CreateAppointment() {
       loadMaxBookingDate();
     }
   }, [clinicId]);
+
+
+
+  useEffect(() => {
+    if (doctorId && doctors.length > 0) {
+      const doctor = doctors.find((d) => d.doctorId === doctorId);
+      if (doctor) {
+        setSelectedDoctor(doctor);
+      }
+    }
+  }, [doctorId, doctors]);
+
+  const loadClinicData = async () => {
+    setLoading(true);
+    try {
+      const response = await tenantService.getTenantById(clinicId);
+      if (response.success && response.data) {
+        setClinic(response.data);
+
+        const doctorsResponse = await tenantService.getTenantDoctors(
+          clinicId,
+          1,
+          50
+        );
+        if (doctorsResponse.success && doctorsResponse.data) {
+          const verifiedDoctors = doctorsResponse.data.data.filter(
+            (d) => d.isVerified
+          );
+          setDoctors(verifiedDoctors);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading clinic data:", error);
+      toast.error("Không thể tải thông tin phòng khám");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadMaxBookingDate = async () => {
     if (!clinicId) return;
@@ -84,37 +125,6 @@ export default function CreateAppointment() {
       const fallback = new Date();
       fallback.setDate(fallback.getDate() + 90);
       setMaxBookingDate(fallback);
-    }
-  };
-
-  useEffect(() => {
-    if (doctorId && doctors.length > 0) {
-      const doctor = doctors.find((d) => d.doctorId === doctorId);
-      if (doctor) {
-        setSelectedDoctor(doctor);
-      }
-    }
-  }, [doctorId, doctors]);
-
-  const loadClinicData = async () => {
-    try {
-      const [clinicResponse, doctorsResponse] = await Promise.all([
-        tenantService.getTenantById(clinicId),
-        tenantService.getTenantDoctors(clinicId, 1, 50),
-      ]);
-
-      if (clinicResponse.success && clinicResponse.data) {
-        setClinic(clinicResponse.data);
-      }
-
-      if (doctorsResponse.success && doctorsResponse.data) {
-        const verifiedDoctors = doctorsResponse.data.data.filter(
-          (d) => d.isVerified
-        );
-        setDoctors(verifiedDoctors);
-      }
-    } catch (error) {
-      console.error("Error loading clinic data:", error);
     }
   };
 
@@ -201,6 +211,7 @@ export default function CreateAppointment() {
   };
 
   const filterAvailableDoctors = async (startTime: string) => {
+    setLoadingDoctors(true);
     try {
       const timeMatch = startTime.match(/T(\d{2}:\d{2})/);
       if (!timeMatch) return;
@@ -239,6 +250,8 @@ export default function CreateAppointment() {
     } catch (error) {
       console.error("Error filtering available doctors:", error);
       setAvailableDoctors(doctors);
+    } finally {
+      setLoadingDoctors(false);
     }
   };
 
@@ -354,15 +367,11 @@ export default function CreateAppointment() {
   const canSubmit =
     selectedDoctor && startTime && endTime && patientId && selectedService;
 
-  if (!clinic) {
+  if (loading || !clinic) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-gray-600 mb-4">Đang tải thông tin...</p>
-          </div>
-        </div>
+        <CreateAppointmentSkeleton />
         <Footer />
       </>
     );
@@ -612,6 +621,10 @@ export default function CreateAppointment() {
                             )}
                           </div>
                         </div>
+                      </div>
+                    ) : loadingDoctors ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">Đang tải danh sách bác sĩ...</p>
                       </div>
                     ) : availableDoctors.length > 0 ? (
                       <div className="animate-in fade-in slide-in-from-top-2 duration-300">
