@@ -127,7 +127,7 @@ export default function PaymentTable({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getPaymentMethodIcon(payment.method)}</span>
+                        <span className="text-lg mb-1.5">{getPaymentMethodIcon(payment.method)}</span>
                         <span>{getPaymentMethodLabel(payment.method)}</span>
                       </div>
                     </TableCell>

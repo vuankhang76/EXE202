@@ -35,50 +35,62 @@ export default function ClinicHeader({ clinic }: ClinicHeaderProps) {
   const schedule = formatSchedule();
 
   return (
-    <section className="bg-white py-4">
+    <section className="bg-gradient-to-br from-red-50 to-white py-10 border-b border-gray-100">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="md:col-span-1">
-            <div className="relative rounded-2xl overflow-hidden items-center justify-center flex">
+        <div className="grid lg:grid-cols-3 items-center">
+          <div className="flex justify-center lg:justify-center">
+            <div className="relative flex items-center justify-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <img
-                src={clinic.thumbnailUrl || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80'}
+                src={
+                  clinic.thumbnailUrl ||
+                  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80'
+                }
                 alt={clinic.name}
-                className="w-56 h-56 object-cover"
+                className="w-40 h-40 object-contain rounded-xl"
               />
             </div>
           </div>
-
-          <div className="md:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {clinic.name}
               </h1>
             </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
+
+            <div className="grid sm:grid-cols-2 gap-5">
               {clinic.address && (
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="p-2 rounded-full bg-red-100">
+                    <MapPin className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
                     <p className="font-medium text-gray-900">Địa chỉ</p>
-                    <p className="text-gray-600 text-sm">{clinic.address}</p>
+                    <p className="text-gray-600 text-sm leading-snug">
+                      {clinic.address}
+                    </p>
                   </div>
                 </div>
               )}
 
               {clinic.phone && (
                 <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="p-2 rounded-full bg-red-100">
+                    <Phone className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
                     <p className="font-medium text-gray-900">Điện thoại</p>
-                    <p className="text-gray-600 text-sm">{formatPhoneNumber(clinic.phone)}</p>
+                    <p className="text-gray-600 text-sm">
+                      {formatPhoneNumber(clinic.phone)}
+                    </p>
                   </div>
                 </div>
               )}
 
               {clinic.email && (
                 <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="p-2 rounded-full bg-red-100">
+                    <Mail className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
                     <p className="font-medium text-gray-900">Email</p>
                     <p className="text-gray-600 text-sm">{clinic.email}</p>
@@ -88,8 +100,11 @@ export default function ClinicHeader({ clinic }: ClinicHeaderProps) {
 
               {schedule.length > 0 && (
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="p-2 rounded-full bg-red-100">
+                    <Clock className="w-5 h-5 text-red-600" />
+                  </div>
                   <div>
+                    <p className="font-medium text-gray-900 mb-1">Giờ làm việc</p>
                     {schedule.map((item, idx) => (
                       <p key={idx} className="text-gray-600 text-sm">
                         <span className="font-semibold mr-1">{item.days}</span>
