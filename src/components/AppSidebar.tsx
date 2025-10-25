@@ -33,7 +33,7 @@ const navigationData = {
       icon: ClipboardList,
     },
     {
-      title: "Quản lý hồ sơ bệnh nhân",
+      title: "Bệnh án",
       url: "/clinic/patients",
       icon: UserRound,
     },

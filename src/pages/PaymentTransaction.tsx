@@ -6,6 +6,7 @@ import CreatePaymentDialog from "@/components/payments/CreatePaymentDialog";
 import PaymentStats from "@/components/payments/PaymentStats";
 import PaymentFilters from "@/components/payments/PaymentFilters";
 import PaymentTable from "@/components/payments/PaymentTable";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { paymentTransactionService } from "@/services/paymentTransactionService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -45,6 +46,14 @@ export default function PaymentTransaction() {
     undefined
   );
 
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    paymentId: number | null;
+  }>({
+    isOpen: false,
+    paymentId: null,
+  });
+
   const loadData = useCallback(
     async (page: number = 1) => {
       try {
@@ -73,7 +82,6 @@ export default function PaymentTransaction() {
           toDate: appliedToDate ? appliedToDate.toISOString() : undefined,
         };
 
-        // Load cả payments và stats cùng lúc
         const [paymentsResult, statsResult] = await Promise.all([
           paymentTransactionService.getPaymentTransactions(filter),
           paymentTransactionService.getPaymentStatistics(tenantId),
@@ -91,7 +99,6 @@ export default function PaymentTransaction() {
           setTotalCount(0);
         }
 
-        // Update stats
         if (statsResult.success && statsResult.data) {
           setStats(statsResult.data);
         }
@@ -148,25 +155,10 @@ export default function PaymentTransaction() {
   };
 
   const handleDeletePayment = async (paymentId: number) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn xóa giao dịch này? (Chỉ có thể xóa giao dịch PENDING)"
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await paymentTransactionService.deletePaymentTransaction(
-        paymentId
-      );
-      if (result.success) {
-        toast.success("Đã xóa giao dịch");
-        loadData(currentPage);
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa giao dịch");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      paymentId,
+    });
   };
 
   const handleSearch = () => {
@@ -175,6 +167,23 @@ export default function PaymentTransaction() {
     setAppliedFromDate(fromDate);
     setAppliedToDate(toDate);
     loadData(1);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (confirmDialog.paymentId === null) return;
+
+    try {
+      const result = await paymentTransactionService.deletePaymentTransaction(
+        confirmDialog.paymentId
+      );
+      if (result.success) {
+        toast.success("Đã xóa giao dịch");
+        setConfirmDialog({ isOpen: false, paymentId: null });
+        loadData(currentPage);
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi xóa giao dịch");
+    }
   };
 
   const filteredPayments = payments.filter((payment) => {
@@ -231,6 +240,17 @@ export default function PaymentTransaction() {
         onFailPayment={handleFailPayment}
         onDeletePayment={handleDeletePayment}
         onPageChange={loadData}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Xóa giao dịch"
+        description={`Bạn có chắc chắn muốn xóa giao dịch #${confirmDialog.paymentId}?`}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDialog({ isOpen: false, paymentId: null })}
       />
     </AdminLayout>
   );
