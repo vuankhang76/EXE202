@@ -46,10 +46,9 @@ class DoctorService {
     return response.data;
   }
 
-  // Get all doctors (for public display)
   async getAllDoctors(
     pageNumber: number = 1,
-    pageSize: number = 50,
+    pageSize: number = 8,
     searchTerm?: string
   ): Promise<ApiResponse<PagedResult<DoctorDto>>> {
     const params = new URLSearchParams({

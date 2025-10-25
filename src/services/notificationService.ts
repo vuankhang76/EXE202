@@ -148,12 +148,11 @@ class NotificationService {
     return response.data;
   }
 
-  // Search notifications
   async searchNotifications(
     keyword: string,
     tenantId?: number,
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 8
   ): Promise<ApiResponse<NotificationDto[]>> {
     const params: any = { keyword, pageNumber, pageSize };
     if (tenantId) params.tenantId = tenantId;

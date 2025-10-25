@@ -29,7 +29,7 @@ export default function PaymentTransaction() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [, setTotalCount] = useState(0);
-  const pageSize = 15;
+  const pageSize = 8;
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");

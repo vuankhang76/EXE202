@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Calendar, Eye, Edit } from "lucide-react";
 import type { AppointmentDto } from "@/types/appointment";
 import { getStatusColor, getStatusLabel, getTypeLabel, AppointmentStatus } from "@/types/appointment";
 import { Mars, Venus } from "lucide-react";
 import TableSkeleton from "../ui/TableSkeleton";
+import TablePagination from "../ui/TablePagination";
 
 interface AppointmentTableProps {
   appointments?: AppointmentDto[];
@@ -241,94 +241,6 @@ export default function AppointmentTable({
     );
   };
 
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const pages = [];
-    const maxVisiblePages = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return (
-      <div className="flex justify-center mt-6">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-
-            {startPage > 1 && (
-              <>
-                <PaginationItem>
-                  <PaginationLink
-                    onClick={() => onPageChange(1)}
-                    className="cursor-pointer"
-                  >
-                    1
-                  </PaginationLink>
-                </PaginationItem>
-                {startPage > 2 && (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )}
-              </>
-            )}
-
-            {pages.map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => onPageChange(page)}
-                  isActive={currentPage === page}
-                  className="cursor-pointer"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-
-            {endPage < totalPages && (
-              <>
-                {endPage < totalPages - 1 && (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )}
-                <PaginationItem>
-                  <PaginationLink
-                    onClick={() => onPageChange(totalPages)}
-                    className="cursor-pointer"
-                  >
-                    {totalPages}
-                  </PaginationLink>
-                </PaginationItem>
-              </>
-            )}
-
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-                className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
-    );
-  };
-
   return (
     <div>
       {currentLoading ? (
@@ -364,7 +276,6 @@ export default function AppointmentTable({
                   </TableHeader>
                   <TableBody>
                     {safeAppointments.map((appointment) => {
-
                       return (
                         <TableRow key={appointment.appointmentId}>
                           <TableCell className="font-medium">
@@ -415,7 +326,11 @@ export default function AppointmentTable({
               </div>
             </div>
           </div>
-          {renderPagination()}
+          <TablePagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={onPageChange} 
+          />
         </>
       )}
     </div>
