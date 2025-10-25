@@ -9,6 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/Pagination";
+import {
   formatCurrency,
   getPaymentMethodLabel,
   getPaymentMethodIcon,
@@ -195,28 +204,66 @@ export default function PaymentTable({
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Trang {currentPage} / {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage === 1 || loading}
-                >
-                  Trước
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
-                >
-                  Sau
-                </Button>
-              </div>
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          onPageChange(currentPage - 1);
+                        }
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+
+                  {/* Show page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => {
+                    const pageNum = i + 1;
+                    // Show first page, last page, current page, and pages adjacent to current
+                    const shouldShow =
+                      pageNum === 1 ||
+                      pageNum === totalPages ||
+                      Math.abs(pageNum - currentPage) <= 1;
+
+                    if (!shouldShow) {
+                      // Show ellipsis only once between gaps
+                      if (pageNum === Math.ceil(totalPages / 2) && currentPage > 3) {
+                        return (
+                          <PaginationItem key={`ellipsis-${pageNum}`}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => onPageChange(pageNum)}
+                          isActive={pageNum === currentPage}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          onPageChange(currentPage + 1);
+                        }
+                      }}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </div>

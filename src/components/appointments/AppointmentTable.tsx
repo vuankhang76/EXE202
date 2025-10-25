@@ -216,7 +216,7 @@ export default function AppointmentTable({
       status === AppointmentStatus.CANCELLED ||
       status === AppointmentStatus.NO_SHOW;
     return (
-      <div className="flex gap-1 justify-end">
+      <div className="flex gap-1">
         <Button
           variant="ghost"
           size="sm"
@@ -343,7 +343,7 @@ export default function AppointmentTable({
       ) : (
         <>
           <div className="border rounded-md bg-white flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-auto min-h-[500px]">
+            <div className="flex-1 overflow-auto">
               <div className="w-full">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10 shadow-sm">
@@ -359,7 +359,7 @@ export default function AppointmentTable({
                       <TableHead className="min-w-[100px]">Ngày khám</TableHead>
                       <TableHead className="min-w-[120px]">Giờ khám</TableHead>
                       <TableHead className="min-w-[80px]">Loại</TableHead>
-                      <TableHead className="min-w-[100px] text-right">Thao tác</TableHead>
+                      <TableHead className="min-w-[100px]">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
