@@ -44,14 +44,16 @@ export const serviceService = {
     tenantId: number, 
     dayOfWeek: number, 
     timeSlot: string,
-    date?: string // yyyy-MM-dd format
+    date?: string, // yyyy-MM-dd format
+    slotDurationMinutes?: number // duration of the appointment slot
   ): Promise<ApiResponse<number[]>> {
     const response = await api.get<ApiResponse<number[]>>('/doctors/available', {
       params: {
         tenantId,
         dayOfWeek,
         timeSlot,
-        date
+        date,
+        slotDurationMinutes
       }
     });
     return response.data;

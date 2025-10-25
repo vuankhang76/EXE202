@@ -785,7 +785,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
 
               {/* Quick registration form */}
               {showRegisterForm && (
-                <div className="mt-3 p-4 border rounded-lg bg-blue-50 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="mt-3 p-4 border rounded-lg bg-blue-50 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold text-sm text-blue-900">Đăng ký bệnh nhân mới</h4>
                     <Button 

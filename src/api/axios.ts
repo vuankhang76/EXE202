@@ -1,6 +1,5 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { type ApiResponse} from '@/models/ApiResponse';
-import { toast } from 'sonner';
 
 declare module 'axios' {
   export interface AxiosRequestConfig {
@@ -71,54 +70,55 @@ api.interceptors.response.use(
     
     error.toastShown = true;
     
-    if (error.response) {
-      const status = error.response.status;
-      const message = error.response?.data?.message || error.response?.data?.Message;
-      
-      switch (status) {
-        case 400:
-          toast.error('Yêu cầu không hợp lệ', {
-            description: error.response?.data?.errors?.[0]?.message || message || 'Dữ liệu không hợp lệ'
-          });
-          break;
-        case 401:
-          if (!error.config?.url?.includes('/login')) {
-            toast.error('Phiên đăng nhập hết hạn', {
-              description: 'Vui lòng đăng nhập lại'
-            });
-          } else {
-            error.toastShown = false;
-          }
-          break;
-        case 403:
-          toast.error('Không có quyền truy cập', {
-            description: message || 'Bạn không có quyền thực hiện thao tác này'
-          });
-          break;
-        case 404:
-          toast.error('Không tìm thấy', {
-            description: message || 'Không tìm thấy tài nguyên yêu cầu'
-          });
-          break;
-        case 500:
-          toast.error('Lỗi hệ thống', {
-            description: error.response?.data?.errors?.[0]?.message || message || 'Vui lòng thử lại sau'
-          });
-          break;
-        default:
-          toast.error('Có lỗi xảy ra', {
-            description: message || 'Có lỗi không mong muốn xảy ra'
-          });
-      }
-    } else if (error.request) {
-      toast.error('Lỗi kết nối', {
-        description: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng'
-      });
-    } else {
-      toast.error('Có lỗi xảy ra', {
-        description: 'Có lỗi xảy ra khi xử lý yêu cầu'
-      });
-    }
+    // Toast notifications disabled - let components handle error display
+    // if (error.response) {
+    //   const status = error.response.status;
+    //   const message = error.response?.data?.message || error.response?.data?.Message;
+    //   
+    //   switch (status) {
+    //     case 400:
+    //       toast.error('Yêu cầu không hợp lệ', {
+    //         description: error.response?.data?.errors?.[0]?.message || message || 'Dữ liệu không hợp lệ'
+    //       });
+    //       break;
+    //     case 401:
+    //       if (!error.config?.url?.includes('/login')) {
+    //         toast.error('Phiên đăng nhập hết hạn', {
+    //           description: 'Vui lòng đăng nhập lại'
+    //         });
+    //       } else {
+    //         error.toastShown = false;
+    //       }
+    //       break;
+    //     case 403:
+    //       toast.error('Không có quyền truy cập', {
+    //         description: message || 'Bạn không có quyền thực hiện thao tác này'
+    //       });
+    //       break;
+    //     case 404:
+    //       toast.error('Không tìm thấy', {
+    //         description: message || 'Không tìm thấy tài nguyên yêu cầu'
+    //       });
+    //       break;
+    //     case 500:
+    //       toast.error('Lỗi hệ thống', {
+    //         description: error.response?.data?.errors?.[0]?.message || message || 'Vui lòng thử lại sau'
+    //       });
+    //       break;
+    //     default:
+    //       toast.error('Có lỗi xảy ra', {
+    //         description: message || 'Có lỗi không mong muốn xảy ra'
+    //       });
+    //   }
+    // } else if (error.request) {
+    //   toast.error('Lỗi kết nối', {
+    //     description: 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng'
+    //   });
+    // } else {
+    //   toast.error('Có lỗi xảy ra', {
+    //     description: 'Có lỗi xảy ra khi xử lý yêu cầu'
+    //   });
+    // }
     
     return Promise.reject(error);
   }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CreateAppointmentSkeleton from "@/components/appointments/CreateAppointmentSkeleton";
+import CalendarDatePicker from "@/components/appointments/CalendarDatePicker";
 import { ServiceSelector } from "@/components/appointments/ServiceSelector";
 import DoctorSelector from "@/components/appointments/DoctorSelector";
 import GeneralTimeSlotPicker from "@/components/appointments/GeneralTimeSlotPicker";
@@ -21,7 +22,6 @@ export default function CreateAppointment() {
   const navigate = useNavigate();
   const location = useLocation();
   const {} = useAuth();
-
   const [clinic, setClinic] = useState<TenantDto | null>(null);
   const [doctors, setDoctors] = useState<DoctorDto[]>([]);
   const [availableDoctors, setAvailableDoctors] = useState<DoctorDto[]>([]);
@@ -36,11 +36,10 @@ export default function CreateAppointment() {
   const [appointmentType, setAppointmentType] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [maxBookingDate, setMaxBookingDate] = useState<Date | null>(null);
-  const [maxBookingDays, setMaxBookingDays] = useState<number>(90);
-  const [slotDurationMinutes, setSlotDurationMinutes] = useState<number>(30);
-  const [allowWeekendBooking, setAllowWeekendBooking] = useState<boolean>(true); // Default allow weekend
+  const [maxBookingDays, setMaxBookingDays] = useState<number | null>(null);
+  const [slotDurationMinutes, setSlotDurationMinutes] = useState<number | null>(null);
+  const [allowWeekendBooking, setAllowWeekendBooking] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [isServiceCollapsed, setIsServiceCollapsed] = useState(false);
   const [isDateCollapsed, setIsDateCollapsed] = useState(false);
   const [isTimeCollapsed, setIsTimeCollapsed] = useState(false);
@@ -105,26 +104,18 @@ export default function CreateAppointment() {
       if (config.success && config.data) {
         const maxDays = config.data.maxAdvanceBookingDays;
         setMaxBookingDays(maxDays);
-        
-        // Load slot duration
         setSlotDurationMinutes(config.data.defaultSlotDurationMinutes);
-        
-        // Load weekend booking setting
         setAllowWeekendBooking(config.data.allowWeekendBooking);
         
         const maxDate = new Date();
         maxDate.setDate(maxDate.getDate() + maxDays);
         setMaxBookingDate(maxDate);
+      } else {
+        toast.error("Không thể tải cấu hình đặt lịch của phòng khám");
       }
     } catch (error) {
-      console.error("Error loading max booking date:", error);
-      // Fallback to defaults
-      setMaxBookingDays(90);
-      setSlotDurationMinutes(30);
-      setAllowWeekendBooking(true);
-      const fallback = new Date();
-      fallback.setDate(fallback.getDate() + 90);
-      setMaxBookingDate(fallback);
+      console.error("Error loading booking config:", error);
+      toast.error("Lỗi khi tải cấu hình đặt lịch. Vui lòng thử lại sau.");
     }
   };
 
@@ -135,10 +126,7 @@ export default function CreateAppointment() {
     setStartTime("");
     setEndTime("");
     setAppointmentType(null);
-    
-    // Collapse service step when selected
     setIsServiceCollapsed(true);
-    // Expand date step
     setIsDateCollapsed(false);
 
     if (clinic) {
@@ -151,9 +139,7 @@ export default function CreateAppointment() {
 
     setLoadingDates(true);
     try {
-      // Get booking date range from tenant settings (stored in database)
       const { startDate, endDate } = await tenantSettingService.getBookingDateRange(clinic.tenantId);
-
       const response = await serviceService.getAvailableDates(
         clinic.tenantId,
         startDate,
@@ -161,18 +147,7 @@ export default function CreateAppointment() {
       );
 
       if (response.success && response.data) {
-        let dates = response.data;
-        
-        // Filter out weekends if weekend booking is not allowed
-        if (!allowWeekendBooking) {
-          dates = dates.filter(dateStr => {
-            const date = new Date(dateStr);
-            const dayOfWeek = date.getDay();
-            return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
-          });
-        }
-        
-        setAvailableDates(dates);
+        setAvailableDates(response.data);
       }
     } catch (error) {
       console.error("Error loading available dates:", error);
@@ -183,12 +158,10 @@ export default function CreateAppointment() {
 
   const handleDoctorSelect = (doctor: DoctorDto) => {
     setSelectedDoctor(doctor);
-    // Set default appointment type when doctor is selected for the first time
     if (!appointmentType) {
       setAppointmentType(AppointmentType.CLINIC);
     }
     
-    // Collapse doctor step when selected
     setIsDoctorCollapsed(true);
   };
 
@@ -196,13 +169,9 @@ export default function CreateAppointment() {
     setStartTime(start);
     setEndTime(end);
 
-    // Reset doctor and appointment settings when time changes
     setSelectedDoctor(null);
     setAppointmentType(null);
-    
-    // Collapse time step when selected
     setIsTimeCollapsed(true);
-    // Expand doctor step
     setIsDoctorCollapsed(false);
 
     if (clinic) {
@@ -229,7 +198,8 @@ export default function CreateAppointment() {
         clinic!.tenantId,
         dayOfWeek,
         timeSlot,
-        dateStr
+        dateStr,
+        slotDurationMinutes || 30 // Pass slot duration to API
       );
 
       if (response.success && response.data) {
@@ -255,14 +225,19 @@ export default function CreateAppointment() {
     }
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const date = new Date(e.target.value);
-    const dateStr = e.target.value;
+  const getDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-    // Check if weekend booking is disabled
-    if (!allowWeekendBooking) {
+  const handleDateChange = (date: Date) => {
+    const dateStr = getDateString(date);
+
+    if (allowWeekendBooking === false) {
       const dayOfWeek = date.getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday = 0, Saturday = 6
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
         toast.error("Phòng khám không cho phép đặt lịch vào cuối tuần (Thứ 7 và Chủ nhật).");
         return;
       }
@@ -279,24 +254,8 @@ export default function CreateAppointment() {
     setSelectedDoctor(null);
     setAppointmentType(null);
     
-    // Collapse date step when selected
     setIsDateCollapsed(true);
-    // Expand time step
     setIsTimeCollapsed(false);
-  };
-
-  const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
-
-  const getMaxDate = () => {
-    if (maxBookingDate) {
-      return maxBookingDate.toISOString().split("T")[0];
-    }
-    const fallback = new Date();
-    fallback.setDate(fallback.getDate() + 90);
-    return fallback.toISOString().split("T")[0];
   };
 
   const handleSubmit = async () => {
@@ -313,21 +272,8 @@ export default function CreateAppointment() {
       return;
     }
 
-    const now = new Date();
-    const appointmentStart = new Date(startTime);
-
-    if (appointmentStart < now) {
-      toast.error(
-        "Không thể đặt lịch vào thời gian trong quá khứ. Vui lòng chọn thời gian trong tương lai."
-      );
-      return;
-    }
-
-    // Navigate to payment page with appointment data
-    // Appointment will be created AFTER successful payment
     navigate('/patient/payment', {
       state: {
-        // Appointment data to create after payment
         appointmentData: {
           tenantId: clinic.tenantId,
           patientId: patientId,
@@ -337,9 +283,8 @@ export default function CreateAppointment() {
           type: appointmentType,
           serviceId: selectedService.serviceId,
           address: appointmentType === AppointmentType.CLINIC ? clinic.address : undefined,
-          channel: "Web", // User is booking via web
+          channel: "Web",
         },
-        // Display data for payment page
         tenantId: clinic.tenantId,
         patientId: patientId,
         amount: selectedService.basePrice,
@@ -380,7 +325,6 @@ export default function CreateAppointment() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
@@ -393,10 +337,8 @@ export default function CreateAppointment() {
               Quay lại
             </Button>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              {/* Step 1: Service Selection */}
               <div className="bg-white p-6 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -421,7 +363,7 @@ export default function CreateAppointment() {
                 
                 <div className="transition-all duration-300">
                   {isServiceCollapsed && selectedService ? (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                       <p className="text-sm text-gray-600">Dịch vụ đã chọn:</p>
                       <p className="font-medium text-gray-900 mt-1">{selectedService.name}</p>
                       <p className="text-sm text-red-600 font-semibold mt-1">
@@ -429,7 +371,7 @@ export default function CreateAppointment() {
                       </p>
                     </div>
                   ) : (
-                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="">
                       <ServiceSelector
                         tenantId={clinic.tenantId}
                         selectedServiceId={selectedService?.serviceId}
@@ -466,7 +408,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isDateCollapsed && selectedDate ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Ngày đã chọn:</p>
                         <p className="font-medium text-gray-900 mt-1">
                           {selectedDate.toLocaleDateString("vi-VN", {
@@ -482,33 +424,25 @@ export default function CreateAppointment() {
                         <p className="text-gray-500">Đang tải ngày khả dụng...</p>
                       </div>
                     ) : (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        {/* Weekend booking warning */}
-                        {!allowWeekendBooking && (
-                          <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="">
+                        {allowWeekendBooking === false && (
+                          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                             <p className="text-sm text-amber-700">
                               ⚠️ <strong>Lưu ý:</strong> Phòng khám không cho phép đặt lịch vào <strong>Thứ 7</strong> và <strong>Chủ nhật</strong>
                             </p>
                           </div>
                         )}
                         
-                        <div className="relative">
-                          <input
-                            type="date"
-                            value={
-                              selectedDate?.toISOString().split("T")[0] || ""
-                            }
-                            onChange={handleDateChange}
-                            min={getMinDate()}
-                            max={getMaxDate()}
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-base cursor-pointer"
-                            style={{
-                              colorScheme: "light",
-                            }}
-                          />
-                        </div>
-                        {availableDates.length > 0 && (
-                          <p className="text-sm text-green-600 mt-1">
+                        <CalendarDatePicker
+                          selectedDate={selectedDate}
+                          onDateSelect={handleDateChange}
+                          minDate={new Date()}
+                          maxDate={maxBookingDate || undefined}
+                          availableDates={availableDates}
+                        />
+                        
+                        {availableDates.length > 0 && maxBookingDays && (
+                          <p className="text-sm text-green-600 mt-4 text-center">
                             ✓ Có {availableDates.length} ngày có lịch trống trong{" "}
                             {maxBookingDays} ngày tới
                           </p>
@@ -544,7 +478,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isTimeCollapsed && startTime ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Giờ đã chọn:</p>
                         <p className="font-medium text-gray-900 mt-1">
                           {new Date(startTime).toLocaleTimeString("vi-VN", {
@@ -559,7 +493,7 @@ export default function CreateAppointment() {
                         </p>
                       </div>
                     ) : (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="">
                         <p className="text-sm text-gray-600 mb-4">
                           Chọn khung giờ phù hợp. Các bác sĩ có lịch sẽ hiển thị sau khi bạn chọn giờ.
                         </p>
@@ -567,7 +501,7 @@ export default function CreateAppointment() {
                           selectedDate={selectedDate}
                           onTimeSlotSelect={handleTimeSlotSelect}
                           selectedTime={startTime}
-                          slotDurationMinutes={slotDurationMinutes}
+                          slotDurationMinutes={slotDurationMinutes || undefined}
                         />
                       </div>
                     )}
@@ -600,7 +534,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isDoctorCollapsed && selectedDoctor ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Bác sĩ đã chọn:</p>
                         <div className="flex items-center gap-3 mt-2">
                           {selectedDoctor.avatarUrl && (
@@ -627,7 +561,7 @@ export default function CreateAppointment() {
                         <p className="text-gray-500">Đang tải danh sách bác sĩ...</p>
                       </div>
                     ) : availableDoctors.length > 0 ? (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="">
                         <p className="text-sm text-gray-600 mb-4">
                           {availableDoctors.length} bác sĩ có lịch làm việc vào
                           thời gian bạn chọn
@@ -652,7 +586,6 @@ export default function CreateAppointment() {
                 </div>
               )}
 
-              {/* Step 5: Appointment Type - Only show when doctor is selected */}
               {selectedService &&
                 selectedDate &&
                 startTime &&
@@ -698,7 +631,6 @@ export default function CreateAppointment() {
                   </div>
                 )}
 
-              {/* Step 6: Notes - Only show when appointment type is selected */}
               {selectedService &&
                 selectedDate &&
                 startTime &&
@@ -772,7 +704,6 @@ export default function CreateAppointment() {
                       </div>
                     )}
 
-                    {/* Show time when selected */}
                     {selectedService && selectedDate && startTime && (
                       <div className="pt-4 border-t border-gray-200">
                         <p className="text-sm text-gray-600">Giờ khám</p>
@@ -844,7 +775,6 @@ export default function CreateAppointment() {
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
