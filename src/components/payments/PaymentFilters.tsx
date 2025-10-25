@@ -7,6 +7,7 @@ import { PAYMENT_STATUS, PAYMENT_METHODS } from "@/types/paymentTransaction";
 import { Search, Calendar as CalendarIcon, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface PaymentFiltersProps {
   searchTerm: string;
@@ -37,6 +38,21 @@ export default function PaymentFilters({
   onSearch,
   onAdvancedFilters
 }: PaymentFiltersProps) {
+  const handleFromDateChange = (date: Date | undefined) => {
+    if (date && toDate && date > toDate) {
+      toast.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
+      return;
+    }
+    onFromDateChange(date);
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    if (date && fromDate && date < fromDate) {
+      toast.error("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu");
+      return;
+    }
+    onToDateChange(date);
+  };
   return (
     <div className="flex gap-3 items-center">
       <div className="flex-1 min-w-[200px]">
@@ -68,7 +84,7 @@ export default function PaymentFilters({
             <Calendar
               mode="single"
               selected={fromDate}
-              onSelect={onFromDateChange}
+              onSelect={handleFromDateChange}
               initialFocus
             />
           </PopoverContent>
@@ -92,7 +108,7 @@ export default function PaymentFilters({
             <Calendar
               mode="single"
               selected={toDate}
-              onSelect={onToDateChange}
+              onSelect={handleToDateChange}
               
             />
           </PopoverContent>

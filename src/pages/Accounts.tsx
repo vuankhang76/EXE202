@@ -60,12 +60,10 @@ export default function Accounts() {
       if (response.success && response.data) {
         let userData = response.data.data || [];
         
-        // Client-side filtering for role
         if (roleFilter !== 'all') {
           userData = userData.filter(u => u.role === roleFilter);
         }
         
-        // Client-side filtering for status
         if (statusFilter !== 'all') {
           const isActive = statusFilter === AccountStatus.ACTIVE;
           userData = userData.filter(u => u.isActive === isActive);
@@ -134,7 +132,7 @@ export default function Accounts() {
         email: data.email,
         phoneE164: normalizePhoneNumber(data.phoneE164),
         password: data.password,
-        role: UserRole.DOCTOR, // Doctor role
+        role: UserRole.DOCTOR,
         tenantId: parseInt(currentUser.tenantId),
       };
 
@@ -179,8 +177,8 @@ export default function Accounts() {
 
   const handleViewClick = async (user: UserDto) => {
     setSelectedUser(user);
-    setSelectedDoctorDetails(null); // Clear old data
-    setViewDialogOpen(true); // Open dialog immediately
+    setSelectedDoctorDetails(null);
+    setViewDialogOpen(true);
     
     if (user.role === UserRole.DOCTOR) {
       setLoadingDoctorDetails(true);
@@ -200,7 +198,7 @@ export default function Accounts() {
 
   const handleEditClick = async (user: UserDto) => {
     setSelectedUser(user);
-    setSelectedDoctorDetails(null); // Clear old data
+    setSelectedDoctorDetails(null);
     
     if (user.role === UserRole.DOCTOR) {
       setLoadingDoctorDetails(true);
@@ -208,7 +206,7 @@ export default function Accounts() {
         const response = await userService.getUserWithDoctorInfo(user.userId);
         if (response.success && response.data) {
           setSelectedDoctorDetails(response.data);
-          setEditDialogOpen(true); // Only open after loading
+          setEditDialogOpen(true);
         } else {
           toast.error("Không thể tải thông tin bác sĩ");
         }
@@ -219,7 +217,7 @@ export default function Accounts() {
         setLoadingDoctorDetails(false);
       }
     } else {
-      setEditDialogOpen(true); // Open immediately for non-doctor
+      setEditDialogOpen(true);
     }
   };
 
@@ -228,7 +226,6 @@ export default function Accounts() {
 
     setSaving(true);
     try {
-      // Update user info
       const userUpdateResponse = await userService.updateUser(selectedUser.userId, {
         fullName: data.fullName,
         phoneE164: data.phoneE164,
@@ -238,7 +235,6 @@ export default function Accounts() {
         throw new Error(userUpdateResponse.message || "Không thể cập nhật thông tin người dùng");
       }
 
-      // Update doctor info using admin API
       const doctorUpdateResponse = await doctorService.updateDoctorByAdmin(
         selectedDoctorDetails.doctorId,
         {

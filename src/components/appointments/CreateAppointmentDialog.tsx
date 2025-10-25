@@ -94,7 +94,7 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
             appointmentId: result.data.appointmentId,
             amount: formData.estimatedCost || 0,
             currency: 'VND',
-            method: 'Cash', // CASH payment for clinic appointments
+            method: 'Cash',
           };
           
           await paymentTransactionService.createPaymentTransaction(paymentData);
@@ -261,15 +261,15 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
     }
 
     const cleanPhone = newPatientData.primaryPhoneE164.trim();
-    const validPrefixes = ['090', '091', '092', '093', '094', '096', '097', '098', '099', // Mobifone
-                          '070', '076', '077', '078', '079', // Mobifone
-                          '088', '089', // Vinaphone
-                          '081', '082', '083', '084', '085', // Vinaphone
-                          '032', '033', '034', '035', '036', '037', '038', '039', // Vinaphone
-                          '056', '058', // Vietnamobile
-                          '092', '059', // Vietnamobile
-                          '086', '096', '097', '098', // Viettel
-                          '062', '063', '064', '065', '066', '067', '068', '069']; // Gmobile
+    const validPrefixes = ['090', '091', '092', '093', '094', '096', '097', '098', '099',
+                          '070', '076', '077', '078', '079',
+                          '088', '089',
+                          '081', '082', '083', '084', '085',
+                          '032', '033', '034', '035', '036', '037', '038', '039',
+                          '056', '058',
+                          '092', '059',
+                          '086', '096', '097', '098',
+                          '062', '063', '064', '065', '066', '067', '068', '069'];
     
     const phonePrefix = cleanPhone.startsWith('+84') 
       ? '0' + cleanPhone.substring(3, 5)
@@ -450,11 +450,10 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         setAvailabilityMessage(null);
         setFormData(prev => ({ ...prev, startTime: '', endTime: '' }));
         
-        // Use slot duration from tenant settings
         const result = await appointmentService.getAvailableTimeSlots(
           doctorId, 
           formData.appointmentDate, 
-          slotDurationMinutes,  // Use tenant settings instead of hardcoded value
+          slotDurationMinutes,
           true
         );
                 
