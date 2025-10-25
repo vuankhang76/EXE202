@@ -38,7 +38,7 @@ class PatientService {
   }
 
   // Get patients with pagination and search
-  async getPatients(pageNumber: number = 1, pageSize: number = 10, searchTerm?: string): Promise<ApiResponse<PagedResult<PatientDto>>> {
+  async getPatients(pageNumber: number = 1, pageSize: number = 8, searchTerm?: string): Promise<ApiResponse<PagedResult<PatientDto>>> {
     const params = new URLSearchParams({
       pageNumber: pageNumber.toString(),
       pageSize: pageSize.toString()

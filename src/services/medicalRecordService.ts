@@ -97,12 +97,11 @@ class MedicalRecordService {
     return response.data;
   }
 
-  // Search medical records
   async searchMedicalRecords(
     keyword: string,
     tenantId?: number,
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 8
   ): Promise<ApiResponse<MedicalRecordDto[]>> {
     const params: any = { keyword, pageNumber, pageSize };
     if (tenantId) params.tenantId = tenantId;
@@ -111,7 +110,6 @@ class MedicalRecordService {
     return response.data;
   }
 
-  // Upload medical record
   async uploadMedicalRecord(data: MedicalRecordUploadDto): Promise<ApiResponse<MedicalRecordDto>> {
     const formData = new FormData();
     formData.append('tenantId', data.tenantId.toString());

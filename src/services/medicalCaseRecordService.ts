@@ -107,7 +107,7 @@ export const medicalCaseRecordService = {
     keyword: string,
     tenantId?: number,
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 8
   ): Promise<ApiResponse<MedicalCaseRecordDto[]>> {
     const response = await api.get<ApiResponse<MedicalCaseRecordDto[]>>(
       `/MedicalCaseRecords/search/${keyword}`,

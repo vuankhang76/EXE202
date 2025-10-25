@@ -29,24 +29,21 @@ class CarePlanService {
     return response.data;
   }
 
-  // Update care plan
   async updateCarePlan(id: number, data: CarePlanUpdateDto): Promise<ApiResponse<CarePlanDto>> {
     const response = await apiUtils.put<ApiResponse<CarePlanDto>>(`${this.baseUrl}/${id}`, data);
     return response.data;
   }
 
-  // Delete care plan
   async deleteCarePlan(id: number): Promise<ApiResponse<boolean>> {
     const response = await apiUtils.delete<ApiResponse<boolean>>(`${this.baseUrl}/${id}`);
     return response.data;
   }
 
-  // Get care plans with pagination and filter
   async getCarePlans(
     patientId?: number,
     status?: string,
     pageNumber: number = 1,
-    pageSize: number = 20
+    pageSize: number = 8
   ): Promise<ApiResponse<PagedResult<CarePlanDto>>> {
     const params: any = { pageNumber, pageSize };
     if (patientId) params.patientId = patientId;
@@ -114,7 +111,7 @@ class CarePlanService {
     fromDate?: string,
     toDate?: string,
     pageNumber: number = 1,
-    pageSize: number = 20
+    pageSize: number = 8
   ): Promise<ApiResponse<PagedResult<CarePlanItemLogDto>>> {
     const params: any = { pageNumber, pageSize };
     if (patientId) params.patientId = patientId;

@@ -106,7 +106,7 @@ class ConsultationService {
     keyword: string,
     tenantId?: number,
     pageNumber: number = 1,
-    pageSize: number = 10
+    pageSize: number = 8
   ): Promise<ApiResponse<ConsultationDto[]>> {
     const params: any = { keyword, pageNumber, pageSize };
     if (tenantId) params.tenantId = tenantId;
