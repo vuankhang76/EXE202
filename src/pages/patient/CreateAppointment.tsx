@@ -198,7 +198,8 @@ export default function CreateAppointment() {
         clinic!.tenantId,
         dayOfWeek,
         timeSlot,
-        dateStr
+        dateStr,
+        slotDurationMinutes || 30 // Pass slot duration to API
       );
 
       if (response.success && response.data) {
@@ -268,16 +269,6 @@ export default function CreateAppointment() {
       !appointmentType
     ) {
       toast.error("Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-
-    const now = new Date();
-    const appointmentStart = new Date(startTime);
-
-    if (appointmentStart < now) {
-      toast.error(
-        "Không thể đặt lịch vào thời gian trong quá khứ. Vui lòng chọn thời gian trong tương lai."
-      );
       return;
     }
 
@@ -372,7 +363,7 @@ export default function CreateAppointment() {
                 
                 <div className="transition-all duration-300">
                   {isServiceCollapsed && selectedService ? (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                       <p className="text-sm text-gray-600">Dịch vụ đã chọn:</p>
                       <p className="font-medium text-gray-900 mt-1">{selectedService.name}</p>
                       <p className="text-sm text-red-600 font-semibold mt-1">
@@ -380,7 +371,7 @@ export default function CreateAppointment() {
                       </p>
                     </div>
                   ) : (
-                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="">
                       <ServiceSelector
                         tenantId={clinic.tenantId}
                         selectedServiceId={selectedService?.serviceId}
@@ -417,7 +408,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isDateCollapsed && selectedDate ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Ngày đã chọn:</p>
                         <p className="font-medium text-gray-900 mt-1">
                           {selectedDate.toLocaleDateString("vi-VN", {
@@ -433,8 +424,7 @@ export default function CreateAppointment() {
                         <p className="text-gray-500">Đang tải ngày khả dụng...</p>
                       </div>
                     ) : (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        {/* Weekend booking warning - only show if explicitly disabled */}
+                      <div className="">
                         {allowWeekendBooking === false && (
                           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                             <p className="text-sm text-amber-700">
@@ -488,7 +478,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isTimeCollapsed && startTime ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Giờ đã chọn:</p>
                         <p className="font-medium text-gray-900 mt-1">
                           {new Date(startTime).toLocaleTimeString("vi-VN", {
@@ -503,7 +493,7 @@ export default function CreateAppointment() {
                         </p>
                       </div>
                     ) : (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="">
                         <p className="text-sm text-gray-600 mb-4">
                           Chọn khung giờ phù hợp. Các bác sĩ có lịch sẽ hiển thị sau khi bạn chọn giờ.
                         </p>
@@ -544,7 +534,7 @@ export default function CreateAppointment() {
                   
                   <div className="transition-all duration-300">
                     {isDoctorCollapsed && selectedDoctor ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600">Bác sĩ đã chọn:</p>
                         <div className="flex items-center gap-3 mt-2">
                           {selectedDoctor.avatarUrl && (
@@ -571,7 +561,7 @@ export default function CreateAppointment() {
                         <p className="text-gray-500">Đang tải danh sách bác sĩ...</p>
                       </div>
                     ) : availableDoctors.length > 0 ? (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="">
                         <p className="text-sm text-gray-600 mb-4">
                           {availableDoctors.length} bác sĩ có lịch làm việc vào
                           thời gian bạn chọn
