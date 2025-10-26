@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import AdminLayout from "@/layout/AdminLayout";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Charts from "@/components/dashboard/Charts";
 import RecentOrdersTable from "@/components/dashboard/RecentOrdersTable";
 import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
 import dashboardService from "@/services/dashboardService";
-import type { DashboardOverview, RecentOrder } from "@/types/dashboard";
 import { 
   Users, 
   Stethoscope, 
@@ -17,35 +16,60 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  useAppDispatch,
+  useDashboardData,
+  useDashboardLoading,
+  isCacheValid
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setDashboardData,
+  clearDashboardData
+} from "@/stores/dashboardSlice";
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
-  const [overview, setOverview] = useState<DashboardOverview | null>(null);
-  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const dispatch = useAppDispatch();
+  const { overview, recentOrders, lastUpdated, cacheExpiration } = useDashboardData();
+  const loading = useDashboardLoading();
 
   useEffect(() => {
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      // Use cached data, no need to reload
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
     loadDashboardData();
-  }, []);
+  }, [lastUpdated, cacheExpiration]);
 
   const loadDashboardData = async () => {
-    setLoading(true);
+    dispatch(setLoading(true));
     try {
       // Load overview data
       const overviewResult = await dashboardService.getDashboardOverview();
-      if (overviewResult.success && overviewResult.data) {
-        setOverview(overviewResult.data);
-      }
+      const overviewData = overviewResult.success ? overviewResult.data : null;
 
       // Load recent orders
       const ordersResult = await dashboardService.getRecentOrders(10);
-      if (ordersResult.success && ordersResult.data) {
-        setRecentOrders(ordersResult.data);
+      const ordersData = ordersResult.success ? ordersResult.data : [];
+
+      // Update Redux store with data
+      dispatch(setDashboardData({
+        overview: overviewData ?? null,
+        recentOrders: ordersData ?? [],
+      }));
+
+      if (!overviewResult.success || !ordersResult.success) {
+        toast.error('Không thể tải đầy đủ dữ liệu dashboard');
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
       toast.error('Không thể tải dữ liệu dashboard');
+      dispatch(clearDashboardData());
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 

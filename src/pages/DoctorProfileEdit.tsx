@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,9 +35,24 @@ import doctorService from '@/services/doctorService';
 import tenantService from '@/services/tenantService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { DoctorEditDto, DoctorSelfUpdateDto } from '@/types';
+import type { DoctorSelfUpdateDto } from '@/types';
 import { SPECIALTIES, ACADEMIC_TITLES, POSITION_TITLES } from '@/constants/doctorOptions';
 import { DoctorProfileEditSkeleton } from '@/components/doctor/DoctorProfileEditSkeleton';
+import {
+  useAppDispatch,
+  useDoctorProfileData,
+  useDoctorProfileLoading,
+  useDoctorProfileSaving,
+  useDoctorProfileUploadingAvatar,
+  isCacheValid,
+} from '@/stores/hooks';
+import {
+  setLoading,
+  setSaving,
+  setUploadingAvatar,
+  setDoctorProfileData,
+  setAvatarPreview,
+} from '@/stores/doctorProfileSlice';
 
 const doctorProfileSchema = z.object({
   fullName: z
@@ -80,12 +95,18 @@ export type DoctorProfileFormData = z.infer<typeof doctorProfileSchema>;
 export default function DoctorProfileEdit() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const [doctor, setDoctor] = useState<DoctorEditDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const {
+    doctor,
+    avatarPreview,
+    lastUpdated,
+    cacheExpiration,
+  } = useDoctorProfileData();
+  const loading = useDoctorProfileLoading();
+  const saving = useDoctorProfileSaving();
+  const uploadingAvatar = useDoctorProfileUploadingAvatar();
+
   const [manualDirty, setManualDirty] = useState(false);
 
   const {
@@ -128,34 +149,33 @@ export default function DoctorProfileEdit() {
     setValue('phoneE164', formatted, { shouldDirty: true, shouldValidate: true });
   };
 
-  useEffect(() => {
-    if (!currentUser?.userId) {
-      navigate('/auth/login');
-      return;
-    }
-    loadDoctorProfile();
-  }, [currentUser?.userId]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
-
-  const loadDoctorProfile = async () => {
+  const loadDoctorProfile = useCallback(async () => {
     if (!currentUser?.userId) return;
 
-    setLoading(true);
+    dispatch(setLoading(true));
     try {
       const response = await doctorService.getMyProfile(parseInt(currentUser.userId));
       if (response.success && response.data) {
-        setDoctor(response.data);
+        const profileData: DoctorSelfUpdateDto = {
+          fullName: response.data.fullName,
+          phoneE164: response.data.phoneE164 || undefined,
+          avatarUrl: response.data.avatarUrl || undefined,
+          title: response.data.title || undefined,
+          positionTitle: response.data.positionTitle || undefined,
+          specialty: response.data.specialty || undefined,
+          licenseNumber: response.data.licenseNumber || undefined,
+          yearStarted: response.data.yearStarted || undefined,
+          about: response.data.about || undefined,
+        };
+
+        dispatch(
+          setDoctorProfileData({
+            doctor: response.data,
+            formData: profileData,
+          })
+        );
+
+        dispatch(setAvatarPreview(response.data.avatarUrl || null));
 
         reset({
           fullName: response.data.fullName,
@@ -169,7 +189,6 @@ export default function DoctorProfileEdit() {
           about: response.data.about || '',
         });
 
-        setAvatarPreview(response.data.avatarUrl || null);
         setManualDirty(false);
       } else {
         toast.error('Không thể tải thông tin', {
@@ -183,9 +202,36 @@ export default function DoctorProfileEdit() {
         description: error.message || 'Không thể tải thông tin bác sĩ',
       });
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
-  };
+  }, [currentUser?.userId, dispatch, navigate, reset]);
+
+  useEffect(() => {
+    if (!currentUser?.userId) {
+      navigate('/auth/login');
+      return;
+    }
+
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
+    loadDoctorProfile();
+  }, [currentUser?.userId, lastUpdated, cacheExpiration, loadDoctorProfile, navigate]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -205,12 +251,12 @@ export default function DoctorProfileEdit() {
       return;
     }
 
-    setUploadingAvatar(true);
+    dispatch(setUploadingAvatar(true));
     try {
       const response = await tenantService.uploadImage(file, 'doctors/avatars');
       if (response.success && response.data) {
         setValue('avatarUrl', response.data);
-        setAvatarPreview(response.data);
+        dispatch(setAvatarPreview(response.data));
         setManualDirty(true);
         toast.success('Upload ảnh thành công');
       } else {
@@ -224,14 +270,14 @@ export default function DoctorProfileEdit() {
         description: error.message || 'Không thể upload ảnh',
       });
     } finally {
-      setUploadingAvatar(false);
+      dispatch(setUploadingAvatar(false));
     }
   };
 
   const onSubmit = async (data: DoctorProfileFormData) => {
     if (!currentUser?.userId) return;
 
-    setSaving(true);
+    dispatch(setSaving(true));
     try {
       const updateData: DoctorSelfUpdateDto = {
         fullName: data.fullName,
@@ -272,7 +318,7 @@ export default function DoctorProfileEdit() {
         description: error.message || 'Có lỗi xảy ra khi cập nhật',
       });
     } finally {
-      setSaving(false);
+      dispatch(setSaving(false));
     }
   };
 

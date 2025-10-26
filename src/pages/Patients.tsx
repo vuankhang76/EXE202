@@ -5,29 +5,45 @@ import { Plus, RefreshCw } from "lucide-react";
 import { medicalCaseRecordService } from "@/services/medicalCaseRecordService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type {
-  MedicalCaseRecordDto,
-  MedicalCaseRecordFilterDto,
-} from "@/types/medicalCaseRecord";
+import type { MedicalCaseRecordFilterDto } from "@/types/medicalCaseRecord";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import CaseDetailDialog from "@/components/medicalCaseRecords/CaseDetailDialog";
 import CreateCaseDialog from "@/components/medicalCaseRecords/CreateCaseDialog";
 import StatsCards from "@/components/medicalCaseRecords/MedicalCaseRecordsStats";
 import FilterSection from "@/components/medicalCaseRecords/MedicalCaseRecordsFilter";
 import RecordsTable from "@/components/medicalCaseRecords/MedicalCaseRecordsTable";
+import {
+  useAppDispatch,
+  usePatientData,
+  usePatientLoading,
+  usePatientFilters,
+  usePatientAppliedFilters,
+  isCacheValid,
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setPatientData,
+  setFilters,
+  setAppliedFilters,
+  clearPatientData,
+} from "@/stores/patientSlice";
 
 export default function Patients() {
   const { currentUser } = useAuth();
   const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : 0;
 
-  const [records, setRecords] = useState<MedicalCaseRecordDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [pageSize] = useState(8);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const dispatch = useAppDispatch();
+  const {
+    records,
+    currentPage,
+    totalPages,
+    pageSize,
+    lastUpdated,
+    cacheExpiration,
+  } = usePatientData();
+  const loading = usePatientLoading();
+  const filters = usePatientFilters();
+  const appliedFilters = usePatientAppliedFilters();
 
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -44,7 +60,7 @@ export default function Patients() {
   const loadRecords = useCallback(
     async (page: number = 1) => {
       try {
-        setLoading(true);
+        dispatch(setLoading(true));
 
         if (!tenantId) {
           toast.error("Không thể tải danh sách. Vui lòng liên hệ quản trị viên.");
@@ -55,34 +71,59 @@ export default function Patients() {
           tenantId,
           pageNumber: page,
           pageSize: pageSize,
-          status: statusFilter !== "all" ? statusFilter : undefined,
+          status:
+            appliedFilters.status && appliedFilters.status !== "all"
+              ? appliedFilters.status
+              : undefined,
         };
 
         const response = await medicalCaseRecordService.getMedicalCaseRecords(filter);
 
         if (response.success && response.data) {
-          setRecords(response.data.data || []);
-          setTotalPages(response.data.totalPages || 0);
-          setCurrentPage(page);
+          dispatch(
+            setPatientData({
+              records: response.data.data ?? [],
+              totalPages: response.data.totalPages ?? 0,
+              currentPage: page,
+            })
+          );
         } else {
-          setRecords([]);
-          setTotalPages(0);
+          dispatch(
+            setPatientData({
+              records: [],
+              totalPages: 0,
+              currentPage: page,
+            })
+          );
         }
       } catch (error) {
         console.error("Error loading records:", error);
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
+        dispatch(clearPatientData());
       } finally {
-        setLoading(false);
+        dispatch(setLoading(false));
       }
     },
-    [tenantId, statusFilter, pageSize]
+    [tenantId, appliedFilters.status, pageSize, dispatch]
   );
 
   useEffect(() => {
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
     loadRecords(1);
-  }, [loadRecords]);
+  }, [lastUpdated, cacheExpiration, loadRecords]);
 
   const handleSearch = () => {
+    dispatch(
+      setAppliedFilters({
+        status: filters.status,
+        searchTerm: filters.searchTerm,
+      })
+    );
     loadRecords(1);
   };
 
@@ -115,8 +156,8 @@ export default function Patients() {
   };
 
   const filteredRecords = records.filter((record) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
+    if (!filters.searchTerm) return true;
+    const search = filters.searchTerm.toLowerCase();
     return (
       record.patientName?.toLowerCase().includes(search) ||
       record.doctorName?.toLowerCase().includes(search) ||
@@ -152,11 +193,15 @@ export default function Patients() {
         />
 
         <FilterSection
-          searchTerm={searchTerm}
-          statusFilter={statusFilter}
+          searchTerm={filters.searchTerm}
+          statusFilter={filters.status}
           loading={loading}
-          onSearchTermChange={setSearchTerm}
-          onStatusFilterChange={setStatusFilter}
+          onSearchTermChange={(term) =>
+            dispatch(setFilters({ searchTerm: term }))
+          }
+          onStatusFilterChange={(status) =>
+            dispatch(setFilters({ status }))
+          }
           onSearch={handleSearch}
         />
 

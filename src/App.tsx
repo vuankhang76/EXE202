@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './stores/store';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -58,89 +60,91 @@ function PatientAuthRedirect() {
 
 function App() {
   return (
-    <LoadingProvider>
-      <AuthProvider>
-        <Router future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}>
-          <Toaster />
-          <SpeedInsights />
-          <Routes>
-          <Route path="/" element={<HomeRedirect />} />
-          
-          <Route path="/clinics/:id" element={<ClinicDetail />} />
-          
-          <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
-          <Route path="/login" element={<PatientAuthRedirect />} />
-          
-          <Route path="/patient/dashboard" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PatientDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/appointments" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PatientAppointments />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/appointments/create" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <CreateAppointment />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/payment" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PaymentPage />
-            </ProtectedRoute>
-          } />
+    <Provider store={store}>
+      <LoadingProvider>
+        <AuthProvider>
+          <Router future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}>
+            <Toaster />
+            <SpeedInsights />
+            <Routes>
+            <Route path="/" element={<HomeRedirect />} />
+            
+            <Route path="/clinics/:id" element={<ClinicDetail />} />
+            
+            <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
+            <Route path="/login" element={<PatientAuthRedirect />} />
+            
+            <Route path="/patient/dashboard" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/appointments" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientAppointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/appointments/create" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <CreateAppointment />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/payment" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PaymentPage />
+              </ProtectedRoute>
+            } />
 
-          <Route path="/clinic/dashboard" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/settings" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <TenantSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="/doctor/profile/edit" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <DoctorProfileEdit />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/patients" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Patients />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/appointments" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Appointments />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/orders" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Orders />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/consultations" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Consultations />
-            </ProtectedRoute>
-          } />
-          <Route path="/clinic/accounts" element={
-            <ProtectedRoute allowedUserTypes={['tenant']}>
-              <Accounts />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  </LoadingProvider>
+            <Route path="/clinic/dashboard" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/settings" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <TenantSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/doctor/profile/edit" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <DoctorProfileEdit />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/patients" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Patients />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/appointments" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Appointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/orders" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Orders />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/consultations" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Consultations />
+              </ProtectedRoute>
+            } />
+            <Route path="/clinic/accounts" element={
+              <ProtectedRoute allowedUserTypes={['tenant']}>
+                <Accounts />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </LoadingProvider>
+    </Provider>
   )
 }
 

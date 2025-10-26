@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
@@ -6,40 +6,58 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { Loader2, Save, AlertCircle, Building2, Calendar } from "lucide-react";
 import AdminLayout from "@/layout/AdminLayout";
 import tenantService from "@/services/tenantService";
-import { tenantSettingService, type BookingConfig } from "@/services/tenantSettingService";
+import { tenantSettingService } from "@/services/tenantSettingService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type { TenantDto, TenantUpdateDto } from "@/types";
+import type { TenantUpdateDto } from "@/types";
 import { TenantSettingsSkeleton } from "@/components/tenant/TenantSettingsSkeleton";
 import { ClinicInfoTab } from "@/components/tenant/ClinicInfoTab";
 import { BookingSettingsForm } from "@/components/tenant/BookingSettingsForm";
 import { normalizeTime, validateTimeRange } from "@/utils/timeValidation";
+import {
+  useAppDispatch,
+  useTenantSettingData,
+  useTenantSettingLoading,
+  useTenantSettingSaving,
+  useTenantSettingSavingBooking,
+  useTenantSettingUploadingThumbnail,
+  useTenantSettingUploadingCover,
+  isCacheValid,
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setSaving,
+  setSavingBooking,
+  setUploadingThumbnail,
+  setUploadingCover,
+  setTenant,
+  setBookingConfig,
+  setFormData,
+  setThumbnailPreview,
+  setCoverPreview,
+  setActiveTab,
+} from "@/stores/tenantSettingSlice";
 
 export default function TenantSettings() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [tenant, setTenant] = useState<TenantDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [savingBooking, setSavingBooking] = useState(false);
-  const [formData, setFormData] = useState<TenantUpdateDto>({});
-  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
 
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-
-  // Booking settings state
-  const [bookingConfig, setBookingConfig] = useState<BookingConfig>({
-    maxAdvanceBookingDays: 90,
-    defaultSlotDurationMinutes: 30,
-    minAdvanceBookingHours: 1,
-    maxCancellationHours: 24,
-    allowWeekendBooking: true,
-  });
-    
-  // Active tab
-  const [activeTab, setActiveTab] = useState("clinic");
+  const dispatch = useAppDispatch();
+  const {
+    tenant,
+    bookingConfig,
+    formData,
+    thumbnailPreview,
+    coverPreview,
+    activeTab,
+    lastUpdated,
+    cacheExpiration,
+  } = useTenantSettingData();
+  const loading = useTenantSettingLoading();
+  const saving = useTenantSettingSaving();
+  const savingBooking = useTenantSettingSavingBooking();
+  const uploadingThumbnail = useTenantSettingUploadingThumbnail();
+  const uploadingCover = useTenantSettingUploadingCover();
 
   const isAdmin = currentUser?.role?.toLowerCase() === "admin";
   const isOwner =
@@ -47,34 +65,31 @@ export default function TenantSettings() {
     Number(currentUser?.userId) === Number(tenant.ownerUserId);
   const canEdit = Boolean(isAdmin || isOwner);
 
-  useEffect(() => {
-    if (currentUser?.tenantId) {
-      loadTenant();
-      loadBookingConfig();
-    }
-  }, [currentUser?.tenantId]);
-
-  const loadTenant = async () => {
+  const loadTenant = useCallback(async () => {
     if (!currentUser?.tenantId) return;
 
-    setLoading(true);
+    dispatch(setLoading(true));
     try {
       const response = await tenantService.getTenantById(
         parseInt(currentUser.tenantId)
       );
       if (response.success && response.data) {
-        setTenant(response.data);
-        setFormData({
-          name: response.data.name,
-          email: response.data.email,
-          phone: response.data.phone,
-          address: response.data.address,
-          description: response.data.description,
-          weekdayOpen: response.data.weekdayOpen,
-          weekdayClose: response.data.weekdayClose,
-          weekendOpen: response.data.weekendOpen,
-          weekendClose: response.data.weekendClose,
-        });
+        dispatch(
+          setTenant(response.data)
+        );
+        dispatch(
+          setFormData({
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone,
+            address: response.data.address,
+            description: response.data.description,
+            weekdayOpen: response.data.weekdayOpen,
+            weekdayClose: response.data.weekdayClose,
+            weekendOpen: response.data.weekendOpen,
+            weekendClose: response.data.weekendClose,
+          })
+        );
       } else {
         toast.error("Không thể tải thông tin phòng khám");
         navigate("/clinic/dashboard");
@@ -82,11 +97,11 @@ export default function TenantSettings() {
     } catch (error) {
       toast.error("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
-  };
+  }, [currentUser?.tenantId, dispatch, navigate]);
 
-  const loadBookingConfig = async () => {
+  const loadBookingConfig = useCallback(async () => {
     if (!currentUser?.tenantId) return;
 
     try {
@@ -94,12 +109,25 @@ export default function TenantSettings() {
         parseInt(currentUser.tenantId)
       );
       if (response.success && response.data) {
-        setBookingConfig(response.data);
+        dispatch(setBookingConfig(response.data));
       }
     } catch (error) {
       console.error("Error loading booking config:", error);
     }
-  };
+  }, [currentUser?.tenantId, dispatch]);
+
+  useEffect(() => {
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
+    if (currentUser?.tenantId) {
+      loadTenant();
+      loadBookingConfig();
+    }
+  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, loadTenant, loadBookingConfig]);
 
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
@@ -121,7 +149,7 @@ export default function TenantSettings() {
     if (field === "phone") {
       value = normalizePhoneNumber(value);
     }
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    dispatch(setFormData({ [field]: value }));
   };
 
   const handleThumbnailUpload = async (
@@ -140,15 +168,15 @@ export default function TenantSettings() {
       return;
     }
 
-    setUploadingThumbnail(true);
+    dispatch(setUploadingThumbnail(true));
     try {
       const response = await tenantService.uploadImage(
         file,
         "tenants/thumbnails"
       );
       if (response.success && response.data) {
-        setThumbnailPreview(response.data);
-        setFormData((prev) => ({ ...prev, thumbnailUrl: response.data }));
+        dispatch(setThumbnailPreview(response.data));
+        dispatch(setFormData({ thumbnailUrl: response.data }));
         toast.success('Đã chọn ảnh đại diện. Bấm "Lưu thay đổi" để hoàn tất.');
       } else {
         toast.error("Upload thất bại", {
@@ -161,7 +189,7 @@ export default function TenantSettings() {
         description: error.message || "Không thể upload ảnh",
       });
     } finally {
-      setUploadingThumbnail(false);
+      dispatch(setUploadingThumbnail(false));
     }
   };
 
@@ -179,12 +207,12 @@ export default function TenantSettings() {
       return;
     }
 
-    setUploadingCover(true);
+    dispatch(setUploadingCover(true));
     try {
       const response = await tenantService.uploadImage(file, "tenants/covers");
       if (response.success && response.data) {
-        setCoverPreview(response.data);
-        setFormData((prev) => ({ ...prev, coverImageUrl: response.data }));
+        dispatch(setCoverPreview(response.data));
+        dispatch(setFormData({ coverImageUrl: response.data }));
         toast.success('Đã chọn ảnh bìa. Bấm "Lưu thay đổi" để hoàn tất.');
       } else {
         toast.error("Upload thất bại", {
@@ -196,7 +224,7 @@ export default function TenantSettings() {
         description: error.message || "Không thể upload ảnh",
       });
     } finally {
-      setUploadingCover(false);
+      dispatch(setUploadingCover(false));
     }
   };
 
@@ -254,7 +282,7 @@ export default function TenantSettings() {
       }
     }
     
-    setSaving(true);
+    dispatch(setSaving(true));
     try {
       const response = await tenantService.updateTenant(
         parseInt(currentUser.tenantId),
@@ -265,8 +293,8 @@ export default function TenantSettings() {
         toast.success("Cập nhật thành công", {
           description: "Thông tin phòng khám đã được cập nhật",
         });
-        setThumbnailPreview(null);
-        setCoverPreview(null);
+        dispatch(setThumbnailPreview(null));
+        dispatch(setCoverPreview(null));
         loadTenant();
       } else {
         const errorMessage =
@@ -294,7 +322,7 @@ export default function TenantSettings() {
         });
       }
     } finally {
-      setSaving(false);
+      dispatch(setSaving(false));
     }
   };
 
@@ -310,7 +338,7 @@ export default function TenantSettings() {
       return;
     }
     
-    setSavingBooking(true);
+    dispatch(setSavingBooking(true));
     try {
       const tenantId = parseInt(currentUser.tenantId);
       const settingsToUpdate: Record<string, string> = {
@@ -321,14 +349,10 @@ export default function TenantSettings() {
         "Booking.AllowWeekendBooking": bookingConfig.allowWeekendBooking.toString(),
       };
       
-      console.log('Sending booking settings:', settingsToUpdate);
-      
       const response = await tenantSettingService.updateSettings(
         tenantId,
         settingsToUpdate
       );
-      
-      console.log('Response:', response);
 
       if (response.success) {
         toast.success("Cập nhật thành công", {
@@ -347,11 +371,9 @@ export default function TenantSettings() {
       }
     } catch (error: any) {
       console.error("Error updating booking settings:", error);
-      console.error("Error response data:", error.response?.data);
       
       if (error.response?.status === 500) {
         try {
-          console.log('Attempting to initialize default settings...');
           const tenantId = parseInt(currentUser.tenantId!);
           await tenantSettingService.initializeSettings(tenantId);
           
@@ -381,7 +403,7 @@ export default function TenantSettings() {
         description: error.response?.data?.message || error.message || "Không thể cập nhật cài đặt lịch khám. Vui lòng kiểm tra console để biết thêm chi tiết.",
       });
     } finally {
-      setSavingBooking(false);
+      dispatch(setSavingBooking(false));
     }
   };
 
@@ -440,7 +462,7 @@ export default function TenantSettings() {
           </Alert>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => dispatch(setActiveTab(value))} className="w-full">
           <TabsList>
             <TabsTrigger value="clinic">
               <Building2 className="h-4 w-4" />
@@ -472,7 +494,7 @@ export default function TenantSettings() {
             <div className="space-y-6">
               <BookingSettingsForm
                 config={bookingConfig}
-                onChange={setBookingConfig}
+                onChange={(config) => dispatch(setBookingConfig(config))}
                 canEdit={canEdit}
               />
             </div>
