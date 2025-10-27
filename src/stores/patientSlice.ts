@@ -97,3 +97,4 @@ export const {
 } = patientSlice.actions;
 
 export default patientSlice.reducer;
+

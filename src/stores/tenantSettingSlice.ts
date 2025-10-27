@@ -128,3 +128,5 @@ export const {
 } = tenantSettingSlice.actions;
 
 export default tenantSettingSlice.reducer;
+
+

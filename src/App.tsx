@@ -158,7 +158,8 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
-  </LoadingProvider>
+    </LoadingProvider>
+    </Provider>
   )
 }
 
