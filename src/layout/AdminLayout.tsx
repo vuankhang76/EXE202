@@ -11,7 +11,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/Sidebar"
-import { type ReactNode } from "react"
+import { type ReactNode, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -29,6 +31,21 @@ export default function AdminLayout({
   breadcrumbItems = [],
   actions,
 }: AdminLayoutProps) {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect SystemAdmin to super-admin page
+  useEffect(() => {
+    if (currentUser?.role === 'SystemAdmin') {
+      navigate('/super-admin', { replace: true });
+    }
+  }, [currentUser, navigate]);
+
+  // Don't render anything if SystemAdmin (will redirect)
+  if (currentUser?.role === 'SystemAdmin') {
+    return null;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

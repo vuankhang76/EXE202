@@ -24,11 +24,16 @@ const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/PaymentTransaction'))
 const Consultations = lazy(() => import('./pages/Consultations'))
 const Accounts = lazy(() => import('./pages/Accounts'))
+const SuperAdmin = lazy(() => import('./pages/SuperAdmin'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function TenantAuthRedirect() {
   const { currentUser, userType } = useAuth();
   if (currentUser && userType === 'tenant') {
+    // Check if user is SystemAdmin
+    if (currentUser.role === 'SystemAdmin') {
+      return <Navigate to="/super-admin" replace />;
+    }
     return <Navigate to="/clinic/dashboard" replace />;
   }
   if (currentUser && userType === 'patient') {
@@ -41,6 +46,10 @@ function HomeRedirect() {
   const { currentUser, userType } = useAuth();
   
   if (currentUser && userType === 'tenant') {
+    // Check if user is SystemAdmin
+    if (currentUser.role === 'SystemAdmin') {
+      return <Navigate to="/super-admin" replace />;
+    }
     return <Navigate to="/clinic/dashboard" replace />;
   }
   
@@ -98,53 +107,58 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/clinic/dashboard" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/settings" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <TenantSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/doctor/profile/edit" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <DoctorProfileEdit />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/patients" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Patients />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/appointments" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Appointments />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/orders" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Orders />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/consultations" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Consultations />
-              </ProtectedRoute>
-            } />
-            <Route path="/clinic/accounts" element={
-              <ProtectedRoute allowedUserTypes={['tenant']}>
-                <Accounts />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </LoadingProvider>
-    </Provider>
+          <Route path="/clinic/dashboard" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/settings" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <TenantSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="/doctor/profile/edit" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <DoctorProfileEdit />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/patients" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Patients />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/appointments" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Appointments />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/orders" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Orders />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/consultations" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Consultations />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/accounts" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Accounts />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/super-admin" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} allowedRoles={['SystemAdmin']}>
+              <SuperAdmin />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  </LoadingProvider>
   )
 }
 
