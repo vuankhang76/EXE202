@@ -64,7 +64,6 @@ export default function ClinicDetail() {
             return;
         }
 
-        // PatientId should be passed from auth context or stored in currentUser
         const patientIdNum = currentUser.userId ? parseInt(currentUser.userId) : null;
         
         if (!patientIdNum) {

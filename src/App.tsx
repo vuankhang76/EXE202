@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './stores/store';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,42 +69,43 @@ function PatientAuthRedirect() {
 
 function App() {
   return (
-    <LoadingProvider>
-      <AuthProvider>
-        <Router future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}>
-          <Toaster />
-          <SpeedInsights />
-          <Routes>
-          <Route path="/" element={<HomeRedirect />} />
-          
-          <Route path="/clinics/:id" element={<ClinicDetail />} />
-          
-          <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
-          <Route path="/login" element={<PatientAuthRedirect />} />
-          
-          <Route path="/patient/dashboard" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PatientDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/appointments" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PatientAppointments />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/appointments/create" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <CreateAppointment />
-            </ProtectedRoute>
-          } />
-          <Route path="/patient/payment" element={
-            <ProtectedRoute allowedUserTypes={['patient']}>
-              <PaymentPage />
-            </ProtectedRoute>
-          } />
+    <Provider store={store}>
+      <LoadingProvider>
+        <AuthProvider>
+          <Router future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}>
+            <Toaster />
+            <SpeedInsights />
+            <Routes>
+            <Route path="/" element={<HomeRedirect />} />
+            
+            <Route path="/clinics/:id" element={<ClinicDetail />} />
+            
+            <Route path="/tenant/auth" element={<TenantAuthRedirect />} />
+            <Route path="/login" element={<PatientAuthRedirect />} />
+            
+            <Route path="/patient/dashboard" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/appointments" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientAppointments />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/appointments/create" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <CreateAppointment />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/payment" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PaymentPage />
+              </ProtectedRoute>
+            } />
 
           <Route path="/clinic/dashboard" element={
             <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
@@ -155,7 +158,8 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
-  </LoadingProvider>
+    </LoadingProvider>
+    </Provider>
   )
 }
 

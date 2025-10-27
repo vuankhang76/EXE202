@@ -8,36 +8,46 @@ import EditAppointmentDialog from "@/components/appointments/EditAppointmentDial
 import AppointmentStats from "@/components/appointments/AppointmentStats";
 import AppointmentFilters from "@/components/appointments/AppointmentFilters";
 import AppointmentTable from "@/components/appointments/AppointmentTable";
-import type { AppointmentDto } from "@/types/appointment";
 import appointmentService from "@/services/appointmentService";
 import { toast } from 'sonner';
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  useAppDispatch,
+  useAppointmentData,
+  useAppointmentLoading,
+  useAppointmentFilters,
+  useAppointmentAppliedFilters,
+  isCacheValid,
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setAppointmentData,
+  setStats,
+  setCurrentPage,
+  setFilters,
+  setAppliedFilters,
+  clearAppointmentData,
+} from "@/stores/appointmentSlice";
 
 export default function Appointments() {
   const { currentUser } = useAuth();
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    confirmed: 0,
-    inProgress: 0,
-    completed: 0,
-    cancelled: 0
-  });
 
-  const [appointments, setAppointments] = useState<AppointmentDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 8;
+  const dispatch = useAppDispatch();
+  const {
+    appointments,
+    stats,
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+    lastUpdated,
+    cacheExpiration,
+  } = useAppointmentData();
+  const loading = useAppointmentLoading();
+  const filters = useAppointmentFilters();
+  const appliedFilters = useAppointmentAppliedFilters();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [fromDate, setFromDate] = useState<Date | undefined>(new Date());
-  const [toDate, setToDate] = useState<Date | undefined>(new Date());
-
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDto | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -52,151 +62,151 @@ export default function Appointments() {
     return tenantId;
   }, [currentUser?.tenantId]);
 
-  const loadAppointments = useCallback(async (page: number = 1) => {
-    try {
-      setLoading(true);
+  const loadAppointments = useCallback(
+    async (page: number = 1) => {
+      try {
+        dispatch(setLoading(true));
 
-      const tenantId = checkTenantId(false);
-      if (!tenantId) {
-        setLoading(false);
-        return;
-      }
-
-      const filter = {
-        pageNumber: page,
-        pageSize: pageSize,
-        searchTerm: searchTerm || undefined,
-        status: statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
-        type: typeFilter && typeFilter !== 'all' ? typeFilter : undefined,
-        fromDate: fromDate ? fromDate.toISOString() : undefined,
-        toDate: toDate ? toDate.toISOString() : undefined,
-        tenantId,
-      };
-
-      const result = await appointmentService.getAppointments(filter);
-
-      if (result.success) {
-        let items = [];
-        let totalPages = 1;
-        let totalCount = 0;
-
-        if (Array.isArray(result.data)) {
-          items = result.data;
-          totalCount = items.length;
-        } else if (result.data && result.data.data && Array.isArray(result.data.data)) {
-          items = result.data.data;
-          totalPages = result.data.totalPages || 1;
-          totalCount = result.data.totalCount || items.length;
-        } else if (result.data) {
-          const possibleItemsKeys = ['items', 'data', 'results', 'appointments', 'content'];
-          let foundItems = null;
-
-          for (const key of possibleItemsKeys) {
-            if ((result.data as any)[key] && Array.isArray((result.data as any)[key])) {
-              foundItems = (result.data as any)[key];
-              break;
-            }
-          }
-
-          if (foundItems) {
-            items = foundItems;
-            totalPages = result.data.totalPages || (result.data as any).pageCount || 1;
-            totalCount = result.data.totalCount || (result.data as any).total || (result.data as any).count || items.length;
-          } else {
-            const values = Object.values(result.data);
-            const arrayValues = values.filter(v => Array.isArray(v));
-
-            if (arrayValues.length > 0) {
-              items = arrayValues[0];
-              totalCount = items.length;
-            } else {
-              items = [];
-            }
-          }
+        const tenantId = checkTenantId(false);
+        if (!tenantId) {
+          dispatch(setLoading(false));
+          return;
         }
 
-        setAppointments(items);
-        setTotalPages(totalPages);
-        setTotalCount(totalCount);
-        setCurrentPage(page);
-      } else {
-        setAppointments([]);
-        setTotalPages(0);
-        setTotalCount(0);
+        const filter = {
+          pageNumber: page,
+          pageSize: pageSize,
+          searchTerm: appliedFilters.searchTerm || undefined,
+          status: appliedFilters.statusFilter && appliedFilters.statusFilter !== 'all' ? appliedFilters.statusFilter : undefined,
+          type: appliedFilters.typeFilter && appliedFilters.typeFilter !== 'all' ? appliedFilters.typeFilter : undefined,
+          fromDate: appliedFilters.fromDate ? appliedFilters.fromDate.toISOString() : undefined,
+          toDate: appliedFilters.toDate ? appliedFilters.toDate.toISOString() : undefined,
+          tenantId,
+        };
+
+        const result = await appointmentService.getAppointments(filter);
+
+        if (result.success) {
+          let items = [];
+          let totalPages = 1;
+          let totalCount = 0;
+
+          if (Array.isArray(result.data)) {
+            items = result.data;
+            totalCount = items.length;
+          } else if (result.data && result.data.data && Array.isArray(result.data.data)) {
+            items = result.data.data;
+            totalPages = result.data.totalPages || 1;
+            totalCount = result.data.totalCount || items.length;
+          } else if (result.data) {
+            const possibleItemsKeys = ['items', 'data', 'results', 'appointments', 'content'];
+            let foundItems = null;
+
+            for (const key of possibleItemsKeys) {
+              if ((result.data as any)[key] && Array.isArray((result.data as any)[key])) {
+                foundItems = (result.data as any)[key];
+                break;
+              }
+            }
+
+            if (foundItems) {
+              items = foundItems;
+              totalPages = result.data.totalPages || (result.data as any).pageCount || 1;
+              totalCount = result.data.totalCount || (result.data as any).total || (result.data as any).count || items.length;
+            } else {
+              const values = Object.values(result.data);
+              const arrayValues = values.filter(v => Array.isArray(v));
+
+              if (arrayValues.length > 0) {
+                items = arrayValues[0] as any[];
+                totalCount = items.length;
+              } else {
+                items = [];
+              }
+            }
+          }
+
+          dispatch(
+            setAppointmentData({
+              appointments: items,
+              stats,
+              totalPages,
+              totalCount,
+              currentPage: page,
+            })
+          );
+        } else {
+          dispatch(
+            setAppointmentData({
+              appointments: [],
+              stats,
+              totalPages: 0,
+              totalCount: 0,
+              currentPage: page,
+            })
+          );
+        }
+      } catch (error) {
+        console.error('Error loading appointments:', error);
+        dispatch(clearAppointmentData());
+      } finally {
+        dispatch(setLoading(false));
       }
-    } catch (error) {
-      setAppointments([]);
-      setTotalPages(0);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter, typeFilter, fromDate, toDate, pageSize, checkTenantId]);
+    },
+    [
+      appliedFilters.searchTerm,
+      appliedFilters.statusFilter,
+      appliedFilters.typeFilter,
+      appliedFilters.fromDate,
+      appliedFilters.toDate,
+      pageSize,
+      checkTenantId,
+      stats,
+      dispatch,
+    ]
+  );
 
   const loadStats = useCallback(async () => {
     try {
       const tenantId = checkTenantId(false);
       if (!tenantId) {
+        dispatch(
+          setStats({
+            total: 0,
+            pending: 0,
+            confirmed: 0,
+            inProgress: 0,
+            completed: 0,
+            cancelled: 0,
+          })
+        );
+        return;
+      }
+
+      const statsData = await appointmentService.getAppointmentStats(tenantId);
+      dispatch(setStats(statsData));
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      dispatch(
         setStats({
           total: 0,
           pending: 0,
           confirmed: 0,
           inProgress: 0,
           completed: 0,
-          cancelled: 0
-        });
-        return;
-      }
-
-      const statsData = await appointmentService.getAppointmentStats(tenantId);
-      setStats(statsData);
-    } catch (error) {
-      console.error('Error loading stats:', error);
-      setStats({
-        total: 0,
-        pending: 0,
-        confirmed: 0,
-        inProgress: 0,
-        completed: 0,
-        cancelled: 0
-      });
+          cancelled: 0,
+        })
+      );
     }
-  }, [checkTenantId]);
-
-  const handleStatusChange = useCallback(async (id: number, newStatus: string) => {
-    try {
-      switch (newStatus) {
-        case 'Confirmed':
-          await appointmentService.confirmAppointment(id);
-          toast.success('Xác nhận lịch hẹn thành công!');
-          break;
-        case 'InProgress':
-          await appointmentService.startAppointment(id);
-          toast.success('Bắt đầu khám thành công!');
-          break;
-        case 'Completed':
-          await appointmentService.completeAppointment(id);
-          toast.success('Hoàn thành lịch hẹn thành công!');
-          break;
-        case 'Cancelled':
-          const reason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
-          await appointmentService.cancelAppointment(id, reason || undefined);
-          toast.success('Hủy lịch hẹn thành công!');
-          break;
-        default:
-          toast.info('Trạng thái không thay đổi');
-          return;
-      }
-
-      loadAppointments(currentPage);
-      loadStats();
-    } catch (error) {
-      console.error('Error changing status:', error);
-      toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
-    }
-  }, [currentPage, loadAppointments, loadStats]);
+  }, [checkTenantId, dispatch]);
 
   useEffect(() => {
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
     const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : null;
     if (tenantId) {
       loadAppointments(1);
@@ -205,18 +215,58 @@ export default function Appointments() {
       toast.error('Không thể tải danh sách lịch hẹn. Vui lòng liên hệ quản trị viên.');
       hasShownTenantErrorRef.current = true;
     }
-  }, [currentUser?.tenantId]);
+  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, loadAppointments, loadStats]);
+
+  const handleStatusChange = useCallback(
+    async (id: number, newStatus: string) => {
+      try {
+        switch (newStatus) {
+          case 'Confirmed':
+            await appointmentService.confirmAppointment(id);
+            toast.success('Xác nhận lịch hẹn thành công!');
+            break;
+          case 'InProgress':
+            await appointmentService.startAppointment(id);
+            toast.success('Bắt đầu khám thành công!');
+            break;
+          case 'Completed':
+            await appointmentService.completeAppointment(id);
+            toast.success('Hoàn thành lịch hẹn thành công!');
+            break;
+          case 'Cancelled':
+            const reason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
+            await appointmentService.cancelAppointment(id, reason || undefined);
+            toast.success('Hủy lịch hẹn thành công!');
+            break;
+          default:
+            toast.info('Trạng thái không thay đổi');
+            return;
+        }
+
+        loadAppointments(currentPage);
+        loadStats();
+      } catch (error) {
+        console.error('Error changing status:', error);
+        toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
+      }
+    },
+    [currentPage, loadAppointments, loadStats]
+  );
 
   const handleRefresh = useCallback(() => {
     loadAppointments(1);
     loadStats();
   }, [loadAppointments, loadStats]);
 
-  const handlePageChange = useCallback((page: number) => {
-    if (page !== currentPage && !loading) {
-      loadAppointments(page);
-    }
-  }, [currentPage, loading, loadAppointments]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page !== currentPage && !loading) {
+        dispatch(setCurrentPage(page));
+        loadAppointments(page);
+      }
+    },
+    [currentPage, loading, loadAppointments, dispatch]
+  );
 
   const handleView = useCallback(async (id: number) => {
     try {
@@ -253,6 +303,19 @@ export default function Appointments() {
     loadStats();
   }, [currentPage, loadAppointments, loadStats]);
 
+  const handleSearchClick = () => {
+    dispatch(
+      setAppliedFilters({
+        searchTerm: filters.searchTerm,
+        statusFilter: filters.statusFilter,
+        typeFilter: filters.typeFilter,
+        fromDate: filters.fromDate,
+        toDate: filters.toDate,
+      })
+    );
+    loadAppointments(1);
+  };
+
   return (
     <AdminLayout
       breadcrumbTitle="Lịch hẹn và tái khám"
@@ -262,44 +325,52 @@ export default function Appointments() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Làm mới
           </Button>
-          <CreateAppointmentDialog onSuccess={() => {
-            loadAppointments(1);
-            loadStats();
-          }}
+          <CreateAppointmentDialog
+            onSuccess={() => {
+              loadAppointments(1);
+              loadStats();
+            }}
           />
         </div>
       }
     >
+      <AppointmentStats stats={stats} loading={loading} />
 
-          <AppointmentStats stats={stats} loading={loading}/>
+      <AppointmentFilters
+        searchTerm={filters.searchTerm}
+        statusFilter={filters.statusFilter}
+        typeFilter={filters.typeFilter}
+        fromDate={filters.fromDate}
+        toDate={filters.toDate}
+        onSearchChange={(term) =>
+          dispatch(setFilters({ searchTerm: term }))
+        }
+        onStatusFilterChange={(status) =>
+          dispatch(setFilters({ statusFilter: status }))
+        }
+        onTypeFilterChange={(type) =>
+          dispatch(setFilters({ typeFilter: type }))
+        }
+        onFromDateChange={(date) =>
+          dispatch(setFilters({ fromDate: date }))
+        }
+        onToDateChange={(date) =>
+          dispatch(setFilters({ toDate: date }))
+        }
+        onSearch={handleSearchClick}
+      />
 
-          <AppointmentFilters
-            searchTerm={searchTerm}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            fromDate={fromDate}
-            toDate={toDate}
-            onSearchChange={setSearchTerm}
-            onStatusFilterChange={setStatusFilter}
-            onTypeFilterChange={setTypeFilter}
-            onFromDateChange={setFromDate}
-            onToDateChange={setToDate}
-            onSearch={() => {
-              loadAppointments(1);
-            }}
-          />
-
-          <AppointmentTable
-            appointments={appointments}
-            currentLoading={loading}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onStatusChange={handleStatusChange}
-            onView={handleView}
-            onEdit={handleEdit}
-            onPageChange={handlePageChange}
-          />
+      <AppointmentTable
+        appointments={appointments}
+        currentLoading={loading}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onStatusChange={handleStatusChange}
+        onView={handleView}
+        onEdit={handleEdit}
+        onPageChange={handlePageChange}
+      />
 
       <ViewAppointmentDialog
         appointment={selectedAppointment}

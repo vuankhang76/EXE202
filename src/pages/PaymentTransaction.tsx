@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import AdminLayout from "@/layout/AdminLayout";
 import { Button } from "@/components/ui/Button";
 import { RefreshCw } from "lucide-react";
@@ -11,40 +11,42 @@ import { paymentTransactionService } from "@/services/paymentTransactionService"
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type {
-  PaymentTransactionDto,
-  PaymentStatisticsDto,
   PaymentTransactionFilterDto,
 } from "@/types/paymentTransaction";
+import {
+  useAppDispatch,
+  usePaymentData,
+  usePaymentLoading,
+  usePaymentFilters,
+  usePaymentAppliedFilters,
+  isCacheValid,
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setPaymentData,
+  setFilters,
+  setAppliedFilters,
+  clearPaymentData,
+} from "@/stores/paymentSlice";
+import { useState } from "react";
 
 export default function PaymentTransaction() {
   const { currentUser } = useAuth();
   const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : 0;
 
-  const [stats, setStats] = useState<PaymentStatisticsDto | undefined>(
-    undefined
-  );
-  const [payments, setPayments] = useState<PaymentTransactionDto[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [, setTotalCount] = useState(0);
-  const pageSize = 8;
-
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [methodFilter, setMethodFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
-  const [toDate, setToDate] = useState<Date | undefined>(undefined);
-
-  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
-  const [appliedMethodFilter, setAppliedMethodFilter] = useState<string>("");
-  const [appliedFromDate, setAppliedFromDate] = useState<Date | undefined>(
-    undefined
-  );
-  const [appliedToDate, setAppliedToDate] = useState<Date | undefined>(
-    undefined
-  );
+  const dispatch = useAppDispatch();
+  const {
+    payments,
+    stats,
+    currentPage,
+    totalPages,
+    pageSize,
+    lastUpdated,
+    cacheExpiration,
+  } = usePaymentData();
+  const loading = usePaymentLoading();
+  const filters = usePaymentFilters();
+  const appliedFilters = usePaymentAppliedFilters();
 
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -57,7 +59,7 @@ export default function PaymentTransaction() {
   const loadData = useCallback(
     async (page: number = 1) => {
       try {
-        setLoading(true);
+        dispatch(setLoading(true));
 
         if (!tenantId) {
           toast.error(
@@ -71,15 +73,23 @@ export default function PaymentTransaction() {
           pageSize: pageSize,
           tenantId,
           status:
-            appliedStatusFilter && appliedStatusFilter !== "all"
-              ? appliedStatusFilter
+            appliedFilters.status && appliedFilters.status !== "all"
+              ? appliedFilters.status
               : undefined,
           method:
-            appliedMethodFilter && appliedMethodFilter !== "all"
-              ? appliedMethodFilter
+            appliedFilters.method && appliedFilters.method !== "all"
+              ? appliedFilters.method
               : undefined,
-          fromDate: appliedFromDate ? appliedFromDate.toISOString() : undefined,
-          toDate: appliedToDate ? appliedToDate.toISOString() : undefined,
+          fromDate: appliedFilters.fromDate
+            ? appliedFilters.fromDate instanceof Date
+              ? appliedFilters.fromDate.toISOString()
+              : appliedFilters.fromDate
+            : undefined,
+          toDate: appliedFilters.toDate
+            ? appliedFilters.toDate instanceof Date
+              ? appliedFilters.toDate.toISOString()
+              : appliedFilters.toDate
+            : undefined,
         };
 
         const [paymentsResult, statsResult] = await Promise.all([
@@ -87,42 +97,57 @@ export default function PaymentTransaction() {
           paymentTransactionService.getPaymentStatistics(tenantId),
         ]);
 
-        // Update payments
+        // Update payments and stats
         if (paymentsResult.success && paymentsResult.data) {
-          setPayments(paymentsResult.data.data || []);
-          setTotalPages(paymentsResult.data.totalPages || 0);
-          setTotalCount(paymentsResult.data.totalCount || 0);
-          setCurrentPage(page);
+          dispatch(
+            setPaymentData({
+              payments: paymentsResult.data.data || [],
+              stats: statsResult.success ? statsResult.data : undefined,
+              totalPages: paymentsResult.data.totalPages || 0,
+              totalCount: paymentsResult.data.totalCount || 0,
+              currentPage: page,
+            })
+          );
         } else {
-          setPayments([]);
-          setTotalPages(0);
-          setTotalCount(0);
-        }
-
-        if (statsResult.success && statsResult.data) {
-          setStats(statsResult.data);
+          dispatch(
+            setPaymentData({
+              payments: [],
+              stats: statsResult.success ? statsResult.data : undefined,
+              totalPages: 0,
+              totalCount: 0,
+              currentPage: page,
+            })
+          );
         }
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
-        setPayments([]);
+        dispatch(clearPaymentData());
       } finally {
-        setLoading(false);
+        dispatch(setLoading(false));
       }
     },
     [
       tenantId,
-      appliedStatusFilter,
-      appliedMethodFilter,
-      appliedFromDate,
-      appliedToDate,
+      appliedFilters.status,
+      appliedFilters.method,
+      appliedFilters.fromDate,
+      appliedFilters.toDate,
       pageSize,
+      dispatch,
     ]
   );
 
   useEffect(() => {
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      // Use cached data, no need to reload
+      return;
+    }
+
+    // Load fresh data if cache is invalid or expired
     loadData(1);
-  }, [loadData]);
+  }, [lastUpdated, cacheExpiration, loadData]);
 
   const handleRefresh = () => {
     loadData(currentPage);
@@ -162,10 +187,15 @@ export default function PaymentTransaction() {
   };
 
   const handleSearch = () => {
-    setAppliedStatusFilter(statusFilter);
-    setAppliedMethodFilter(methodFilter);
-    setAppliedFromDate(fromDate);
-    setAppliedToDate(toDate);
+    dispatch(
+      setAppliedFilters({
+        status: filters.status,
+        method: filters.method,
+        fromDate: filters.fromDate,
+        toDate: filters.toDate,
+        searchTerm: filters.searchTerm,
+      })
+    );
     loadData(1);
   };
 
@@ -187,8 +217,8 @@ export default function PaymentTransaction() {
   };
 
   const filteredPayments = payments.filter((payment) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
+    if (!filters.searchTerm) return true;
+    const search = filters.searchTerm.toLowerCase();
     return (
       payment.patientName?.toLowerCase().includes(search) ||
       payment.patientPhone?.toLowerCase().includes(search) ||
@@ -218,16 +248,26 @@ export default function PaymentTransaction() {
       <PaymentStats stats={stats} loading={loading} />
 
       <PaymentFilters
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        typeFilter={methodFilter}
-        fromDate={fromDate}
-        toDate={toDate}
-        onSearchChange={setSearchTerm}
-        onStatusFilterChange={setStatusFilter}
-        onTypeFilterChange={setMethodFilter}
-        onFromDateChange={setFromDate}
-        onToDateChange={setToDate}
+        searchTerm={filters.searchTerm}
+        statusFilter={filters.status}
+        typeFilter={filters.method}
+        fromDate={filters.fromDate}
+        toDate={filters.toDate}
+        onSearchChange={(term) =>
+          dispatch(setFilters({ searchTerm: term }))
+        }
+        onStatusFilterChange={(status) =>
+          dispatch(setFilters({ status }))
+        }
+        onTypeFilterChange={(method) =>
+          dispatch(setFilters({ method }))
+        }
+        onFromDateChange={(date) =>
+          dispatch(setFilters({ fromDate: date }))
+        }
+        onToDateChange={(date) =>
+          dispatch(setFilters({ toDate: date }))
+        }
         onSearch={handleSearch}
       />
 

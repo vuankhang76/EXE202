@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import AdminLayout from "@/layout/AdminLayout";
 import { Button } from "@/components/ui/Button";
 import { Plus } from "lucide-react";
@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import userService from "@/services/userService";
 import doctorService from "@/services/doctorService";
 import { toast } from "sonner";
-import type { UserDto, UserCreateDto, CreateDoctorDto } from "@/types";
+import type { UserCreateDto, CreateDoctorDto } from "@/types";
 import { UserRole, AccountStatus } from "@/types/account";
 import AccountStats from "@/components/accounts/AccountStats";
 import AccountFilters from "@/components/accounts/AccountFilters";
@@ -18,93 +18,126 @@ import EditDoctorDialog, {
   type EditDoctorFormData,
 } from "@/components/accounts/EditDoctorDialog";
 import ViewDoctorDialog from "@/components/accounts/ViewDoctorDialog";
+import {
+  useAppDispatch,
+  useAccountData,
+  useAccountLoading,
+  useAccountSaving,
+  useAccountFilters,
+  useAccountAppliedFilters,
+  isCacheValid,
+} from "@/stores/hooks";
+import {
+  setLoading,
+  setSaving,
+  setAccountData,
+  setFilters,
+  setAppliedFilters,
+  setPageNumber,
+  clearAccountData,
+} from "@/stores/accountSlice";
 
 export default function Accounts() {
   const { currentUser } = useAuth();
-  const [users, setUsers] = useState<UserDto[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const dispatch = useAppDispatch();
+  const {
+    users,
+    stats,
+    pageNumber,
+    totalPages,
+    lastUpdated,
+    cacheExpiration,
+  } = useAccountData();
+  const loading = useAccountLoading();
+  const saving = useAccountSaving();
+  const filters = useAccountFilters();
+  const appliedFilters = useAccountAppliedFilters();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedDoctorDetails, setSelectedDoctorDetails] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [pageNumber, setPageNumber] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [tempSearchTerm, setTempSearchTerm] = useState("");
-  const [tempRoleFilter, setTempRoleFilter] = useState("all");
-  const [tempStatusFilter, setTempStatusFilter] = useState("all");
-  const [stats, setStats] = useState({
-    total: 0,
-    doctors: 0,
-    nurses: 0,
-  });
 
-  const loadUsers = async () => {
-    if (!currentUser?.tenantId) return;
+  const loadUsers = useCallback(
+    async (page: number = 1) => {
+      if (!currentUser?.tenantId) return;
 
-    setLoading(true);
-    try {
-      const response = await userService.getUsers(
-        parseInt(currentUser.tenantId),
-        pageNumber,
-        10,
-        searchTerm || undefined
-      );
+      dispatch(setLoading(true));
+      try {
+        const response = await userService.getUsers(
+          parseInt(currentUser.tenantId),
+          page,
+          10,
+          appliedFilters.searchTerm || undefined
+        );
 
-      if (response.success && response.data) {
-        let userData = response.data.data || [];
-        
-        if (roleFilter !== 'all') {
-          userData = userData.filter(u => u.role === roleFilter);
+        if (response.success && response.data) {
+          let userData = response.data.data ?? [];
+          
+          if (appliedFilters.roleFilter !== 'all') {
+            userData = userData.filter(u => u.role === appliedFilters.roleFilter);
+          }
+          
+          if (appliedFilters.statusFilter !== 'all') {
+            const isActive = appliedFilters.statusFilter === AccountStatus.ACTIVE;
+            userData = userData.filter(u => u.isActive === isActive);
+          }
+
+          const total = response.data.totalCount ?? 0;
+          const doctors = userData.filter((u) => u.role === UserRole.DOCTOR).length;
+          const nurses = userData.filter((u) => u.role === UserRole.NURSE).length;
+
+          dispatch(
+            setAccountData({
+              users: userData,
+              stats: { total, doctors, nurses },
+              totalPages: response.data.totalPages ?? 1,
+            })
+          );
+          dispatch(setPageNumber(page));
+        } else {
+          dispatch(
+            setAccountData({
+              users: [],
+              stats: { total: 0, doctors: 0, nurses: 0 },
+              totalPages: 1,
+            })
+          );
         }
-        
-        if (statusFilter !== 'all') {
-          const isActive = statusFilter === AccountStatus.ACTIVE;
-          userData = userData.filter(u => u.isActive === isActive);
-        }
-        
-        setUsers(userData);
-        setTotalPages(response.data.totalPages || 1);
-
-        const total = response.data.totalCount || 0;
-        const doctors = userData.filter((u) => u.role === UserRole.DOCTOR).length;
-        const nurses = userData.filter((u) => u.role === UserRole.NURSE).length;
-
-        setStats({ total, doctors, nurses });
-      } else {
-        setUsers([]);
-        setTotalPages(1);
-        setStats({ total: 0, doctors: 0, nurses: 0 });
+      } catch (error) {
+        console.error("Error loading users:", error);
+        toast.error("Không thể tải danh sách tài khoản");
+        dispatch(clearAccountData());
+      } finally {
+        dispatch(setLoading(false));
       }
-    } catch (error) {
-      console.error("Error loading users:", error);
-      toast.error("Không thể tải danh sách tài khoản");
-      setUsers([]);
-      setTotalPages(1);
-      setStats({ total: 0, doctors: 0, nurses: 0 });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = () => {
-    setSearchTerm(tempSearchTerm);
-    setRoleFilter(tempRoleFilter);
-    setStatusFilter(tempStatusFilter);
-    setPageNumber(1);
-  };
+    },
+    [currentUser?.tenantId, appliedFilters.searchTerm, appliedFilters.roleFilter, appliedFilters.statusFilter, dispatch]
+  );
 
   useEffect(() => {
-    if (currentUser?.tenantId) {
-      loadUsers();
+    // Check if we have valid cached data
+    if (isCacheValid(lastUpdated, cacheExpiration)) {
+      return;
     }
-  }, [currentUser?.tenantId, pageNumber, searchTerm, roleFilter, statusFilter]);
+
+    // Load fresh data if cache is invalid or expired
+    loadUsers(1);
+  }, [lastUpdated, cacheExpiration, loadUsers]);
+
+  const handleSearch = () => {
+    dispatch(
+      setAppliedFilters({
+        searchTerm: filters.searchTerm,
+        roleFilter: filters.roleFilter,
+        statusFilter: filters.statusFilter,
+      })
+    );
+    dispatch(setPageNumber(1));
+  };
 
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
@@ -125,7 +158,7 @@ export default function Accounts() {
       return;
     }
 
-    setCreating(true);
+    dispatch(setSaving(true));
     try {
       const userData: UserCreateDto = {
         fullName: data.fullName,
@@ -159,7 +192,7 @@ export default function Accounts() {
       if (doctorResponse.success) {
         toast.success("Tạo tài khoản bác sĩ thành công");
         setDialogOpen(false);
-        loadUsers();
+        loadUsers(1);
       } else {
         toast.error("Tạo hồ sơ bác sĩ thất bại", {
           description: doctorResponse.message,
@@ -171,11 +204,11 @@ export default function Accounts() {
         description: error.message || "Có lỗi xảy ra",
       });
     } finally {
-      setCreating(false);
+      dispatch(setSaving(false));
     }
   };
 
-  const handleViewClick = async (user: UserDto) => {
+  const handleViewClick = async (user: any) => {
     setSelectedUser(user);
     setSelectedDoctorDetails(null);
     setViewDialogOpen(true);
@@ -196,7 +229,7 @@ export default function Accounts() {
     }
   };
 
-  const handleEditClick = async (user: UserDto) => {
+  const handleEditClick = async (user: any) => {
     setSelectedUser(user);
     setSelectedDoctorDetails(null);
     
@@ -224,7 +257,7 @@ export default function Accounts() {
   const handleEditSubmit = async (data: EditDoctorFormData) => {
     if (!selectedUser || !selectedDoctorDetails) return;
 
-    setSaving(true);
+    dispatch(setSaving(true));
     try {
       const userUpdateResponse = await userService.updateUser(selectedUser.userId, {
         fullName: data.fullName,
@@ -252,7 +285,7 @@ export default function Accounts() {
       if (doctorUpdateResponse.success) {
         toast.success("Cập nhật thông tin bác sĩ thành công");
         setEditDialogOpen(false);
-        loadUsers();
+        loadUsers(1);
       } else {
         toast.error("Cập nhật thông tin bác sĩ thất bại", {
           description: doctorUpdateResponse.message,
@@ -264,11 +297,11 @@ export default function Accounts() {
         description: error.message || "Có lỗi xảy ra",
       });
     } finally {
-      setSaving(false);
+      dispatch(setSaving(false));
     }
   };
 
-  const handleToggleActive = async (user: UserDto) => {
+  const handleToggleActive = async (user: any) => {
     const newStatus = !user.isActive;
     const action = newStatus ? 'kích hoạt' : 'vô hiệu hóa';
     
@@ -280,7 +313,7 @@ export default function Accounts() {
         });
         if (response.success) {
           toast.success(`Đã ${action} tài khoản thành công`);
-          loadUsers();
+          loadUsers(pageNumber);
         } else {
           toast.error(`Không thể ${action} tài khoản`, {
             description: response.message,
@@ -290,7 +323,7 @@ export default function Accounts() {
         const response = await userService.deactivateUser(user.userId);
         if (response.success) {
           toast.success(`Đã ${action} tài khoản thành công`);
-          loadUsers();
+          loadUsers(pageNumber);
         } else {
           toast.error(`Không thể ${action} tài khoản`, {
             description: response.message,
@@ -324,12 +357,18 @@ export default function Accounts() {
         />
 
         <AccountFilters
-          searchTerm={tempSearchTerm}
-          roleFilter={tempRoleFilter}
-          statusFilter={tempStatusFilter}
-          onSearchChange={setTempSearchTerm}
-          onRoleFilterChange={setTempRoleFilter}
-          onStatusFilterChange={setTempStatusFilter}
+          searchTerm={filters.searchTerm}
+          roleFilter={filters.roleFilter}
+          statusFilter={filters.statusFilter}
+          onSearchChange={(term) =>
+            dispatch(setFilters({ searchTerm: term }))
+          }
+          onRoleFilterChange={(role) =>
+            dispatch(setFilters({ roleFilter: role }))
+          }
+          onStatusFilterChange={(status) =>
+            dispatch(setFilters({ statusFilter: status }))
+          }
           onSearch={handleSearch}
         />
 
@@ -338,7 +377,10 @@ export default function Accounts() {
           loading={loading}
           currentPage={pageNumber}
           totalPages={totalPages}
-          onPageChange={setPageNumber}
+          onPageChange={(page) => {
+            dispatch(setPageNumber(page));
+            loadUsers(page);
+          }}
           onAddClick={() => setDialogOpen(true)}
           onViewClick={handleViewClick}
           onEditClick={handleEditClick}
@@ -347,7 +389,7 @@ export default function Accounts() {
 
         <CreateDoctorDialog
           open={dialogOpen}
-          creating={creating}
+          creating={saving}
           onOpenChange={setDialogOpen}
           onSubmit={onSubmit}
         />
