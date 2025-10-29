@@ -16,6 +16,7 @@ import TablePagination from "@/components/ui/TablePagination";
 import EditAdminDialog from "./EditAdminDialog";
 import userService from "@/services/userService";
 import { toast } from "sonner";
+import { TableSkeleton } from "../ui/TableSkeleton";
 
 interface AdminManagementTabProps {
   admins: UserDto[];
@@ -46,6 +47,7 @@ export default function AdminManagementTab({
   rowsPerPage = 10,
   onRowsPerPageChange,
 }: AdminManagementTabProps) {
+    
   const [tempSearch, setTempSearch] = useState(searchTerm);
   const [editAdmin, setEditAdmin] = useState<UserDto | null>(null);
 

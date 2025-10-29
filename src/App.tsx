@@ -25,6 +25,8 @@ const Orders = lazy(() => import('./pages/PaymentTransaction'))
 const Consultations = lazy(() => import('./pages/Consultations'))
 const Accounts = lazy(() => import('./pages/Accounts'))
 const SuperAdmin = lazy(() => import('./pages/SuperAdmin'))
+const TenantManagement = lazy(() => import('./pages/TenantManagement'))
+const AdminManagement = lazy(() => import('./pages/AdminManagement'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function TenantAuthRedirect() {
@@ -151,6 +153,18 @@ function App() {
           <Route path="/super-admin" element={
             <ProtectedRoute allowedUserTypes={['tenant']} allowedRoles={['SystemAdmin']}>
               <SuperAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/super-admin/tenants" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} allowedRoles={['SystemAdmin']}>
+              <TenantManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/super-admin/admins" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} allowedRoles={['SystemAdmin']}>
+              <AdminManagement />
             </ProtectedRoute>
           } />
           

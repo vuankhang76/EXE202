@@ -1,40 +1,18 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Plus, Building2, Users } from "lucide-react";
+import { Building2, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import tenantService from "@/services/tenantService";
 import userService from "@/services/userService";
 import { toast } from "sonner";
-import type { TenantDto, UserDto } from "@/types";
+import type { UserDto } from "@/types";
 import { Card } from "@/components/ui/Card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import AdminLayout from "@/layout/AdminLayout";
-import TenantManagementTab from "@/components/super-admin/TenantManagementTab";
-import AdminManagementTab from "@/components/super-admin/AdminManagementTab";
-import CreateTenantDialog from "@/components/super-admin/CreateTenantDialog";
-import CreateAdminDialog from "@/components/super-admin/CreateAdminDialog";
 
 export default function SuperAdmin() {
   const { currentUser, logout } = useAuth();
-  const [tenants, setTenants] = useState<TenantDto[]>([]);
-  const [admins, setAdmins] = useState<UserDto[]>([]);
+  const [totalTenants, setTotalTenants] = useState(0);
+  const [totalAdmins, setTotalAdmins] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [loadingAdmins, setLoadingAdmins] = useState(true);
-  const [createTenantOpen, setCreateTenantOpen] = useState(false);
-  const [createAdminOpen, setCreateAdminOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("tenants");
-  
-  const [tenantPage, setTenantPage] = useState(1);
-  const [adminPage, setAdminPage] = useState(1);
-  const [tenantTotalPages, setTenantTotalPages] = useState(1);
-  const [adminTotalPages, setAdminTotalPages] = useState(1);
-  const [tenantTotalCount, setTenantTotalCount] = useState(0);
-  const [adminTotalCount, setAdminTotalCount] = useState(0);
-  const [tenantRowsPerPage, setTenantRowsPerPage] = useState(10);
-  const [adminRowsPerPage, setAdminRowsPerPage] = useState(10);
-  
-  const [tenantSearch, setTenantSearch] = useState("");
-  const [adminSearch, setAdminSearch] = useState("");
 
   useEffect(() => {
     if (currentUser?.role !== 'SystemAdmin') {
@@ -43,75 +21,37 @@ export default function SuperAdmin() {
     }
   }, [currentUser]);
 
-  const loadTenants = async () => {
+  const loadStats = async () => {
     setLoading(true);
     try {
-      const response = await tenantService.getTenants(
-        tenantPage,
-        tenantRowsPerPage,
-        tenantSearch || undefined
-      );
+      const [tenantsResponse, usersResponse] = await Promise.all([
+        tenantService.getTenants(1, 1),
+        userService.getUsers(undefined, 1, 1)
+      ]);
 
-      if (response.success && response.data) {
-        setTenants(response.data.data || []);
-        setTenantTotalPages(response.data.totalPages || 1);
-        setTenantTotalCount(response.data.totalCount || 0);
-      } else {
-        setTenants([]);
-        setTenantTotalPages(1);
-        setTenantTotalCount(0);
+      if (tenantsResponse.success && tenantsResponse.data) {
+        setTotalTenants(tenantsResponse.data.totalCount || 0);
+      }
+
+      if (usersResponse.success && usersResponse.data) {
+        const adminCount = (usersResponse.data.data || []).filter(
+          (u: UserDto) => u.role === 'ClinicAdmin' || u.role === 'SystemAdmin'
+        ).length;
+        setTotalAdmins(usersResponse.data.totalCount || adminCount);
       }
     } catch (error) {
-      console.error("Error loading tenants:", error);
-      toast.error("Không thể tải danh sách phòng khám");
-      setTenants([]);
+      console.error("Error loading stats:", error);
+      toast.error("Không thể tải thống kê");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadAdmins = async () => {
-    setLoadingAdmins(true);
-    try {
-      const response = await userService.getUsers(
-        undefined,
-        adminPage,
-        adminRowsPerPage,
-        adminSearch || undefined
-      );
-
-      if (response.success && response.data) {
-        const adminUsers = (response.data.data || []).filter(
-          (u: UserDto) => u.role === 'ClinicAdmin' || u.role === 'SystemAdmin'
-        );
-        setAdmins(adminUsers);
-        setAdminTotalPages(response.data.totalPages || 1);
-        setAdminTotalCount(response.data.totalCount || 0);
-      } else {
-        setAdmins([]);
-        setAdminTotalPages(1);
-        setAdminTotalCount(0);
-      }
-    } catch (error) {
-      console.error("Error loading admins:", error);
-      toast.error("Không thể tải danh sách admin");
-      setAdmins([]);
-    } finally {
-      setLoadingAdmins(false);
-    }
-  };
-
   useEffect(() => {
     if (currentUser?.role === 'SystemAdmin') {
-      loadTenants();
+      loadStats();
     }
-  }, [currentUser, tenantPage, tenantSearch, tenantRowsPerPage]);
-
-  useEffect(() => {
-    if (currentUser?.role === 'SystemAdmin') {
-      loadAdmins();
-    }
-  }, [currentUser, adminPage, adminSearch, adminRowsPerPage]);
+  }, [currentUser]);
 
   if (currentUser?.role !== 'SystemAdmin') {
     return null;
@@ -130,7 +70,7 @@ export default function SuperAdmin() {
                 Tổng số phòng khám
               </p>
               <p className="mt-2 text-3xl font-bold text-gray-900">
-                {loading ? "..." : tenants.length}
+                {loading ? "..." : totalTenants}
               </p>
             </div>
             <div className="rounded-full bg-blue-100 p-3">
@@ -146,7 +86,7 @@ export default function SuperAdmin() {
                 Tổng số Admin
               </p>
               <p className="mt-2 text-3xl font-bold text-gray-900">
-                {loadingAdmins ? "..." : admins.length}
+                {loading ? "..." : totalAdmins}
               </p>
             </div>
             <div className="rounded-full bg-green-100 p-3">
@@ -155,83 +95,6 @@ export default function SuperAdmin() {
           </div>
         </Card>
       </div>
-
-      <div className="flex items-center justify-between">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="tenants">
-              <Building2 className="mr-2 h-4 w-4" />
-              Phòng khám
-            </TabsTrigger>
-            <TabsTrigger value="admins">
-              <Users className="mr-2 h-4 w-4" />
-              Tài khoản Admin
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        {activeTab === "tenants" && (
-          <Button onClick={() => setCreateTenantOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo phòng khám mới
-          </Button>
-        )}
-        {activeTab === "admins" && (
-          <Button onClick={() => setCreateAdminOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo tài khoản Admin
-          </Button>
-        )}
-      </div>
-
-      <div>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsContent value="tenants">
-            <TenantManagementTab
-              tenants={tenants}
-              loading={loading}
-              currentPage={tenantPage}
-              totalPages={tenantTotalPages}
-              searchTerm={tenantSearch}
-              onPageChange={setTenantPage}
-              onSearchChange={setTenantSearch}
-              onRefresh={loadTenants}
-              totalCount={tenantTotalCount}
-              rowsPerPage={tenantRowsPerPage}
-              onRowsPerPageChange={setTenantRowsPerPage}
-            />
-          </TabsContent>
-
-          <TabsContent value="admins" className="">
-            <AdminManagementTab
-              admins={admins}
-              loading={loadingAdmins}
-              currentPage={adminPage}
-              totalPages={adminTotalPages}
-              searchTerm={adminSearch}
-              onPageChange={setAdminPage}
-              onSearchChange={setAdminSearch}
-              onRefresh={loadAdmins}
-              tenants={tenants}
-              totalCount={adminTotalCount}
-              rowsPerPage={adminRowsPerPage}
-              onRowsPerPageChange={setAdminRowsPerPage}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <CreateTenantDialog
-        open={createTenantOpen}
-        onOpenChange={setCreateTenantOpen}
-        onSuccess={loadTenants}
-      />
-
-      <CreateAdminDialog
-        open={createAdminOpen}
-        onOpenChange={setCreateAdminOpen}
-        onSuccess={loadAdmins}
-        tenants={tenants}
-      />
     </AdminLayout>
   );
 }

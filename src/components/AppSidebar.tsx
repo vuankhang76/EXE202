@@ -73,12 +73,12 @@ const navigationData = {
     },
     {
       title: "Quản lý phòng khám",
-      url: "/super-admin",
+      url: "/super-admin/tenants",
       icon: Building2,
     },
     {
       title: "Quản lý Admin",
-      url: "/super-admin",
+      url: "/super-admin/admins",
       icon: Users,
     },
   ],
