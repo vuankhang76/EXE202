@@ -36,7 +36,7 @@ export default function CreateAppointment() {
   const [appointmentType, setAppointmentType] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [maxBookingDate, setMaxBookingDate] = useState<Date | null>(null);
-  const [maxBookingDays, setMaxBookingDays] = useState<number | null>(null);
+  const [, setMaxBookingDays] = useState<number | null>(null);
   const [slotDurationMinutes, setSlotDurationMinutes] = useState<number | null>(null);
   const [allowWeekendBooking, setAllowWeekendBooking] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
