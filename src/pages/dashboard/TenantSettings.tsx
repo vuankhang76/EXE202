@@ -3,16 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
-import { Loader2, Save, AlertCircle, Building2, Calendar } from "lucide-react";
+import { Loader2, Save, AlertCircle, Building2, Calendar, Stethoscope } from "lucide-react";
 import AdminLayout from "@/layout/AdminLayout";
 import tenantService from "@/services/tenantService";
 import { tenantSettingService } from "@/services/tenantSettingService";
+import { serviceService } from "@/services/serviceService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { TenantUpdateDto } from "@/types";
 import { TenantSettingsSkeleton } from "@/components/tenant/TenantSettingsSkeleton";
 import { ClinicInfoTab } from "@/components/tenant/ClinicInfoTab";
 import { BookingSettingsForm } from "@/components/tenant/BookingSettingsForm";
+import { ServiceManagementTab } from "@/components/tenant/ServiceManagementTab";
 import { normalizeTime, validateTimeRange } from "@/utils/timeValidation";
 import {
   useAppDispatch,
@@ -28,10 +30,12 @@ import {
   setLoading,
   setSaving,
   setSavingBooking,
+  setLoadingServices,
   setUploadingThumbnail,
   setUploadingCover,
   setTenant,
   setBookingConfig,
+  setServices,
   setFormData,
   setThumbnailPreview,
   setCoverPreview,
@@ -58,7 +62,6 @@ export default function TenantSettings() {
   const savingBooking = useTenantSettingSavingBooking();
   const uploadingThumbnail = useTenantSettingUploadingThumbnail();
   const uploadingCover = useTenantSettingUploadingCover();
-
   const isAdmin = currentUser?.role?.toLowerCase() === "admin";
   const isOwner =
     tenant?.ownerUserId &&
@@ -116,6 +119,24 @@ export default function TenantSettings() {
     }
   }, [currentUser?.tenantId, dispatch]);
 
+  const loadServices = useCallback(async () => {
+    if (!currentUser?.tenantId) return;
+
+    dispatch(setLoadingServices(true));
+    try {
+      const response = await serviceService.getTenantServices(
+        parseInt(currentUser.tenantId)
+      );
+      if (response.success && response.data) {
+        dispatch(setServices(response.data));
+      }
+    } catch (error) {
+      console.error("Error loading services:", error);
+    } finally {
+      dispatch(setLoadingServices(false));
+    }
+  }, [currentUser?.tenantId, dispatch]);
+
   useEffect(() => {
     // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
@@ -126,8 +147,9 @@ export default function TenantSettings() {
     if (currentUser?.tenantId) {
       loadTenant();
       loadBookingConfig();
+      loadServices();
     }
-  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, loadTenant, loadBookingConfig]);
+  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, loadTenant, loadBookingConfig, loadServices]);
 
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
@@ -434,7 +456,7 @@ export default function TenantSettings() {
     <AdminLayout 
       breadcrumbTitle="Cài đặt phòng khám"
       actions={
-        canEdit && (
+        canEdit && activeTab !== "services" && (
           <Button 
             onClick={activeTab === "clinic" ? handleSaveClinic : handleSaveBooking} 
             disabled={activeTab === "clinic" ? saving : savingBooking}
@@ -472,6 +494,10 @@ export default function TenantSettings() {
               <Calendar className="h-4 w-4" />
               Cài đặt lịch khám
             </TabsTrigger>
+            <TabsTrigger value="services">
+              <Stethoscope className="h-4 w-4" />
+              Dịch vụ
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="clinic" className="mt-6">
@@ -498,6 +524,13 @@ export default function TenantSettings() {
                 canEdit={canEdit}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="services" className="mt-6">
+            <ServiceManagementTab
+              tenantId={parseInt(currentUser?.tenantId || "0")}
+              canEdit={canEdit}
+            />
           </TabsContent>
         </Tabs>
       </div>

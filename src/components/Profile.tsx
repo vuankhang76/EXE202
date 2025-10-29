@@ -84,9 +84,11 @@ export function Profile() {
           )}
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{tenantName}</span>
-            <span className="truncate text-xs text-muted-foreground">
-              Mã: {tenantCode}
-            </span>
+            {tenantInfo?.address && (
+              <span className="truncate text-xs text-muted-foreground">
+                Mã: {tenantCode}
+              </span>
+            )}
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
