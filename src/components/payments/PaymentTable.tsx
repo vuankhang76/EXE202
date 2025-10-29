@@ -26,10 +26,13 @@ interface PaymentTableProps {
   loading: boolean;
   currentPage: number;
   totalPages: number;
+  totalCount: number;
+  rowsPerPage: number;
   onCompletePayment: (paymentId: number) => void;
   onFailPayment: (paymentId: number) => void;
   onDeletePayment: (paymentId: number) => void;
   onPageChange: (page: number) => void;
+  onRowsPerPageChange: (rows: number) => void;
 }
 
 const formatPhone = (phone?: string) => {
@@ -90,10 +93,13 @@ export default function PaymentTable({
   loading,
   currentPage,
   totalPages,
+  totalCount,
+  rowsPerPage,
   onCompletePayment,
   onFailPayment,
   onDeletePayment,
   onPageChange,
+  onRowsPerPageChange,
 }: PaymentTableProps) {
   const safePayments = payments || [];
 
@@ -197,7 +203,10 @@ export default function PaymentTable({
           <TablePagination 
             currentPage={currentPage} 
             totalPages={totalPages} 
+            totalCount={totalCount}
+            rowsPerPage={rowsPerPage}
             onPageChange={onPageChange} 
+            onRowsPerPageChange={onRowsPerPageChange}
           />
         </>
       )}

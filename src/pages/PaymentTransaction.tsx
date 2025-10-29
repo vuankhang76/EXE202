@@ -26,6 +26,7 @@ import {
   setPaymentData,
   setFilters,
   setAppliedFilters,
+  setPageSize,
   clearPaymentData,
 } from "@/stores/paymentSlice";
 import { useState } from "react";
@@ -41,6 +42,7 @@ export default function PaymentTransaction() {
     currentPage,
     totalPages,
     pageSize,
+    totalCount,
     lastUpdated,
     cacheExpiration,
   } = usePaymentData();
@@ -57,7 +59,7 @@ export default function PaymentTransaction() {
   });
 
   const loadData = useCallback(
-    async (page: number = 1) => {
+    async (page: number = 1, customFilters?: typeof appliedFilters, customPageSize?: number) => {
       try {
         dispatch(setLoading(true));
 
@@ -68,27 +70,30 @@ export default function PaymentTransaction() {
           return;
         }
 
+        const filtersToUse = customFilters || appliedFilters;
+        const pageSizeToUse = customPageSize !== undefined ? customPageSize : pageSize;
+
         const filter: PaymentTransactionFilterDto = {
           pageNumber: page,
-          pageSize: pageSize,
+          pageSize: pageSizeToUse,
           tenantId,
           status:
-            appliedFilters.status && appliedFilters.status !== "all"
-              ? appliedFilters.status
+            filtersToUse.status && filtersToUse.status !== "all"
+              ? filtersToUse.status
               : undefined,
           method:
-            appliedFilters.method && appliedFilters.method !== "all"
-              ? appliedFilters.method
+            filtersToUse.method && filtersToUse.method !== "all"
+              ? filtersToUse.method
               : undefined,
-          fromDate: appliedFilters.fromDate
-            ? appliedFilters.fromDate instanceof Date
-              ? appliedFilters.fromDate.toISOString()
-              : appliedFilters.fromDate
+          fromDate: filtersToUse.fromDate
+            ? filtersToUse.fromDate instanceof Date
+              ? filtersToUse.fromDate.toISOString()
+              : filtersToUse.fromDate
             : undefined,
-          toDate: appliedFilters.toDate
-            ? appliedFilters.toDate instanceof Date
-              ? appliedFilters.toDate.toISOString()
-              : appliedFilters.toDate
+          toDate: filtersToUse.toDate
+            ? filtersToUse.toDate instanceof Date
+              ? filtersToUse.toDate.toISOString()
+              : filtersToUse.toDate
             : undefined,
         };
 
@@ -127,15 +132,7 @@ export default function PaymentTransaction() {
         dispatch(setLoading(false));
       }
     },
-    [
-      tenantId,
-      appliedFilters.status,
-      appliedFilters.method,
-      appliedFilters.fromDate,
-      appliedFilters.toDate,
-      pageSize,
-      dispatch,
-    ]
+    [tenantId, appliedFilters, pageSize, dispatch]
   );
 
   useEffect(() => {
@@ -187,17 +184,22 @@ export default function PaymentTransaction() {
   };
 
   const handleSearch = () => {
-    dispatch(
-      setAppliedFilters({
-        status: filters.status,
-        method: filters.method,
-        fromDate: filters.fromDate,
-        toDate: filters.toDate,
-        searchTerm: filters.searchTerm,
-      })
-    );
-    loadData(1);
+    const newFilters = {
+      status: filters.status,
+      method: filters.method,
+      fromDate: filters.fromDate,
+      toDate: filters.toDate,
+      searchTerm: filters.searchTerm,
+    };
+    
+    dispatch(setAppliedFilters(newFilters));
+    loadData(1, newFilters);
   };
+
+  const handleRowsPerPageChange = useCallback((newSize: number) => {
+    dispatch(setPageSize(newSize));
+    loadData(1, undefined, newSize);
+  }, [dispatch, loadData]);
 
   const handleConfirmDelete = async () => {
     if (confirmDialog.paymentId === null) return;
@@ -276,10 +278,13 @@ export default function PaymentTransaction() {
         loading={loading}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalCount={totalCount}
+        rowsPerPage={pageSize}
         onCompletePayment={handleCompletePayment}
         onFailPayment={handleFailPayment}
         onDeletePayment={handleDeletePayment}
         onPageChange={loadData}
+        onRowsPerPageChange={handleRowsPerPageChange}
       />
 
       <ConfirmDialog

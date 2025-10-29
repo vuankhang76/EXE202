@@ -25,7 +25,10 @@ interface AccountTableProps {
   loading: boolean;
   currentPage: number;
   totalPages: number;
+  totalCount: number;
+  rowsPerPage: number;
   onPageChange: (page: number) => void;
+  onRowsPerPageChange: (rows: number) => void;
   onAddClick: () => void;
   onEditClick?: (user: UserDto) => void;
   onViewClick?: (user: UserDto) => void;
@@ -101,10 +104,13 @@ export default function AccountTable({
   loading,
   currentPage,
   totalPages,
+  totalCount,
+  rowsPerPage,
   onPageChange,
+  onRowsPerPageChange,
   onEditClick,
   onViewClick,
-  onToggleActiveClick
+  onToggleActiveClick,
 }: AccountTableProps) {
   const safeUsers = users || [];
 
@@ -174,7 +180,10 @@ export default function AccountTable({
       <TablePagination 
         currentPage={currentPage} 
         totalPages={totalPages} 
+        totalCount={totalCount}
+        rowsPerPage={rowsPerPage}
         onPageChange={onPageChange} 
+        onRowsPerPageChange={onRowsPerPageChange}
       />
     </>
   );

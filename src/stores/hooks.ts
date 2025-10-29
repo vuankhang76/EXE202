@@ -43,6 +43,7 @@ export const usePatientData = () => ({
   records: useAppSelector((state) => state.patient.records),
   currentPage: useAppSelector((state) => state.patient.currentPage),
   totalPages: useAppSelector((state) => state.patient.totalPages),
+  totalCount: useAppSelector((state) => state.patient.totalCount),
   pageSize: useAppSelector((state) => state.patient.pageSize),
   lastUpdated: useAppSelector((state) => state.patient.lastUpdated),
   cacheExpiration: useAppSelector((state) => state.patient.cacheExpiration),
@@ -62,7 +63,9 @@ export const useAccountData = () => ({
   users: useAppSelector((state) => state.account.users),
   stats: useAppSelector((state) => state.account.stats),
   pageNumber: useAppSelector((state) => state.account.pageNumber),
+  pageSize: useAppSelector((state) => state.account.pageSize),
   totalPages: useAppSelector((state) => state.account.totalPages),
+  totalCount: useAppSelector((state) => state.account.totalCount),
   lastUpdated: useAppSelector((state) => state.account.lastUpdated),
   cacheExpiration: useAppSelector((state) => state.account.cacheExpiration),
 });

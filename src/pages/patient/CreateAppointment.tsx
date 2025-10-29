@@ -440,13 +440,6 @@ export default function CreateAppointment() {
                           maxDate={maxBookingDate || undefined}
                           availableDates={availableDates}
                         />
-                        
-                        {availableDates.length > 0 && maxBookingDays && (
-                          <p className="text-sm text-green-600 mt-4 text-center">
-                            ✓ Có {availableDates.length} ngày có lịch trống trong{" "}
-                            {maxBookingDays} ngày tới
-                          </p>
-                        )}
                       </div>
                     )}
                   </div>

@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
+import TablePagination from "@/components/ui/TablePagination";
 import EditTenantDialog from "@/components/super-admin/EditTenantDialog";
 import ViewTenantDialog from "@/components/super-admin/ViewTenantDialog";
 
@@ -24,6 +25,9 @@ interface TenantManagementTabProps {
   onPageChange: (page: number) => void;
   onSearchChange: (term: string) => void;
   onRefresh: () => void;
+  totalCount?: number;
+  rowsPerPage?: number;
+  onRowsPerPageChange?: (rows: number) => void;
 }
 
 export default function TenantManagementTab({
@@ -35,6 +39,9 @@ export default function TenantManagementTab({
   onPageChange,
   onSearchChange,
   onRefresh,
+  totalCount = 0,
+  rowsPerPage = 10,
+  onRowsPerPageChange,
 }: TenantManagementTabProps) {
   const [tempSearch, setTempSearch] = useState(searchTerm);
   const [editTenant, setEditTenant] = useState<TenantDto | null>(null);
@@ -54,19 +61,18 @@ export default function TenantManagementTab({
 
   return (
     <div className="space-y-4">
-      {/* Search */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Tìm kiếm theo tên, mã, email, số điện thoại..."
             value={tempSearch}
             onChange={(e) => setTempSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-10"
+            className="pl-10 h-10"
           />
         </div>
-        <Button onClick={handleSearch}>Tìm kiếm</Button>
+        <Button className="h-10" onClick={handleSearch}>Tìm kiếm</Button>
       </div>
 
       {/* Table */}
@@ -143,31 +149,14 @@ export default function TenantManagementTab({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Trang {currentPage} / {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Trước
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Sau
-            </Button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        rowsPerPage={rowsPerPage}
+        onPageChange={onPageChange}
+        onRowsPerPageChange={onRowsPerPageChange}
+      />
 
       {/* Dialogs */}
       <EditTenantDialog

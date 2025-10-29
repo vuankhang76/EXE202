@@ -42,7 +42,7 @@ const initialState: PaymentState = {
   currentPage: 1,
   totalPages: 0,
   totalCount: 0,
-  pageSize: 8,
+  pageSize: parseInt(localStorage.getItem("payment_pageSize") ?? "10", 10),
   filters: initialFilters,
   appliedFilters: initialFilters,
   lastUpdated: null,
@@ -74,6 +74,7 @@ const paymentSlice = createSlice({
     },
     setPageSize(state, action: PayloadAction<number>) {
       state.pageSize = action.payload;
+      localStorage.setItem("payment_pageSize", action.payload.toString());
     },
     setFilters(state, action: PayloadAction<Partial<PaymentFilters>>) {
       state.filters = { ...state.filters, ...action.payload };

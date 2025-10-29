@@ -19,9 +19,12 @@ interface RecordsTableProps {
   loading: boolean;
   currentPage: number;
   totalPages: number;
+  totalCount: number;
+  rowsPerPage: number;
   onViewDetail: (caseId: number) => void;
   onDelete: (caseId: number) => void;
   onPageChange: (page: number) => void;
+  onRowsPerPageChange: (rows: number) => void;
 }
 
 const renderActionButtons = (
@@ -66,9 +69,12 @@ export default function RecordsTable({
   loading,
   currentPage,
   totalPages,
+  totalCount,
+  rowsPerPage,
   onViewDetail,
   onDelete,
   onPageChange,
+  onRowsPerPageChange,
 }: RecordsTableProps) {
   const safeRecords = records || [];
 
@@ -76,7 +82,7 @@ export default function RecordsTable({
     <div>
       {loading ? (
         <div>
-          <TableSkeleton rows={10} columns={7} />
+          <TableSkeleton rows={10} columns={9} />
         </div>
       ) : safeRecords.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -93,6 +99,8 @@ export default function RecordsTable({
                       <TableHead className="min-w-[80px]">Mã CA</TableHead>
                       <TableHead className="min-w-[120px]">Bệnh nhân</TableHead>
                       <TableHead className="min-w-[120px]">Bác sĩ</TableHead>
+                      <TableHead className="min-w-[120px]">Ngày Hẹn</TableHead>
+                      <TableHead className="min-w-[100px]">Giờ Hẹn</TableHead>
                       <TableHead className="min-w-[200px]">Chẩn đoán</TableHead>
                       <TableHead className="min-w-[100px]">Trạng thái</TableHead>
                       <TableHead className="min-w-[120px]">Ngày tạo</TableHead>
@@ -107,6 +115,20 @@ export default function RecordsTable({
                         </TableCell>
                         <TableCell>{record.patientName || "-"}</TableCell>
                         <TableCell>{record.doctorName || "-"}</TableCell>
+                        <TableCell>
+                          {record.appointmentStartAt
+                            ? format(new Date(record.appointmentStartAt), "dd/MM/yyyy", {
+                                locale: vi,
+                              })
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {record.appointmentStartAt
+                            ? format(new Date(record.appointmentStartAt), "HH:mm", {
+                                locale: vi,
+                              })
+                            : "-"}
+                        </TableCell>
                         <TableCell className="max-w-xs truncate">
                           {record.diagnosis || "-"}
                         </TableCell>
@@ -141,7 +163,10 @@ export default function RecordsTable({
           <TablePagination 
             currentPage={currentPage} 
             totalPages={totalPages} 
+            totalCount={totalCount}
+            rowsPerPage={rowsPerPage}
             onPageChange={onPageChange} 
+            onRowsPerPageChange={onRowsPerPageChange}
           />
         </>
       )}

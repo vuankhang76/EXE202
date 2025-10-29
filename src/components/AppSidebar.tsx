@@ -6,8 +6,11 @@ import {
   MessageCirclePlus,
   CalendarDays,
   Home,
-  Settings
+  Settings,
+  Building2,
+  Users
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 import { NavMain } from "@/components/NavMain"
 import { NavUser } from "@/components/NavUser"
@@ -61,17 +64,44 @@ const navigationData = {
       icon: Settings,
     },
   ],
+
+  superAdminNav: [
+    {
+      title: "Dashboard",
+      url: "/super-admin",
+      icon: Home,
+    },
+    {
+      title: "Quản lý phòng khám",
+      url: "/super-admin",
+      icon: Building2,
+    },
+    {
+      title: "Quản lý Admin",
+      url: "/super-admin",
+      icon: Users,
+    },
+  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { currentUser } = useAuth();
+  const isSystemAdmin = currentUser?.role === 'SystemAdmin';
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <Profile />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />
-        <NavMain label="Quản trị hệ thống" items={navigationData.navServices} />
+        {isSystemAdmin ? (
+          <NavMain label="Quản trị hệ thống" items={navigationData.superAdminNav} />
+        ) : (
+          <>
+            <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />
+            <NavMain label="Quản trị hệ thống" items={navigationData.navServices} />
+          </>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

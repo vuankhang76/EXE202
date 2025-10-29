@@ -57,11 +57,11 @@ const initialState: AppointmentState = {
   currentPage: 1,
   totalPages: 0,
   totalCount: 0,
-  pageSize: 8,
+  pageSize: parseInt(localStorage.getItem("appointment_pageSize") ?? "10", 10),
   filters: initialFilters,
   appliedFilters: initialFilters,
   lastUpdated: null,
-  cacheExpiration: 10 * 60 * 1000, // 10 minutes
+  cacheExpiration: 10 * 60 * 1000,
 };
 
 const appointmentSlice = createSlice({
@@ -74,6 +74,10 @@ const appointmentSlice = createSlice({
     setAppointments(state, action: PayloadAction<AppointmentDto[]>) {
       state.appointments = action.payload;
       state.lastUpdated = Date.now();
+    },
+    setPageSize(state, action: PayloadAction<number>) {
+      state.pageSize = action.payload;
+      localStorage.setItem("appointment_pageSize", action.payload.toString());
     },
     setStats(state, action: PayloadAction<AppointmentStats>) {
       state.stats = action.payload;
@@ -136,6 +140,7 @@ export const {
   setAppointmentData,
   clearAppointmentData,
   setCacheExpiration,
+  setPageSize,
 } = appointmentSlice.actions;
 
 export default appointmentSlice.reducer;

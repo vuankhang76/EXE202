@@ -34,6 +34,7 @@ import {
   setFilters,
   setAppliedFilters,
   setPageNumber,
+  setPageSize,
   clearAccountData,
 } from "@/stores/accountSlice";
 
@@ -45,7 +46,9 @@ export default function Accounts() {
     users,
     stats,
     pageNumber,
+    pageSize,
     totalPages,
+    totalCount,
     lastUpdated,
     cacheExpiration,
   } = useAccountData();
@@ -62,27 +65,30 @@ export default function Accounts() {
   const [selectedDoctorDetails, setSelectedDoctorDetails] = useState<any>(null);
 
   const loadUsers = useCallback(
-    async (page: number = 1) => {
+    async (page: number = 1, customFilters?: typeof appliedFilters, customPageSize?: number) => {
       if (!currentUser?.tenantId) return;
 
       dispatch(setLoading(true));
       try {
+        const filtersToUse = customFilters || appliedFilters;
+        const pageSizeToUse = customPageSize !== undefined ? customPageSize : pageSize;
+
         const response = await userService.getUsers(
           parseInt(currentUser.tenantId),
           page,
-          10,
-          appliedFilters.searchTerm || undefined
+          pageSizeToUse,
+          filtersToUse.searchTerm || undefined
         );
 
         if (response.success && response.data) {
           let userData = response.data.data ?? [];
           
-          if (appliedFilters.roleFilter !== 'all') {
-            userData = userData.filter(u => u.role === appliedFilters.roleFilter);
+          if (filtersToUse.roleFilter !== 'all') {
+            userData = userData.filter(u => u.role === filtersToUse.roleFilter);
           }
           
-          if (appliedFilters.statusFilter !== 'all') {
-            const isActive = appliedFilters.statusFilter === AccountStatus.ACTIVE;
+          if (filtersToUse.statusFilter !== 'all') {
+            const isActive = filtersToUse.statusFilter === AccountStatus.ACTIVE;
             userData = userData.filter(u => u.isActive === isActive);
           }
 
@@ -115,7 +121,7 @@ export default function Accounts() {
         dispatch(setLoading(false));
       }
     },
-    [currentUser?.tenantId, appliedFilters.searchTerm, appliedFilters.roleFilter, appliedFilters.statusFilter, dispatch]
+    [currentUser?.tenantId, appliedFilters, pageSize, dispatch]
   );
 
   useEffect(() => {
@@ -129,15 +135,21 @@ export default function Accounts() {
   }, [lastUpdated, cacheExpiration, loadUsers]);
 
   const handleSearch = () => {
-    dispatch(
-      setAppliedFilters({
-        searchTerm: filters.searchTerm,
-        roleFilter: filters.roleFilter,
-        statusFilter: filters.statusFilter,
-      })
-    );
+    const newFilters = {
+      searchTerm: filters.searchTerm,
+      roleFilter: filters.roleFilter,
+      statusFilter: filters.statusFilter,
+    };
+    
+    dispatch(setAppliedFilters(newFilters));
     dispatch(setPageNumber(1));
+    loadUsers(1, newFilters);
   };
+
+  const handleRowsPerPageChange = useCallback((newSize: number) => {
+    dispatch(setPageSize(newSize));
+    loadUsers(1, undefined, newSize);
+  }, [dispatch, loadUsers]);
 
   const normalizePhoneNumber = (phone: string): string => {
     if (!phone) return phone;
@@ -377,6 +389,8 @@ export default function Accounts() {
           loading={loading}
           currentPage={pageNumber}
           totalPages={totalPages}
+          totalCount={totalCount}
+          rowsPerPage={pageSize}
           onPageChange={(page) => {
             dispatch(setPageNumber(page));
             loadUsers(page);
@@ -385,6 +399,7 @@ export default function Accounts() {
           onViewClick={handleViewClick}
           onEditClick={handleEditClick}
           onToggleActiveClick={handleToggleActive}
+          onRowsPerPageChange={handleRowsPerPageChange}
         />
 
         <CreateDoctorDialog

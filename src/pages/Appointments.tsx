@@ -27,6 +27,7 @@ import {
   setFilters,
   setAppliedFilters,
   clearAppointmentData,
+  setPageSize,
 } from "@/stores/appointmentSlice";
 
 export default function Appointments() {
@@ -63,7 +64,7 @@ export default function Appointments() {
   }, [currentUser?.tenantId]);
 
   const loadAppointments = useCallback(
-    async (page: number = 1) => {
+    async (page: number = 1, customFilters?: typeof appliedFilters, customPageSize?: number) => {
       try {
         dispatch(setLoading(true));
 
@@ -73,14 +74,17 @@ export default function Appointments() {
           return;
         }
 
+        const filtersToUse = customFilters || appliedFilters;
+        const pageSizeToUse = customPageSize !== undefined ? customPageSize : pageSize;
+
         const filter = {
           pageNumber: page,
-          pageSize: pageSize,
-          searchTerm: appliedFilters.searchTerm || undefined,
-          status: appliedFilters.statusFilter && appliedFilters.statusFilter !== 'all' ? appliedFilters.statusFilter : undefined,
-          type: appliedFilters.typeFilter && appliedFilters.typeFilter !== 'all' ? appliedFilters.typeFilter : undefined,
-          fromDate: appliedFilters.fromDate ? appliedFilters.fromDate.toISOString() : undefined,
-          toDate: appliedFilters.toDate ? appliedFilters.toDate.toISOString() : undefined,
+          pageSize: pageSizeToUse,
+          searchTerm: filtersToUse.searchTerm || undefined,
+          status: filtersToUse.statusFilter && filtersToUse.statusFilter !== 'all' ? filtersToUse.statusFilter : undefined,
+          type: filtersToUse.typeFilter && filtersToUse.typeFilter !== 'all' ? filtersToUse.typeFilter : undefined,
+          fromDate: filtersToUse.fromDate ? filtersToUse.fromDate.toISOString() : undefined,
+          toDate: filtersToUse.toDate ? filtersToUse.toDate.toISOString() : undefined,
           tenantId,
         };
 
@@ -166,6 +170,11 @@ export default function Appointments() {
     ]
   );
 
+  const handleRowsPerPageChange = useCallback((newSize: number) => {
+    dispatch(setPageSize(newSize));
+    loadAppointments(1, undefined, newSize);
+  }, [dispatch, loadAppointments]);
+
   const loadStats = useCallback(async () => {
     try {
       const tenantId = checkTenantId(false);
@@ -201,12 +210,10 @@ export default function Appointments() {
   }, [checkTenantId, dispatch]);
 
   useEffect(() => {
-    // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
       return;
     }
-
-    // Load fresh data if cache is invalid or expired
+  
     const tenantId = currentUser?.tenantId ? parseInt(currentUser.tenantId) : null;
     if (tenantId) {
       loadAppointments(1);
@@ -215,7 +222,7 @@ export default function Appointments() {
       toast.error('Không thể tải danh sách lịch hẹn. Vui lòng liên hệ quản trị viên.');
       hasShownTenantErrorRef.current = true;
     }
-  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, loadAppointments, loadStats]);
+  }, [lastUpdated, cacheExpiration, currentUser?.tenantId, pageSize, loadAppointments, loadStats]);
 
   const handleStatusChange = useCallback(
     async (id: number, newStatus: string) => {
@@ -304,16 +311,16 @@ export default function Appointments() {
   }, [currentPage, loadAppointments, loadStats]);
 
   const handleSearchClick = () => {
-    dispatch(
-      setAppliedFilters({
-        searchTerm: filters.searchTerm,
-        statusFilter: filters.statusFilter,
-        typeFilter: filters.typeFilter,
-        fromDate: filters.fromDate,
-        toDate: filters.toDate,
-      })
-    );
-    loadAppointments(1);
+    const newFilters = {
+      searchTerm: filters.searchTerm,
+      statusFilter: filters.statusFilter,
+      typeFilter: filters.typeFilter,
+      fromDate: filters.fromDate,
+      toDate: filters.toDate,
+    };
+    
+    dispatch(setAppliedFilters(newFilters));
+    loadAppointments(1, newFilters);
   };
 
   return (
@@ -366,10 +373,12 @@ export default function Appointments() {
         currentPage={currentPage}
         totalPages={totalPages}
         totalCount={totalCount}
+        rowsPerPage={pageSize}
         onStatusChange={handleStatusChange}
         onView={handleView}
         onEdit={handleEdit}
         onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
       />
 
       <ViewAppointmentDialog
