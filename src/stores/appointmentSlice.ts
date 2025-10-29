@@ -15,8 +15,8 @@ interface AppointmentFilters {
   searchTerm: string;
   statusFilter: string;
   typeFilter: string;
-  fromDate: Date | undefined;
-  toDate: Date | undefined;
+  fromDate: string | undefined; // ISO string instead of Date
+  toDate: string | undefined; // ISO string instead of Date
 }
 
 interface AppointmentState {
@@ -37,8 +37,8 @@ const initialFilters: AppointmentFilters = {
   searchTerm: '',
   statusFilter: 'all',
   typeFilter: 'all',
-  fromDate: new Date(),
-  toDate: new Date(),
+  fromDate: new Date().toISOString(),
+  toDate: new Date().toISOString(),
 };
 
 const initialStats: AppointmentStats = {

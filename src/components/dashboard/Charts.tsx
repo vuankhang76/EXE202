@@ -29,6 +29,7 @@ interface ChartsProps {
   dataKey?: string;
   xAxisKey?: string;
   className?: string;
+  chartColor?: string;
 }
 
 const chartConfig = {
@@ -45,7 +46,27 @@ export default function Charts({
   dataKey = 'value',
   xAxisKey = 'name',
   className,
+  chartColor = 'hsl(var(--chart-1))',
 }: ChartsProps) {
+  // Show empty state if no data
+  if (!data || data.length === 0) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-base font-medium">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <p className="text-lg font-medium">Không có dữ liệu</p>
+              <p className="text-sm">Chưa có dữ liệu để hiển thị biểu đồ</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const renderChart = () => {
     const commonProps = {
       data,
@@ -69,7 +90,7 @@ export default function Charts({
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar 
               dataKey={dataKey} 
-              fill="hsl(var(--chart-1))"
+              fill={chartColor}
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
@@ -92,8 +113,8 @@ export default function Charts({
             <Area
               type="monotone"
               dataKey={dataKey}
-              stroke="hsl(var(--chart-1))"
-              fill="hsl(var(--chart-1))"
+              stroke={chartColor}
+              fill={chartColor}
               fillOpacity={0.2}
             />
           </AreaChart>
@@ -117,9 +138,9 @@ export default function Charts({
             <Line
               type="monotone"
               dataKey={dataKey}
-              stroke="hsl(var(--chart-1))"
+              stroke={chartColor}
               strokeWidth={2}
-              dot={{ fill: 'hsl(var(--chart-1))' }}
+              dot={{ fill: chartColor }}
             />
           </LineChart>
         );

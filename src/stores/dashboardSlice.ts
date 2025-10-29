@@ -1,10 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { DashboardOverview, RecentOrder } from '@/types/dashboard';
+import type { DashboardOverview, RecentOrder, RevenueAnalytics } from '@/types/dashboard';
 
 interface DashboardState {
   overview: DashboardOverview | null;
   recentOrders: RecentOrder[];
+  revenueAnalytics: RevenueAnalytics | null;
   loading: boolean;
   lastUpdated: number | null;
   cacheExpiration: number; // milliseconds
@@ -13,6 +14,7 @@ interface DashboardState {
 const initialState: DashboardState = {
   overview: null,
   recentOrders: [],
+  revenueAnalytics: null,
   loading: false,
   lastUpdated: null,
   cacheExpiration: 5 * 60 * 1000, // 5 minutes cache
@@ -30,10 +32,14 @@ const dashboardSlice = createSlice({
       action: PayloadAction<{
         overview: DashboardOverview | null;
         recentOrders: RecentOrder[];
+        revenueAnalytics?: RevenueAnalytics | null;
       }>
     ) {
       state.overview = action.payload.overview;
       state.recentOrders = action.payload.recentOrders;
+      if (action.payload.revenueAnalytics !== undefined) {
+        state.revenueAnalytics = action.payload.revenueAnalytics;
+      }
       state.lastUpdated = Date.now();
     },
     setOverview(state, action: PayloadAction<DashboardOverview | null>) {
@@ -44,9 +50,14 @@ const dashboardSlice = createSlice({
       state.recentOrders = action.payload;
       state.lastUpdated = Date.now();
     },
+    setRevenueAnalytics(state, action: PayloadAction<RevenueAnalytics | null>) {
+      state.revenueAnalytics = action.payload;
+      state.lastUpdated = Date.now();
+    },
     clearDashboardData(state) {
       state.overview = null;
       state.recentOrders = [];
+      state.revenueAnalytics = null;
       state.lastUpdated = null;
     },
     setCacheExpiration(state, action: PayloadAction<number>) {
@@ -60,6 +71,7 @@ export const {
   setDashboardData,
   setOverview,
   setRecentOrders,
+  setRevenueAnalytics,
   clearDashboardData,
   setCacheExpiration,
 } = dashboardSlice.actions;

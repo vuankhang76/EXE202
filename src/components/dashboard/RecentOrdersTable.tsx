@@ -17,12 +17,14 @@ interface RecentOrdersTableProps {
   className?: string;
 }
 
-const getStatusBadgeVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+const getStatusBadgeVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'success' | 'outline' => {
   switch (status.toLowerCase()) {
-    case 'confirmed':
     case 'completed':
+      return 'success';
+    case 'confirmed':
       return 'default';
     case 'pending':
+    case 'scheduled':
       return 'secondary';
     case 'cancelled':
       return 'destructive';
@@ -33,7 +35,7 @@ const getStatusBadgeVariant = (status: string): 'default' | 'secondary' | 'destr
 
 const getStatusLabel = (status: string): string => {
   const statusMap: Record<string, string> = {
-    'Pending': 'Chờ xác nhận',
+    'Scheduled': 'Chờ xác nhận',
     'Confirmed': 'Đã xác nhận',
     'InProgress': 'Đang khám',
     'Completed': 'Hoàn thành',
@@ -69,6 +71,7 @@ export default function RecentOrdersTable({ orders, className }: RecentOrdersTab
             <TableRow>
               <TableHead>Mã đơn</TableHead>
               <TableHead>Khách hàng</TableHead>
+              <TableHead>Bác sĩ</TableHead>
               <TableHead>Loại dịch vụ</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Thời gian</TableHead>
@@ -77,8 +80,9 @@ export default function RecentOrdersTable({ orders, className }: RecentOrdersTab
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order.orderId}>
-                <TableCell className="font-medium">{order.orderId}</TableCell>
+                <TableCell className="font-medium">#{order.orderId}</TableCell>
                 <TableCell>{order.customerName}</TableCell>
+                <TableCell>{order.doctorName}</TableCell>
                 <TableCell>{order.serviceType}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusBadgeVariant(order.status)}>

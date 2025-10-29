@@ -83,8 +83,8 @@ export default function Appointments() {
           searchTerm: filtersToUse.searchTerm || undefined,
           status: filtersToUse.statusFilter && filtersToUse.statusFilter !== 'all' ? filtersToUse.statusFilter : undefined,
           type: filtersToUse.typeFilter && filtersToUse.typeFilter !== 'all' ? filtersToUse.typeFilter : undefined,
-          fromDate: filtersToUse.fromDate ? filtersToUse.fromDate.toISOString() : undefined,
-          toDate: filtersToUse.toDate ? filtersToUse.toDate.toISOString() : undefined,
+          fromDate: filtersToUse.fromDate || undefined,
+          toDate: filtersToUse.toDate || undefined,
           tenantId,
         };
 
