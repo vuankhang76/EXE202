@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { medicalCaseRecordService } from "@/services/medicalCaseRecordService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -143,21 +150,26 @@ export default function CreateCaseDialog({
             <label className="text-sm font-medium text-gray-600">
               Bệnh nhân <span className="text-red-500">*</span>
             </label>
-            <select
+            <Select
               value={formData.patientId}
-              onChange={(e) =>
-                setFormData({ ...formData, patientId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, patientId: value })
               }
-              onFocus={handleOpenDialog}
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="">-- Chọn bệnh nhân --</option>
-              {patients.map((patient) => (
-                <option key={patient.patientId} value={patient.patientId}>
-                  {patient.fullName}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger 
+                className="mt-1 w-full"
+                onClick={handleOpenDialog}
+              >
+                <SelectValue placeholder="-- Chọn bệnh nhân --" />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient) => (
+                  <SelectItem key={patient.patientId} value={patient.patientId.toString()}>
+                    {patient.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Doctor Selection */}
@@ -165,20 +177,23 @@ export default function CreateCaseDialog({
             <label className="text-sm font-medium text-gray-600">
               Bác sĩ phụ trách
             </label>
-            <select
+            <Select
               value={formData.doctorId}
-              onChange={(e) =>
-                setFormData({ ...formData, doctorId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, doctorId: value })
               }
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="">-- Chọn bác sĩ --</option>
-              {doctors.map((doctor) => (
-                <option key={doctor.doctorId} value={doctor.doctorId}>
-                  {doctor.fullName}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="mt-1 w-full">
+                <SelectValue placeholder="-- Chọn bác sĩ --" />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((doctor) => (
+                  <SelectItem key={doctor.doctorId} value={doctor.doctorId.toString()}>
+                    {doctor.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Appointment Selection */}
@@ -186,23 +201,26 @@ export default function CreateCaseDialog({
             <label className="text-sm font-medium text-gray-600">
               Lịch hẹn liên quan
             </label>
-            <select
+            <Select
               value={formData.appointmentId}
-              onChange={(e) =>
-                setFormData({ ...formData, appointmentId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, appointmentId: value })
               }
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="">-- Chọn lịch hẹn --</option>
-              {appointments.map((appointment) => (
-                <option
-                  key={appointment.appointmentId}
-                  value={appointment.appointmentId}
-                >
-                  {appointment.appointmentId}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="mt-1 w-full">
+                <SelectValue placeholder="-- Chọn lịch hẹn --" />
+              </SelectTrigger>
+              <SelectContent>
+                {appointments.map((appointment) => (
+                  <SelectItem
+                    key={appointment.appointmentId}
+                    value={appointment.appointmentId.toString()}
+                  >
+                    {appointment.appointmentId}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Status Selection */}
@@ -210,16 +228,21 @@ export default function CreateCaseDialog({
             <label className="text-sm font-medium text-gray-600">
               Trạng thái
             </label>
-            <select
+            <Select
               value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, status: value })
               }
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="Ongoing">Đang điều trị</option>
-              <option value="Completed">Đã hoàn thành</option>
-            </select>
+              <SelectTrigger className="mt-1 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Ongoing">Đang điều trị</SelectItem>
+                <SelectItem value="Completed">Đã hoàn thành</SelectItem>
+                <SelectItem value="Draft">Bản nháp</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Chief Complaint */}

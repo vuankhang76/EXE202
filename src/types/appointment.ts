@@ -81,7 +81,7 @@ export interface CompleteAppointmentDto {
 export const AppointmentStatus = {
   SCHEDULED: 'Scheduled',
   CONFIRMED: 'Confirmed',
-  BOOKED: 'Booked', // Legacy status, phải giữ để tương thích
+  BOOKED: 'Booked',
   IN_PROGRESS: 'InProgress',
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',

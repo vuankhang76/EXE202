@@ -36,7 +36,7 @@ export default function CreateAppointment() {
   const [appointmentType, setAppointmentType] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [maxBookingDate, setMaxBookingDate] = useState<Date | null>(null);
-  const [maxBookingDays, setMaxBookingDays] = useState<number | null>(null);
+  const [, setMaxBookingDays] = useState<number | null>(null);
   const [slotDurationMinutes, setSlotDurationMinutes] = useState<number | null>(null);
   const [allowWeekendBooking, setAllowWeekendBooking] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -440,13 +440,6 @@ export default function CreateAppointment() {
                           maxDate={maxBookingDate || undefined}
                           availableDates={availableDates}
                         />
-                        
-                        {availableDates.length > 0 && maxBookingDays && (
-                          <p className="text-sm text-green-600 mt-4 text-center">
-                            ✓ Có {availableDates.length} ngày có lịch trống trong{" "}
-                            {maxBookingDays} ngày tới
-                          </p>
-                        )}
                       </div>
                     )}
                   </div>

@@ -20,7 +20,9 @@ interface AccountState {
   loading: boolean;
   saving: boolean;
   pageNumber: number;
+  pageSize: number;
   totalPages: number;
+  totalCount: number;
   filters: AccountFilters;
   appliedFilters: AccountFilters;
   lastUpdated: number | null;
@@ -45,11 +47,13 @@ const initialState: AccountState = {
   loading: false,
   saving: false,
   pageNumber: 1,
+  pageSize: parseInt(localStorage.getItem("account_pageSize") ?? "10", 10),
   totalPages: 1,
+  totalCount: 0,
   filters: initialFilters,
   appliedFilters: initialFilters,
   lastUpdated: null,
-  cacheExpiration: 15 * 60 * 1000, // 15 minutes
+  cacheExpiration: 15 * 60 * 1000,
 };
 
 const accountSlice = createSlice({
@@ -65,6 +69,10 @@ const accountSlice = createSlice({
     setUsers(state, action: PayloadAction<UserDto[]>) {
       state.users = action.payload;
       state.lastUpdated = Date.now();
+    },
+    setPageSize(state, action: PayloadAction<number>) {
+      state.pageSize = action.payload;
+      localStorage.setItem("account_pageSize", action.payload.toString());
     },
     setStats(state, action: PayloadAction<AccountStats>) {
       state.stats = action.payload;
@@ -92,6 +100,7 @@ const accountSlice = createSlice({
       state.users = action.payload.users;
       state.stats = action.payload.stats;
       state.totalPages = action.payload.totalPages;
+      state.totalCount = action.payload.users.length;
       state.lastUpdated = Date.now();
     },
     clearAccountData(state) {
@@ -99,6 +108,7 @@ const accountSlice = createSlice({
       state.stats = initialStats;
       state.pageNumber = 1;
       state.totalPages = 1;
+      state.totalCount = 0;
       state.lastUpdated = null;
     },
     setCacheExpiration(state, action: PayloadAction<number>) {
@@ -111,6 +121,7 @@ export const {
   setLoading,
   setSaving,
   setUsers,
+  setPageSize,
   setStats,
   setPageNumber,
   setTotalPages,

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/Sidebar"
 import { type ReactNode } from "react"
 
-interface AdminLayoutProps {
+interface SuperAdminLayoutProps {
   children: ReactNode
   breadcrumbTitle: string
   breadcrumbItems?: Array<{
@@ -23,12 +23,12 @@ interface AdminLayoutProps {
   actions?: ReactNode
 }
 
-export default function AdminLayout({ 
+export default function SuperAdminLayout({ 
   children, 
   breadcrumbTitle, 
   breadcrumbItems = [],
   actions,
-}: AdminLayoutProps) {
+}: SuperAdminLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />

@@ -25,6 +25,7 @@ import {
   setPatientData,
   setFilters,
   setAppliedFilters,
+  setPageSize,
   clearPatientData,
 } from "@/stores/patientSlice";
 
@@ -38,6 +39,7 @@ export default function Patients() {
     currentPage,
     totalPages,
     pageSize,
+    totalCount,
     lastUpdated,
     cacheExpiration,
   } = usePatientData();
@@ -58,7 +60,7 @@ export default function Patients() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const loadRecords = useCallback(
-    async (page: number = 1) => {
+    async (page: number = 1, customFilters?: typeof appliedFilters, customPageSize?: number) => {
       try {
         dispatch(setLoading(true));
 
@@ -67,13 +69,16 @@ export default function Patients() {
           return;
         }
 
+        const filtersToUse = customFilters || appliedFilters;
+        const pageSizeToUse = customPageSize !== undefined ? customPageSize : pageSize;
+
         const filter: MedicalCaseRecordFilterDto = {
           tenantId,
           pageNumber: page,
-          pageSize: pageSize,
+          pageSize: pageSizeToUse,
           status:
-            appliedFilters.status && appliedFilters.status !== "all"
-              ? appliedFilters.status
+            filtersToUse.status && filtersToUse.status !== "all"
+              ? filtersToUse.status
               : undefined,
         };
 
@@ -85,6 +90,7 @@ export default function Patients() {
               records: response.data.data ?? [],
               totalPages: response.data.totalPages ?? 0,
               currentPage: page,
+              totalCount: response.data.totalCount ?? 0,
             })
           );
         } else {
@@ -93,6 +99,7 @@ export default function Patients() {
               records: [],
               totalPages: 0,
               currentPage: page,
+              totalCount: 0,
             })
           );
         }
@@ -104,7 +111,7 @@ export default function Patients() {
         dispatch(setLoading(false));
       }
     },
-    [tenantId, appliedFilters.status, pageSize, dispatch]
+    [tenantId, appliedFilters, pageSize, dispatch]
   );
 
   useEffect(() => {
@@ -118,14 +125,19 @@ export default function Patients() {
   }, [lastUpdated, cacheExpiration, loadRecords]);
 
   const handleSearch = () => {
-    dispatch(
-      setAppliedFilters({
-        status: filters.status,
-        searchTerm: filters.searchTerm,
-      })
-    );
-    loadRecords(1);
+    const newFilters = {
+      status: filters.status,
+      searchTerm: filters.searchTerm,
+    };
+    
+    dispatch(setAppliedFilters(newFilters));
+    loadRecords(1, newFilters);
   };
+
+  const handleRowsPerPageChange = useCallback((newSize: number) => {
+    dispatch(setPageSize(newSize));
+    loadRecords(1, undefined, newSize);
+  }, [dispatch, loadRecords]);
 
   const handleRefresh = () => {
     loadRecords(currentPage);
@@ -210,12 +222,15 @@ export default function Patients() {
           loading={loading}
           currentPage={currentPage}
           totalPages={totalPages}
+          totalCount={totalCount}
+          rowsPerPage={pageSize}
           onViewDetail={(caseId) => {
             setSelectedCaseId(caseId);
             setIsDetailDialogOpen(true);
           }}
           onDelete={handleDeleteRecord}
           onPageChange={loadRecords}
+          onRowsPerPageChange={handleRowsPerPageChange}
         />
       </div>
 

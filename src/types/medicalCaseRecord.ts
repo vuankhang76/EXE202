@@ -18,6 +18,8 @@ export interface MedicalCaseRecordDto {
   patientName?: string;
   doctorName?: string;
   tenantName?: string;
+  appointmentStartAt?: string;
+  appointmentEndAt?: string;
   notes?: MedicalCaseNoteDto[];
   files?: MedicalRecordFileDto[];
 }

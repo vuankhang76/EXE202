@@ -12,6 +12,7 @@ interface PatientState {
   loading: boolean;
   currentPage: number;
   totalPages: number;
+  totalCount: number;
   pageSize: number;
   filters: PatientFilters;
   appliedFilters: PatientFilters;
@@ -29,11 +30,12 @@ const initialState: PatientState = {
   loading: false,
   currentPage: 1,
   totalPages: 0,
-  pageSize: 8,
+  totalCount: 0,
+  pageSize: parseInt(localStorage.getItem("patient_pageSize") ?? "10", 10),
   filters: initialFilters,
   appliedFilters: initialFilters,
   lastUpdated: null,
-  cacheExpiration: 10 * 60 * 1000, // 10 minutes
+  cacheExpiration: 10 * 60 * 1000,
 };
 
 const patientSlice = createSlice({
@@ -50,6 +52,10 @@ const patientSlice = createSlice({
     setCurrentPage(state, action: PayloadAction<number>) {
       state.currentPage = action.payload;
     },
+    setPageSize(state, action: PayloadAction<number>) {
+      state.pageSize = action.payload;
+      localStorage.setItem("patient_pageSize", action.payload.toString());
+    },
     setTotalPages(state, action: PayloadAction<number>) {
       state.totalPages = action.payload;
     },
@@ -64,18 +70,21 @@ const patientSlice = createSlice({
       action: PayloadAction<{
         records: MedicalCaseRecordDto[];
         totalPages: number;
+        totalCount: number;
         currentPage: number;
       }>
     ) {
       state.records = action.payload.records;
       state.totalPages = action.payload.totalPages;
       state.currentPage = action.payload.currentPage;
+      state.totalCount = action.payload.totalCount ?? state.records.length;
       state.lastUpdated = Date.now();
     },
     clearPatientData(state) {
       state.records = [];
       state.currentPage = 1;
       state.totalPages = 0;
+      state.totalCount = 0;
       state.lastUpdated = null;
     },
     setCacheExpiration(state, action: PayloadAction<number>) {
@@ -88,6 +97,7 @@ export const {
   setLoading,
   setRecords,
   setCurrentPage,
+  setPageSize,
   setTotalPages,
   setFilters,
   setAppliedFilters,

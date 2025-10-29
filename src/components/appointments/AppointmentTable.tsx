@@ -4,10 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Calendar, Eye, Edit } from "lucide-react";
 import type { AppointmentDto } from "@/types/appointment";
-import { getStatusColor, getStatusLabel, getTypeLabel, AppointmentStatus } from "@/types/appointment";
+import {getStatusLabel, getTypeLabel, AppointmentStatus } from "@/types/appointment";
 import { Mars, Venus } from "lucide-react";
 import TableSkeleton from "../ui/TableSkeleton";
 import TablePagination from "../ui/TablePagination";
+import { CheckCircle, XCircle, Clock, Loader, AlertTriangle } from "lucide-react";
 
 interface AppointmentTableProps {
   appointments?: AppointmentDto[];
@@ -15,10 +16,12 @@ interface AppointmentTableProps {
   currentPage?: number;
   totalPages?: number;
   totalCount?: number;
+  rowsPerPage?: number;
   onStatusChange: (id: number, newStatus: string) => Promise<void>;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onPageChange: (page: number) => void;
+  onRowsPerPageChange?: (rows: number) => void;
 }
 
 export default function AppointmentTable({
@@ -26,10 +29,13 @@ export default function AppointmentTable({
   currentLoading = false,
   currentPage = 1,
   totalPages = 0,
+  totalCount = 0,
+  rowsPerPage = 0,
   onStatusChange,
   onView,
   onEdit,
-  onPageChange
+  onPageChange,
+  onRowsPerPageChange
 }: AppointmentTableProps) {
   const safeAppointments = appointments || [];
 
@@ -142,66 +148,67 @@ export default function AppointmentTable({
 
   const renderStatusSelect = (appointment: AppointmentDto) => {
     const { status, appointmentId } = appointment;
-
+  
     const getAvailableStatuses = (currentStatus: string) => {
       switch (currentStatus) {
         case AppointmentStatus.SCHEDULED:
           return [
-            { value: AppointmentStatus.SCHEDULED, label: getStatusLabel(AppointmentStatus.SCHEDULED) },
-            { value: AppointmentStatus.CONFIRMED, label: getStatusLabel(AppointmentStatus.CONFIRMED) },
-            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED) }
+            { value: AppointmentStatus.SCHEDULED, label: getStatusLabel(AppointmentStatus.SCHEDULED), icon: <Clock className="h-4 w-4 text-blue-500" /> },
+            { value: AppointmentStatus.CONFIRMED, label: getStatusLabel(AppointmentStatus.CONFIRMED), icon: <CheckCircle className="h-4 w-4 text-green-500" /> },
+            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED), icon: <XCircle className="h-4 w-4 text-red-500" /> }
           ];
         case AppointmentStatus.CONFIRMED:
         case AppointmentStatus.BOOKED:
           return [
-            { value: currentStatus, label: getStatusLabel(currentStatus) },
-            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS) },
-            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED) }
+            { value: currentStatus, label: getStatusLabel(currentStatus), icon: <CheckCircle className="h-4 w-4 text-green-500" /> },
+            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS), icon: <Loader className="h-4 w-4 text-yellow-500" /> },
+            { value: AppointmentStatus.CANCELLED, label: getStatusLabel(AppointmentStatus.CANCELLED), icon: <XCircle className="h-4 w-4 text-red-500" /> }
           ];
         case AppointmentStatus.IN_PROGRESS:
           return [
-            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS) },
-            { value: AppointmentStatus.COMPLETED, label: getStatusLabel(AppointmentStatus.COMPLETED) }
+            { value: AppointmentStatus.IN_PROGRESS, label: getStatusLabel(AppointmentStatus.IN_PROGRESS), icon: <Loader className="h-4 w-4 text-yellow-500" /> },
+            { value: AppointmentStatus.COMPLETED, label: getStatusLabel(AppointmentStatus.COMPLETED), icon: <CheckCircle className="h-4 w-4 text-green-500" /> }
           ];
         case AppointmentStatus.COMPLETED:
+          return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <CheckCircle className="h-4 w-4 text-green-500" /> }];
         case AppointmentStatus.CANCELLED:
+          return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <XCircle className="h-4 w-4 text-red-500" /> }];
         case AppointmentStatus.NO_SHOW:
         case AppointmentStatus.RESCHEDULED:
-          return [
-            { value: currentStatus, label: getStatusLabel(currentStatus) }
-          ];
+          return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <AlertTriangle className="h-4 w-4 text-orange-500" /> }];
         default:
-          return [
-            { value: currentStatus, label: getStatusLabel(currentStatus) }
-          ];
+          return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <Clock className="h-4 w-4 text-gray-400" /> }];
       }
     };
-
+  
     const availableStatuses = getAvailableStatuses(status);
     const isDisabled = availableStatuses.length === 1;
-
+    const currentStatusObj = availableStatuses.find(s => s.value === status);
+  
+    const cancelledStyle = status === AppointmentStatus.CANCELLED
+      ? "border border-red-400 bg-red-50 text-red-600"
+      : "";
+  
     return (
       <Select
         value={status}
         onValueChange={(newStatus) => onStatusChange(appointmentId, newStatus)}
         disabled={isDisabled}
       >
-        <SelectTrigger className={`w-[140px] ${getStatusColor(status)}`}>
+        <SelectTrigger className={`w-full rounded-full ${cancelledStyle}`}>
           <SelectValue>
-            {getStatusLabel(status)}
+            <div className="flex items-center gap-2">
+              {currentStatusObj?.icon}
+              <span>{getStatusLabel(status)}</span>
+            </div>
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {availableStatuses.map((statusOption) => (
-            <SelectItem
-              key={statusOption.value}
-              value={statusOption.value}
-              className="cursor-pointer"
-            >
+            <SelectItem key={statusOption.value} value={statusOption.value}>
               <div className="flex items-center gap-2">
-                <Badge className={getStatusColor(statusOption.value)} variant="outline">
-                  {statusOption.label}
-                </Badge>
+                {statusOption.icon}
+                <span>{statusOption.label}</span>
               </div>
             </SelectItem>
           ))}
@@ -329,7 +336,10 @@ export default function AppointmentTable({
           <TablePagination 
             currentPage={currentPage} 
             totalPages={totalPages} 
+            totalCount={totalCount}
+            rowsPerPage={rowsPerPage}
             onPageChange={onPageChange} 
+            onRowsPerPageChange={onRowsPerPageChange}
           />
         </>
       )}

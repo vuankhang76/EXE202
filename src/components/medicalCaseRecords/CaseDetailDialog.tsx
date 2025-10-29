@@ -6,10 +6,18 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/Dialog";
+import { Label } from "@/components/ui/Label"
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { Plus, Trash2, Download } from "lucide-react";
 import { medicalCaseRecordService } from "@/services/medicalCaseRecordService";
 import { toast } from "sonner";
@@ -21,6 +29,18 @@ import type {
   MedicalCaseNoteDto,
   MedicalRecordFileDto,
 } from "@/types/medicalCaseRecord";
+
+// Helper function to translate note type
+const translateNoteType = (noteType: string | undefined): string => {
+  if (!noteType) return "-";
+  const translations: Record<string, string> = {
+    General: "Chung",
+    Treatment: "Điều trị",
+    Diagnosis: "Chẩn đoán",
+    Progress: "Tiến triển",
+  };
+  return translations[noteType] || noteType;
+};
 
 interface CaseDetailDialogProps {
   isOpen: boolean;
@@ -192,20 +212,24 @@ export default function CaseDetailDialog({
             <TabsContent value="info" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">
+                  <Label className="text-sm font-medium text-gray-600">
                     Trạng thái
-                  </label>
+                  </Label>
                   {isEditing ? (
-                    <select
+                    <Select
                       value={formData.status}
-                      onChange={(e) =>
-                        setFormData({ ...formData, status: e.target.value })
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, status: value })
                       }
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
                     >
-                      <option value="Ongoing">Đang điều trị</option>
-                      <option value="Completed">Đã hoàn thành</option>
-                    </select>
+                      <SelectTrigger className="">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ongoing">Đang điều trị</SelectItem>
+                        <SelectItem value="Completed">Đã hoàn thành</SelectItem>
+                      </SelectContent>
+                    </Select>
                   ) : (
                     <p className="mt-1 text-sm">
                       <span
@@ -224,9 +248,9 @@ export default function CaseDetailDialog({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-600">
+                  <Label className="text-sm font-medium text-gray-600">
                     Ngày tạo
-                  </label>
+                  </Label>
                   <p className="mt-1 text-sm">
                     {format(new Date(caseRecord.createdAt), "dd/MM/yyyy HH:mm", {
                       locale: vi,
@@ -236,9 +260,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Chẩn đoán
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.diagnosis}
@@ -254,9 +278,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Triệu chứng chính
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.chiefComplaint}
@@ -277,9 +301,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Tiền sử bệnh
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.medicalHistory}
@@ -300,9 +324,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Khám sức khỏe
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.physicalExam}
@@ -320,9 +344,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Kết quả xét nghiệm
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.labResults}
@@ -338,9 +362,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Kế hoạch điều trị
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.treatmentPlan}
@@ -358,9 +382,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Ghi chú tiến triển
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.progressNotes}
@@ -381,9 +405,9 @@ export default function CaseDetailDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-600">
+                <Label className="text-sm font-medium text-gray-600">
                   Tóm tắt xuất viện
-                </label>
+                </Label>
                 {isEditing ? (
                   <Textarea
                     value={formData.dischargeSummary}
@@ -443,33 +467,30 @@ export default function CaseDetailDialog({
               </div>
             </TabsContent>
 
-            {/* Notes Tab */}
             <TabsContent value="notes" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Thêm ghi chú mới</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div>
+                <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <Label className="text-sm font-medium text-gray-600">
                       Loại ghi chú
-                    </label>
-                    <select
-                      value={noteType}
-                      onChange={(e) => setNoteType(e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="General">Chung</option>
-                      <option value="Treatment">Điều trị</option>
-                      <option value="Diagnosis">Chẩn đoán</option>
-                      <option value="Progress">Tiến triển</option>
-                    </select>
+                    </Label>
+                    <Select value={noteType} onValueChange={setNoteType}>
+                      <SelectTrigger className="mt-1 w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="General">Chung</SelectItem>
+                        <SelectItem value="Treatment">Điều trị</SelectItem>
+                        <SelectItem value="Diagnosis">Chẩn đoán</SelectItem>
+                        <SelectItem value="Progress">Tiến triển</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-600">
+                    <Label className="text-sm font-medium text-gray-600">
                       Nội dung
-                    </label>
+                    </Label>
                     <Textarea
                       value={newNote}
                       onChange={(e) => setNewNote(e.target.value)}
@@ -486,8 +507,8 @@ export default function CaseDetailDialog({
                     <Plus className="w-4 h-4 mr-2" />
                     Thêm ghi chú
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               <div className="space-y-2">
                 {notes.length === 0 ? (
@@ -497,11 +518,11 @@ export default function CaseDetailDialog({
                 ) : (
                   notes.map((note) => (
                     <Card key={note.noteId}>
-                      <CardContent className="pt-4">
+                      <CardContent>
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <span className="inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded">
-                              {note.noteType}
+                              {translateNoteType(note.noteType)}
                             </span>
                             {note.authorUserName && (
                               <p className="text-xs text-gray-500 mt-1">
