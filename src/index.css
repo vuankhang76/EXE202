@@ -55,11 +55,13 @@
   --medical-rose-800: #9f1239;
   --medical-rose-900: #881337;
   
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* Chart colors - Bright HSL values for better visibility */
+  --chart-1: 220 70% 55%;  /* Blue */
+  --chart-2: 142 76% 36%;  /* Green */
+  --chart-3: 346 84% 61%;  /* Red/Pink */
+  --chart-4: 48 96% 53%;   /* Yellow */
+  --chart-5: 271 81% 56%;  /* Purple */
+  
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -139,11 +141,14 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  
+  /* Chart colors for dark mode */
+  --chart-1: 220 70% 60%;
+  --chart-2: 142 76% 45%;
+  --chart-3: 346 84% 65%;
+  --chart-4: 48 96% 60%;
+  --chart-5: 271 81% 65%;
+  
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -165,19 +170,20 @@
 
 @layer base {
   :root {
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    /* Bright, medical-themed colors for charts */
+    --chart-1: 220 70% 55%;  /* Blue */
+    --chart-2: 142 76% 36%;  /* Green */
+    --chart-3: 346 84% 61%;  /* Red/Pink */
+    --chart-4: 48 96% 53%;   /* Yellow */
+    --chart-5: 271 81% 56%;  /* Purple */
   }
 
   .dark {
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
+    --chart-1: 220 70% 60%;
+    --chart-2: 142 76% 45%;
+    --chart-3: 346 84% 65%;
+    --chart-4: 48 96% 60%;
+    --chart-5: 271 81% 65%;
   }
 }
 

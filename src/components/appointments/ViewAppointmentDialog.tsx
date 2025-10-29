@@ -108,6 +108,16 @@ export default function ViewAppointmentDialog({
         }
     };
 
+    const formatPhoneNumber = (phone: string | undefined) => {
+        if (!phone) return 'N/A';
+        
+        if (phone.startsWith('+84')) {
+            return '0' + phone.slice(3);
+        }
+        
+        return phone;
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
@@ -168,7 +178,7 @@ export default function ViewAppointmentDialog({
                                             Số điện thoại
                                         </Label>
                                         <p className="text-sm font-medium mt-1">
-                                            {appointment.patientPhone || 'N/A'}
+                                            {formatPhoneNumber(appointment.patientPhone)}
                                         </p>
                                     </div>
 
@@ -256,7 +266,7 @@ export default function ViewAppointmentDialog({
                                                     Điện thoại
                                                 </Label>
                                                 <p className="text-sm font-medium mt-1">
-                                                    {appointment.doctorPhone}
+                                                    {formatPhoneNumber(appointment.doctorPhone)}
                                                 </p>
                                             </div>
                                         )}

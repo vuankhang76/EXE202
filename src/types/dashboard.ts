@@ -101,6 +101,7 @@ export interface RevenueAnalytics {
 export interface RecentOrder {
   orderId: string;
   customerName: string;
+  doctorName: string;
   serviceType: string;
   status: string;
   appointmentTime: string;
