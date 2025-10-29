@@ -2,13 +2,16 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { TenantDto, TenantUpdateDto } from '@/types';
 import type { BookingConfig } from '@/services/tenantSettingService';
+import type { Service } from '@/types/service';
 
 interface TenantSettingState {
   tenant: TenantDto | null;
   bookingConfig: BookingConfig;
+  services: Service[];
   loading: boolean;
   saving: boolean;
   savingBooking: boolean;
+  loadingServices: boolean;
   uploadingThumbnail: boolean;
   uploadingCover: boolean;
   formData: TenantUpdateDto;
@@ -30,9 +33,11 @@ const initialBookingConfig: BookingConfig = {
 const initialState: TenantSettingState = {
   tenant: null,
   bookingConfig: initialBookingConfig,
+  services: [],
   loading: false,
   saving: false,
   savingBooking: false,
+  loadingServices: false,
   uploadingThumbnail: false,
   uploadingCover: false,
   formData: {},
@@ -56,6 +61,9 @@ const tenantSettingSlice = createSlice({
     setSavingBooking(state, action: PayloadAction<boolean>) {
       state.savingBooking = action.payload;
     },
+    setLoadingServices(state, action: PayloadAction<boolean>) {
+      state.loadingServices = action.payload;
+    },
     setUploadingThumbnail(state, action: PayloadAction<boolean>) {
       state.uploadingThumbnail = action.payload;
     },
@@ -68,6 +76,10 @@ const tenantSettingSlice = createSlice({
     },
     setBookingConfig(state, action: PayloadAction<BookingConfig>) {
       state.bookingConfig = action.payload;
+      state.lastUpdated = Date.now();
+    },
+    setServices(state, action: PayloadAction<Service[]>) {
+      state.services = action.payload;
       state.lastUpdated = Date.now();
     },
     setFormData(state, action: PayloadAction<Partial<TenantUpdateDto>>) {
@@ -98,6 +110,7 @@ const tenantSettingSlice = createSlice({
     clearTenantSettingData(state) {
       state.tenant = null;
       state.bookingConfig = initialBookingConfig;
+      state.services = [];
       state.formData = {};
       state.thumbnailPreview = null;
       state.coverPreview = null;
@@ -114,10 +127,12 @@ export const {
   setLoading,
   setSaving,
   setSavingBooking,
+  setLoadingServices,
   setUploadingThumbnail,
   setUploadingCover,
   setTenant,
   setBookingConfig,
+  setServices,
   setFormData,
   setThumbnailPreview,
   setCoverPreview,

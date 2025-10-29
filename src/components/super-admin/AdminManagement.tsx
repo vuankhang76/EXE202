@@ -16,7 +16,7 @@ import TablePagination from "@/components/ui/TablePagination";
 import EditAdminDialog from "./EditAdminDialog";
 import userService from "@/services/userService";
 import { toast } from "sonner";
-import TableSkeleton from "@/components/ui/TableSkeleton"; // ✅ import chuẩn
+import TableSkeleton from "@/components/ui/TableSkeleton";
 
 interface AdminManagementTabProps {
   admins: UserDto[];
@@ -102,7 +102,6 @@ export default function AdminManagementTab({
 
   return (
     <div className="space-y-4">
-      {/* Search */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -119,7 +118,6 @@ export default function AdminManagementTab({
         </Button>
       </div>
 
-      {/* Table */}
       <div>
         {loading ? (
           <TableSkeleton rows={8} columns={7} />
@@ -191,7 +189,6 @@ export default function AdminManagementTab({
               </div>
             </div>
 
-            {/* Pagination */}
             <TablePagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -204,7 +201,6 @@ export default function AdminManagementTab({
         )}
       </div>
 
-      {/* Dialog */}
       <EditAdminDialog
         admin={editAdmin}
         open={!!editAdmin}

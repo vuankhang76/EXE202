@@ -5,7 +5,6 @@ import type { RootState, AppDispatch } from './store';
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-// Dashboard hooks
 export const useDashboardState = () => useAppSelector((state) => state.dashboard);
 export const useDashboardLoading = () =>
   useAppSelector((state) => state.dashboard.loading);
@@ -16,7 +15,6 @@ export const useDashboardData = () => ({
   cacheExpiration: useAppSelector((state) => state.dashboard.cacheExpiration),
 });
 
-// Payment hooks
 export const usePaymentState = () => useAppSelector((state) => state.payment);
 export const usePaymentLoading = () =>
   useAppSelector((state) => state.payment.loading);
@@ -35,7 +33,6 @@ export const usePaymentFilters = () =>
 export const usePaymentAppliedFilters = () =>
   useAppSelector((state) => state.payment.appliedFilters);
 
-// Patient hooks
 export const usePatientState = () => useAppSelector((state) => state.patient);
 export const usePatientLoading = () =>
   useAppSelector((state) => state.patient.loading);
@@ -53,7 +50,6 @@ export const usePatientFilters = () =>
 export const usePatientAppliedFilters = () =>
   useAppSelector((state) => state.patient.appliedFilters);
 
-// Account hooks
 export const useAccountState = () => useAppSelector((state) => state.account);
 export const useAccountLoading = () =>
   useAppSelector((state) => state.account.loading);
@@ -74,7 +70,6 @@ export const useAccountFilters = () =>
 export const useAccountAppliedFilters = () =>
   useAppSelector((state) => state.account.appliedFilters);
 
-// Appointment hooks
 export const useAppointmentState = () => useAppSelector((state) => state.appointment);
 export const useAppointmentLoading = () =>
   useAppSelector((state) => state.appointment.loading);
@@ -93,7 +88,6 @@ export const useAppointmentFilters = () =>
 export const useAppointmentAppliedFilters = () =>
   useAppSelector((state) => state.appointment.appliedFilters);
 
-// Tenant Setting hooks
 export const useTenantSettingState = () => useAppSelector((state) => state.tenantSetting);
 export const useTenantSettingLoading = () =>
   useAppSelector((state) => state.tenantSetting.loading);
@@ -101,6 +95,8 @@ export const useTenantSettingSaving = () =>
   useAppSelector((state) => state.tenantSetting.saving);
 export const useTenantSettingSavingBooking = () =>
   useAppSelector((state) => state.tenantSetting.savingBooking);
+export const useTenantSettingLoadingServices = () =>
+  useAppSelector((state) => state.tenantSetting.loadingServices);
 export const useTenantSettingUploadingThumbnail = () =>
   useAppSelector((state) => state.tenantSetting.uploadingThumbnail);
 export const useTenantSettingUploadingCover = () =>
@@ -108,6 +104,7 @@ export const useTenantSettingUploadingCover = () =>
 export const useTenantSettingData = () => ({
   tenant: useAppSelector((state) => state.tenantSetting.tenant),
   bookingConfig: useAppSelector((state) => state.tenantSetting.bookingConfig),
+  services: useAppSelector((state) => state.tenantSetting.services),
   formData: useAppSelector((state) => state.tenantSetting.formData),
   thumbnailPreview: useAppSelector((state) => state.tenantSetting.thumbnailPreview),
   coverPreview: useAppSelector((state) => state.tenantSetting.coverPreview),
@@ -146,7 +143,6 @@ export const useDoctorProfileData = () => ({
   cacheExpiration: useAppSelector((state) => state.doctorProfile.cacheExpiration),
 });
 
-// Utility function to check if cache is valid
 export const isCacheValid = (lastUpdated: number | null, cacheExpiration: number): boolean => {
   if (!lastUpdated) return false;
   return Date.now() - lastUpdated < cacheExpiration;
