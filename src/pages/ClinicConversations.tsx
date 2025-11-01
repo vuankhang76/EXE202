@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import conversationService from '@/services/conversationService';
 import type { ConversationListDTO } from '@/types/conversation';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Loader2, Filter } from 'lucide-react';
+import { MessageCircle, Loader2, Filter, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import CreateConversationDialog from '@/components/chat/CreateConversationDialog';
 
 export default function ClinicConversations() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function ClinicConversations() {
   const [conversations, setConversations] = useState<ConversationListDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'closed'>('active');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -65,28 +67,36 @@ export default function ClinicConversations() {
             </p>
           </div>
 
-          {/* Filter */}
-          <div className="flex gap-2">
-            <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('all')}
-            >
-              Tất cả
-            </Button>
-            <Button
-              variant={filter === 'active' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('active')}
-            >
-              Đang hoạt động
-            </Button>
-            <Button
-              variant={filter === 'closed' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('closed')}
-            >
-              Đã đóng
+          <div className="flex items-center gap-3">
+            {/* Filter */}
+            <div className="flex gap-2">
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('all')}
+              >
+                Tất cả
+              </Button>
+              <Button
+                variant={filter === 'active' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('active')}
+              >
+                Đang hoạt động
+              </Button>
+              <Button
+                variant={filter === 'closed' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('closed')}
+              >
+                Đã đóng
+              </Button>
+            </div>
+
+            {/* New Conversation Button */}
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo mới
             </Button>
           </div>
         </div>
@@ -155,6 +165,12 @@ export default function ClinicConversations() {
           )}
         </div>
       </div>
+
+      {/* Create Conversation Dialog */}
+      <CreateConversationDialog 
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
     </div>
   );
 }
