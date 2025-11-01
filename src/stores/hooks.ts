@@ -11,6 +11,7 @@ export const useDashboardLoading = () =>
 export const useDashboardData = () => ({
   overview: useAppSelector((state) => state.dashboard.overview),
   recentOrders: useAppSelector((state) => state.dashboard.recentOrders),
+  revenueAnalytics: useAppSelector((state) => state.dashboard.revenueAnalytics),
   lastUpdated: useAppSelector((state) => state.dashboard.lastUpdated),
   cacheExpiration: useAppSelector((state) => state.dashboard.cacheExpiration),
 });

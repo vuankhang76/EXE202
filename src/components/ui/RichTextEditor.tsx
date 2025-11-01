@@ -23,6 +23,27 @@ interface RichTextEditorProps {
 export function RichTextEditor({ value, onChange, placeholder, disabled, maxLength = 10000 }: RichTextEditorProps) {
   const isFirstRender = useRef(true);
   
+  // Convert RGB/RGBA to hex format for color input
+  const rgbToHex = (color: string | undefined): string => {
+    if (!color) return '#000000';
+    
+    // If already hex, return as is
+    if (color.startsWith('#')) return color;
+    
+    // Parse RGB/RGBA
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+    if (!match) return '#000000';
+    
+    const r = parseInt(match[1]);
+    const g = parseInt(match[2]);
+    const b = parseInt(match[3]);
+    
+    return '#' + [r, g, b].map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  };
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -30,6 +51,8 @@ export function RichTextEditor({ value, onChange, placeholder, disabled, maxLeng
           levels: [1, 2, 3]
         },
         strike: false,
+        // Disable underline in StarterKit since we're adding it separately
+        underline: false,
       }),
       Placeholder.configure({
         placeholder: placeholder || 'Nhập nội dung...'
@@ -211,7 +234,7 @@ export function RichTextEditor({ value, onChange, placeholder, disabled, maxLeng
         <input
           type="color"
           onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
-          value={editor.getAttributes('textStyle').color || '#000000'}
+          value={rgbToHex(editor.getAttributes('textStyle').color)}
           disabled={disabled}
           className={`w-8 h-8 rounded border cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           title="Text Color"
