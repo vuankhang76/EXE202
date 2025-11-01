@@ -32,7 +32,7 @@ export default function ConversationListItem({ conversation }: ConversationListI
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-gray-900 truncate">
-            {conversation.title || conversation.patientName || 'Cuộc trò chuyện'}
+            {conversation.tenantName || conversation.title || 'Cuộc trò chuyện'}
           </h3>
           {conversation.unreadCount > 0 && (
             <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">

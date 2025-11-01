@@ -31,6 +31,7 @@ export interface ConversationListDTO {
   messageCount: number;
   unreadCount: number;
   patientName?: string;
+  tenantName?: string;
   lastMessagePreview?: string;
 }
 

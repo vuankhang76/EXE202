@@ -17,6 +17,8 @@ const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment')
 const PaymentPage = lazy(() => import('./pages/patient/PaymentPage'))
 const PatientConversations = lazy(() => import('./pages/patient/PatientConversations'))
 const PatientChat = lazy(() => import('./pages/patient/PatientChat'))
+const ClinicConversations = lazy(() => import('./pages/ClinicConversations'))
+const ClinicChat = lazy(() => import('./pages/ClinicChat'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -154,6 +156,16 @@ function App() {
           <Route path="/clinic/consultations" element={
             <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
               <Consultations />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/conversations" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <ClinicConversations />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/chat/:conversationId" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <ClinicChat />
             </ProtectedRoute>
           } />
           <Route path="/clinic/accounts" element={

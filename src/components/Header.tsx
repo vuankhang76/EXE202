@@ -99,7 +99,7 @@ export default function Header() {
                     className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    <span>Tin nhắn</span>
+                    <span>Hội thoại</span>
                   </button>
                   <DropdownMenuSeparator />
                   <button
@@ -167,7 +167,7 @@ export default function Header() {
                     className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    <span>Tin nhắn</span>
+                    <span>Hội thoại</span>
                   </button>
                   <DropdownMenuSeparator />
                   <button

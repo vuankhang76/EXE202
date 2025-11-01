@@ -38,13 +38,22 @@ export default function PatientConversations() {
 
     setLoading(true);
     try {
+      console.log('🔍 Loading conversations for patientId:', patientId);
       const response = await conversationService.getPatientConversations(patientId);
+      
+      console.log('📥 Conversations API Response:', {
+        success: response.success,
+        dataLength: response.data?.length,
+        data: response.data
+      });
 
       if (response.success && response.data) {
         setConversations(response.data);
+      } else {
+        console.warn('⚠️ No conversations or unsuccessful response');
       }
     } catch (error: any) {
-      console.error('Error loading conversations:', error);
+      console.error('❌ Error loading conversations:', error);
       toast.error('Không thể tải danh sách cuộc trò chuyện');
     } finally {
       setLoading(false);

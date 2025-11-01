@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Calendar, User, LogOut } from 'lucide-react';
+import { Calendar, User, LogOut, MessageCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
 import {
   DropdownMenu,
@@ -71,6 +71,13 @@ export default function HomeHeader() {
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/patient/conversations')}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Hội thoại</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLogout}
@@ -116,6 +123,13 @@ export default function HomeHeader() {
                   >
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/patient/conversations')}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Hội thoại</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 

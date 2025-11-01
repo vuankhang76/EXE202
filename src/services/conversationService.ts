@@ -118,7 +118,7 @@ class ConversationService {
 
   // Get patient conversations
   async getPatientConversations(patientId: number): Promise<ApiResponse<ConversationListDTO[]>> {
-    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(`${this.baseUrl}/patient/${patientId}`);
+    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(`${this.baseUrl}/patient/${patientId}/conversations`);
     return response.data;
   }
 
