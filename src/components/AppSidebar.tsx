@@ -8,7 +8,9 @@ import {
   Home,
   Settings,
   Building2,
-  Users
+  Users,
+  Stethoscope,
+  UserCircle
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -82,6 +84,19 @@ const navigationData = {
       icon: Users,
     },
   ],
+
+  // userManagementNav: [
+  //   {
+  //     title: "Quản lý Bác sĩ",
+  //     url: "/super-admin/doctors",
+  //     icon: Stethoscope,
+  //   },
+  //   {
+  //     title: "Quản lý Bệnh nhân",
+  //     url: "/super-admin/patients",
+  //     icon: UserCircle,
+  //   },
+  // ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -95,7 +110,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         {isSystemAdmin ? (
-          <NavMain label="Quản trị hệ thống" items={navigationData.superAdminNav} />
+          <>
+            <NavMain label="Quản trị hệ thống" items={navigationData.superAdminNav} />
+            {/* <NavMain label="Quản lý người dùng" items={navigationData.userManagementNav} /> */}
+          </>
         ) : (
           <>
             <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />

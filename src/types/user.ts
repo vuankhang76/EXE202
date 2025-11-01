@@ -5,6 +5,7 @@ export interface UserDto extends BaseEntity {
   fullName: string;
   email: string;
   phoneE164: string;
+  gender?: string;
   role: string;
   tenantId?: number;
   tenantName?: string;

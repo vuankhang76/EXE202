@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Building2, Users } from "lucide-react";
+import { Building2, Users, Stethoscope, UserCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import tenantService from "@/services/tenantService";
 import userService from "@/services/userService";
+import patientService from "@/services/patientService";
 import { toast } from "sonner";
 import type { UserDto } from "@/types";
 import { Card } from "@/components/ui/Card";
@@ -12,6 +13,8 @@ export default function SuperAdmin() {
   const { currentUser, logout } = useAuth();
   const [totalTenants, setTotalTenants] = useState(0);
   const [totalAdmins, setTotalAdmins] = useState(0);
+  const [totalDoctors, setTotalDoctors] = useState(0);
+  const [totalPatients, setTotalPatients] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,9 +27,10 @@ export default function SuperAdmin() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      const [tenantsResponse, usersResponse] = await Promise.all([
+      const [tenantsResponse, usersResponse, patientsResponse] = await Promise.all([
         tenantService.getTenants(1, 1),
-        userService.getUsers(undefined, 1, 1)
+        userService.getUsers(undefined, 1, 100),
+        patientService.getPatients(1, 1)
       ]);
 
       if (tenantsResponse.success && tenantsResponse.data) {
@@ -34,10 +38,19 @@ export default function SuperAdmin() {
       }
 
       if (usersResponse.success && usersResponse.data) {
-        const adminCount = (usersResponse.data.data || []).filter(
+        const allUsers = usersResponse.data.data || [];
+        const adminCount = allUsers.filter(
           (u: UserDto) => u.role === 'ClinicAdmin' || u.role === 'SystemAdmin'
         ).length;
-        setTotalAdmins(usersResponse.data.totalCount || adminCount);
+        const doctorCount = allUsers.filter(
+          (u: UserDto) => u.role === 'Doctor'
+        ).length;
+        setTotalAdmins(adminCount);
+        setTotalDoctors(doctorCount);
+      }
+
+      if (patientsResponse.success && patientsResponse.data) {
+        setTotalPatients(patientsResponse.data.totalCount || 0);
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -62,7 +75,7 @@ export default function SuperAdmin() {
       breadcrumbTitle="Super Admin Dashboard"
       breadcrumbItems={[]}
     >
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -91,6 +104,38 @@ export default function SuperAdmin() {
             </div>
             <div className="rounded-full bg-green-100 p-3">
               <Users className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Tổng số Bác sĩ
+              </p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {loading ? "..." : totalDoctors}
+              </p>
+            </div>
+            <div className="rounded-full bg-purple-100 p-3">
+              <Stethoscope className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">
+                Tổng số Bệnh nhân
+              </p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {loading ? "..." : totalPatients}
+              </p>
+            </div>
+            <div className="rounded-full bg-orange-100 p-3">
+              <UserCircle className="h-6 w-6 text-orange-600" />
             </div>
           </div>
         </Card>

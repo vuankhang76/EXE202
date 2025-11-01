@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { convertToE164Format } from '@/utils/formatPhone';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PatientLoginFormProps {
@@ -55,8 +54,8 @@ export default function PatientLoginForm({ onSuccess, onSwitchToRegister, onForg
 
     setIsLoading(true);
     try {
-      const normalizedPhone = convertToE164Format(phone);
-      await login({ phone: normalizedPhone, password: phonePassword, userType: 'patient' });
+      // Không chuyển đổi format, gửi số điện thoại như user nhập
+      await login({ phone: phone.trim(), password: phonePassword, userType: 'patient' });
       onSuccess?.('', {});
     } catch (error: any) {
       console.error('Login error:', error);

@@ -43,21 +43,8 @@ export default function UnifiedLoginForm({ onSwitchToRegister, onForgotPassword 
   }, [loginMethod]);
 
   const normalizePhoneNumber = (phone: string): string => {
-    phone = phone.trim().replace(/\s/g, '');
-    
-    if (phone.startsWith('0')) {
-      return '+84' + phone.substring(1);
-    }
-    if (phone.startsWith('84') && !phone.startsWith('+84')) {
-      return '+' + phone;
-    }
-    if (phone.startsWith('+84')) {
-      return phone;
-    }
-    if (/^\d+$/.test(phone)) {
-      return '+84' + phone;
-    }
-    return phone;
+    // Chỉ trim và remove spaces, giữ nguyên format gốc để match với DB
+    return phone.trim().replace(/\s/g, '');
   };
 
   const validateForm = () => {
