@@ -15,6 +15,8 @@ const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
 const PatientAppointments = lazy(() => import('./pages/patient/Appointments'))
 const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment'))
 const PaymentPage = lazy(() => import('./pages/patient/PaymentPage'))
+const PatientConversations = lazy(() => import('./pages/patient/PatientConversations'))
+const PatientChat = lazy(() => import('./pages/patient/PatientChat'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -106,6 +108,16 @@ function App() {
             <Route path="/patient/payment" element={
               <ProtectedRoute allowedUserTypes={['patient']}>
                 <PaymentPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/conversations" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientConversations />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/chat/:conversationId" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientChat />
               </ProtectedRoute>
             } />
 
