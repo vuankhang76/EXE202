@@ -67,15 +67,12 @@ export interface ClinicPatientDto extends BaseEntity {
   primaryDoctorId?: number;
   status: number;
   enrolledAt: string;
-  // Patient info
   fullName?: string;
   dateOfBirth?: string;
   gender?: string;
   primaryPhoneE164?: string;
   email?: string;
-  // Tenant info
   tenantName?: string;
-  // Doctor info
   primaryDoctorName?: string;
 }
 
@@ -90,7 +87,6 @@ export interface UpdateClinicPatientDto {
   status?: number;
 }
 
-// DTO cho search bệnh nhân (dùng cho autocomplete)
 export interface PatientSearchDto {
   patientId: number;
   fullName: string;
