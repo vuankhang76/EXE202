@@ -167,7 +167,6 @@ export function usePatientRegistration(tenantId: number) {
       return;
     }
 
-    // Register patient
     setIsRegistering(true);
     try {
       const normalizedData = {
@@ -184,7 +183,6 @@ export function usePatientRegistration(tenantId: number) {
 
       const newPatientId = registerResponse.data.patientId;
 
-      // Enroll to clinic
       const enrollResponse = await patientService.enrollPatientToClinic(newPatientId, tenantId);
       
       if (!enrollResponse.success) {
@@ -194,7 +192,6 @@ export function usePatientRegistration(tenantId: number) {
 
       toast.success('Đăng ký bệnh nhân thành công!');
       
-      // Reset form
       setShowRegisterForm(false);
       setNewPatientData({
         fullName: '',
@@ -204,10 +201,8 @@ export function usePatientRegistration(tenantId: number) {
         address: ''
       });
 
-      // Callback with new patient ID
       onSuccess?.(newPatientId);
     } catch (error: any) {
-      console.error('Error registering patient:', error);
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký bệnh nhân');
     } finally {
       setIsRegistering(false);

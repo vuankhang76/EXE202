@@ -58,7 +58,6 @@ export default function OwnerSelector({
         })));
       }
     } catch (error) {
-      console.error('Error loading users:', error);
       toast.error('Không thể tải danh sách người dùng');
     } finally {
       setLoading(false);

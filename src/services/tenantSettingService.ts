@@ -96,7 +96,7 @@ export const tenantSettingService = {
         return maxDate;
       }
     } catch (error) {
-      console.error('Error getting booking config, using default 90 days:', error);
+      // Fallback to default
     }
     
     // Fallback to 90 days if API fails

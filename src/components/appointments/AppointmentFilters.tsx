@@ -47,7 +47,9 @@ export default function AppointmentFilters({
       toast.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
       return;
     }
-    onFromDateChange(date?.toISOString());
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
+    onFromDateChange(dateString);
   };
 
   const handleToDateChange = (date: Date | undefined) => {
@@ -55,7 +57,9 @@ export default function AppointmentFilters({
       toast.error("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu");
       return;
     }
-    onToDateChange(date?.toISOString());
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
+    onToDateChange(dateString);
   };
 
   return (
@@ -140,9 +144,6 @@ export default function AppointmentFilters({
             </SelectItem>
             <SelectItem value={AppointmentStatus.CANCELLED}>
               {getStatusLabel(AppointmentStatus.CANCELLED)}
-            </SelectItem>
-            <SelectItem value={AppointmentStatus.NO_SHOW}>
-              {getStatusLabel(AppointmentStatus.NO_SHOW)}
             </SelectItem>
           </SelectContent>
         </Select>

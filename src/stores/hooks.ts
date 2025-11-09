@@ -126,6 +126,7 @@ export const useHomeData = () => ({
   weekendBookingSettings: useAppSelector((state) => state.home.weekendBookingSettings),
   lastUpdated: useAppSelector((state) => state.home.lastUpdated),
   cacheExpiration: useAppSelector((state) => state.home.cacheExpiration),
+  isInitialLoad: useAppSelector((state) => state.home.isInitialLoad),
 });
 
 // Doctor Profile hooks

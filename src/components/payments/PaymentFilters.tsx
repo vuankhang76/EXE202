@@ -13,13 +13,13 @@ interface PaymentFiltersProps {
   searchTerm: string;
   statusFilter: string;
   typeFilter: string;
-  fromDate: Date | undefined;
-  toDate: Date | undefined;
+  fromDate: string | undefined;
+  toDate: string | undefined;
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   onTypeFilterChange: (value: string) => void;
-  onFromDateChange: (date: Date | undefined) => void;
-  onToDateChange: (date: Date | undefined) => void;
+  onFromDateChange: (date: string | undefined) => void;
+  onToDateChange: (date: string | undefined) => void;
   onSearch: () => void;
   onAdvancedFilters?: () => void;
 }
@@ -38,21 +38,30 @@ export default function PaymentFilters({
   onSearch,
   onAdvancedFilters
 }: PaymentFiltersProps) {
+  // Convert string to Date for display
+  const fromDateObj = fromDate ? new Date(fromDate) : undefined;
+  const toDateObj = toDate ? new Date(toDate) : undefined;
+
   const handleFromDateChange = (date: Date | undefined) => {
-    if (date && toDate && date > toDate) {
+    if (date && toDateObj && date > toDateObj) {
       toast.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
       return;
     }
-    onFromDateChange(date);
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
+    onFromDateChange(dateString);
   };
 
   const handleToDateChange = (date: Date | undefined) => {
-    if (date && fromDate && date < fromDate) {
+    if (date && fromDateObj && date < fromDateObj) {
       toast.error("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu");
       return;
     }
-    onToDateChange(date);
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
+    onToDateChange(dateString);
   };
+
   return (
     <div className="flex gap-3 items-center">
       <div className="flex-1 min-w-[200px]">
@@ -76,14 +85,14 @@ export default function PaymentFilters({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               <span className="text-sm">
-                {fromDate ? format(fromDate, "dd/MM/yyyy", { locale: vi }) : "Từ"}
+                {fromDateObj ? format(fromDateObj, "dd/MM/yyyy", { locale: vi }) : "Từ"}
               </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={fromDate}
+              selected={fromDateObj}
               onSelect={handleFromDateChange}
               initialFocus
             />
@@ -100,16 +109,15 @@ export default function PaymentFilters({
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               <span className="text-sm">
-                {toDate ? format(toDate, "dd/MM/yyyy", { locale: vi }) : "Đến"}
+                {toDateObj ? format(toDateObj, "dd/MM/yyyy", { locale: vi }) : "Đến"}
               </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={toDate}
+              selected={toDateObj}
               onSelect={handleToDateChange}
-              
             />
           </PopoverContent>
         </Popover>

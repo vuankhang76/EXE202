@@ -93,7 +93,6 @@ export default function AdminManagementTab({
         });
       }
     } catch (error: any) {
-      console.error("Error toggling admin active:", error);
       toast.error(`Không thể ${action} tài khoản`, {
         description: error.message || "Có lỗi xảy ra",
       });

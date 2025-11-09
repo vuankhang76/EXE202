@@ -63,7 +63,6 @@ export default function EditTenantOwnerDialog({
         });
       }
     } catch (error: any) {
-      console.error('Error updating owner:', error);
       toast.error('Cập nhật thất bại', {
         description: error.message || 'Không thể cập nhật chủ sở hữu'
       });

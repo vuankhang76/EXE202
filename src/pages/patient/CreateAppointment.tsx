@@ -90,7 +90,6 @@ export default function CreateAppointment() {
         }
       }
     } catch (error) {
-      console.error("Error loading clinic data:", error);
       toast.error("Không thể tải thông tin phòng khám");
     } finally {
       setLoading(false);
@@ -114,7 +113,6 @@ export default function CreateAppointment() {
         toast.error("Không thể tải cấu hình đặt lịch của phòng khám");
       }
     } catch (error) {
-      console.error("Error loading booking config:", error);
       toast.error("Lỗi khi tải cấu hình đặt lịch. Vui lòng thử lại sau.");
     }
   };
@@ -150,7 +148,7 @@ export default function CreateAppointment() {
         setAvailableDates(response.data);
       }
     } catch (error) {
-      console.error("Error loading available dates:", error);
+      // Error loading dates
     } finally {
       setLoadingDates(false);
     }
@@ -218,7 +216,6 @@ export default function CreateAppointment() {
         setAvailableDoctors(doctors);
       }
     } catch (error) {
-      console.error("Error filtering available doctors:", error);
       setAvailableDoctors(doctors);
     } finally {
       setLoadingDoctors(false);

@@ -197,7 +197,6 @@ export default function DoctorProfileEdit() {
         navigate('/clinic/dashboard');
       }
     } catch (error: any) {
-      console.error('Error loading doctor profile:', error);
       toast.error('Lỗi tải thông tin', {
         description: error.message || 'Không thể tải thông tin bác sĩ',
       });
@@ -265,7 +264,6 @@ export default function DoctorProfileEdit() {
         });
       }
     } catch (error: any) {
-      console.error('Error uploading avatar:', error);
       toast.error('Upload thất bại', {
         description: error.message || 'Không thể upload ảnh',
       });
@@ -313,7 +311,6 @@ export default function DoctorProfileEdit() {
         });
       }
     } catch (error: any) {
-      console.error('Error updating profile:', error);
       toast.error('Cập nhật thất bại', {
         description: error.message || 'Có lỗi xảy ra khi cập nhật',
       });

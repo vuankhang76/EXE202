@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Stethoscope } from 'lucide-react';
 import type { TenantDto, DoctorDto } from '@/types';
@@ -66,6 +66,7 @@ export default function Home() {
     weekendBookingSettings,
     lastUpdated,
     cacheExpiration,
+    isInitialLoad,
   } = useHomeData();
   const clinicsLoading = useHomeClinicLoading();
   const doctorsLoading = useHomeDoctorLoading();
@@ -74,93 +75,109 @@ export default function Home() {
   const [currentDoctorSlide, setCurrentDoctorSlide] = useState(0);
   const itemsPerView = 4;
 
+  // Prevent multiple API calls with a ref flag
+  const isLoadingRef = useRef(false);
+
   const maxSlide = Math.max(0, clinics.length - itemsPerView);
   const maxDoctorSlide = Math.max(0, doctors.length - itemsPerView);
 
-  const loadClinics = useCallback(async () => {
+  // Load both clinics and doctors data together to avoid circular dependencies
+  const loadHomeData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      return;
+    }
+    
+    isLoadingRef.current = true;
+    
+    // Set loading states
     dispatch(setClinicLoading(true));
+    dispatch(setDoctorLoading(true));
+    
     try {
-      const response = await tenantService.getTenants(1, 20);
-      if (response.success && response.data) {
-        const clinicsList = response.data.data || [];
-        
-        // Load weekend booking settings for each clinic
-        const settingsPromises = clinicsList.map(async (clinic) => {
-          try {
-            const config = await tenantSettingService.getBookingConfig(clinic.tenantId);
-            return {
-              tenantId: clinic.tenantId,
-              allowWeekendBooking: config.success && config.data ? config.data.allowWeekendBooking : true
-            };
-          } catch {
-            return { tenantId: clinic.tenantId, allowWeekendBooking: true };
-          }
-        });
-        
-        const settings = await Promise.all(settingsPromises);
-        const settingsMap = settings.reduce((acc, { tenantId, allowWeekendBooking }) => {
-          acc[tenantId] = allowWeekendBooking;
-          return acc;
-        }, {} as Record<number, boolean>);
-        
-        dispatch(setHomeData({
-          clinics: clinicsList,
-          doctors,
-          weekendBookingSettings: settingsMap,
-        }));
+      // Load all clinics data (use 100 to get all clinics)
+      const response = await tenantService.getTenants(1, 100);
+      if (!response.success || !response.data) {
+        isLoadingRef.current = false;
+        return;
       }
+
+      const allClinics = response.data.data || [];
+      
+      // Get first 20 clinics for display
+      const displayClinics = allClinics.slice(0, 20);
+      
+      // Load weekend booking settings for display clinics
+      const settingsPromises = displayClinics.map(async (clinic) => {
+        try {
+          const config = await tenantSettingService.getBookingConfig(clinic.tenantId);
+          return {
+            tenantId: clinic.tenantId,
+            allowWeekendBooking: config.success && config.data ? config.data.allowWeekendBooking : true
+          };
+        } catch {
+          return { tenantId: clinic.tenantId, allowWeekendBooking: true };
+        }
+      });
+      
+      // Load doctors ONLY from display clinics (not all 100 clinics!)
+      const allDoctorsPromises = displayClinics.map(clinic => 
+        tenantService.getTenantDoctors(clinic.tenantId)
+      );
+      
+      // Wait for both settings and doctors
+      const [settings, doctorsResponses] = await Promise.all([
+        Promise.all(settingsPromises),
+        Promise.all(allDoctorsPromises)
+      ]);
+      
+      // Process settings
+      const settingsMap = settings.reduce((acc, { tenantId, allowWeekendBooking }) => {
+        acc[tenantId] = allowWeekendBooking;
+        return acc;
+      }, {} as Record<number, boolean>);
+      
+      // Process doctors
+      const allDoctors: DoctorDto[] = [];
+      doctorsResponses.forEach(response => {
+        if (response.success && response.data) {
+          const doctorsList = response.data.data || [];
+          allDoctors.push(...doctorsList);
+        }
+      });
+      
+      const verifiedDoctors = allDoctors.filter(doctor => doctor.isVerified === true);
+      
+      // Update all data at once
+      dispatch(setHomeData({
+        clinics: displayClinics,
+        doctors: verifiedDoctors,
+        weekendBookingSettings: settingsMap,
+      }));
+      
     } catch (error) {
-      console.error('Error loading clinics:', error);
+      // Error loading home data
     } finally {
       dispatch(setClinicLoading(false));
-    }
-  }, [dispatch, doctors]);
-
-  const loadDoctors = useCallback(async () => {
-    dispatch(setDoctorLoading(true));
-    try {
-      const clinicsResponse = await tenantService.getTenants(1, 100);
-      if (clinicsResponse.success && clinicsResponse.data) {
-        const allClinics = clinicsResponse.data.data || [];
-        const allDoctorsPromises = allClinics.map(clinic => 
-          tenantService.getTenantDoctors(clinic.tenantId)
-        );
-        
-        const doctorsResponses = await Promise.all(allDoctorsPromises);
-        const allDoctors: DoctorDto[] = [];
-        
-        doctorsResponses.forEach(response => {
-          if (response.success && response.data) {
-            const doctorsList = response.data.data || [];
-            allDoctors.push(...doctorsList);
-          }
-        });
-        
-        const verifiedDoctors = allDoctors.filter(doctor => doctor.isVerified === true);
-        
-        dispatch(setHomeData({
-          clinics,
-          doctors: verifiedDoctors,
-          weekendBookingSettings,
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading doctors:', error);
-    } finally {
       dispatch(setDoctorLoading(false));
+      isLoadingRef.current = false;
     }
-  }, [dispatch, clinics, weekendBookingSettings]);
+  }, [dispatch]);
 
   useEffect(() => {
+    // Skip if already loaded or currently loading
+    if (isInitialLoad || isLoadingRef.current) {
+      return;
+    }
+    
     // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
       return;
     }
 
-    // Load fresh data if cache is invalid or expired
-    loadClinics();
-    loadDoctors();
-  }, [lastUpdated, cacheExpiration, loadClinics, loadDoctors]);
+    // Load all data at once
+    loadHomeData();
+  }, [lastUpdated, cacheExpiration, loadHomeData, isInitialLoad]);
 
   const formatSchedule = (clinic: TenantDto) => {
     const schedule = [];

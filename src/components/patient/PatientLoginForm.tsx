@@ -39,7 +39,6 @@ export default function PatientLoginForm({ onSuccess, onSwitchToRegister, onForg
       await login({ email, password: emailPassword, userType: 'patient' });
       onSuccess?.('', {});
     } catch (error: any) {
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +58,6 @@ export default function PatientLoginForm({ onSuccess, onSwitchToRegister, onForg
       await login({ phone: normalizedPhone, password: phonePassword, userType: 'patient' });
       onSuccess?.('', {});
     } catch (error: any) {
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }

@@ -46,17 +46,8 @@ export function InteractiveAreaChart({
     { value: "7d", label: "7 ngày gần nhất", days: 7 },
   ],
 }: InteractiveAreaChartProps) {
-  // Smart default: Choose 30d as default for monthly data
   const [timeRange, setTimeRange] = React.useState(timeRanges[1]?.value || timeRanges[0].value)
   
-  // Debug logging
-  React.useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log(`📊 [${title}] Received data:`, data);
-      console.log(`📊 [${title}] Data length:`, data.length);
-    }
-  }, [data, title]);
-
   const filteredData = React.useMemo(() => {
     const selectedRange = timeRanges.find((r) => r.value === timeRange)
     if (!selectedRange || !data.length) return data
@@ -70,17 +61,7 @@ export function InteractiveAreaChart({
       return itemDate >= startDate
     })
     
-    if (import.meta.env.DEV) {
-      console.log(`📊 Filtered data (${timeRange}):`, filtered);
-      console.log(`📊 Filter range: ${startDate.toISOString()} to ${now.toISOString()}`);
-    }
-    
-    // If filter results in empty data but we have data available, show all data
-    // This prevents empty charts when data exists but falls outside the time range
     if (filtered.length === 0 && data.length > 0) {
-      if (import.meta.env.DEV) {
-        console.log(`⚠️ No data in selected range, showing all available data instead`);
-      }
       return data;
     }
     

@@ -103,7 +103,7 @@ export default function PatientAppointments() {
         }
       }
     } catch (err) {
-      console.error('Error loading appointments:', err);
+      // Error loading appointments
     } finally {
       setLoading(false);
     }
@@ -121,7 +121,6 @@ export default function PatientAppointments() {
         toast.error(res.message || 'Không thể hủy lịch hẹn');
       }
     } catch (err) {
-      console.error('Error cancelling appointment:', err);
       toast.error('Đã xảy ra lỗi khi hủy lịch hẹn');
     }
   };

@@ -41,7 +41,6 @@ export default function ClinicDetail() {
                 }
             }
         } catch (error) {
-            console.error('Error loading clinic data:', error);
         } finally {
             setLoading(false);
         }

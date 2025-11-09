@@ -104,7 +104,6 @@ export default function CreateAdminDialog({
         });
       }
     } catch (error: any) {
-      console.error("Error creating admin:", error);
       toast.error("Tạo tài khoản thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });

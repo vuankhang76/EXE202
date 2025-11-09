@@ -52,7 +52,6 @@ export function useDoctorSearch(tenantId: number) {
         setDoctors([]);
       }
     } catch (error) {
-      console.error('Error loading default doctors:', error);
       setDoctors([]);
     } finally {
       setIsLoading(false);
@@ -79,7 +78,6 @@ export function useDoctorSearch(tenantId: number) {
         setDoctors([]);
       }
     } catch (error) {
-      console.error('Error searching doctors:', error);
       setDoctors([]);
     } finally {
       setIsLoading(false);

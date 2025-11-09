@@ -80,7 +80,6 @@ export default function EditAdminDialog({
         });
       }
     } catch (error: any) {
-      console.error("Error updating admin:", error);
       toast.error("Cập nhật tài khoản thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });

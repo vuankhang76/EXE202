@@ -114,7 +114,6 @@ export default function Accounts() {
           );
         }
       } catch (error) {
-        console.error("Error loading users:", error);
         toast.error("Không thể tải danh sách tài khoản");
         dispatch(clearAccountData());
       } finally {
@@ -211,7 +210,6 @@ export default function Accounts() {
         });
       }
     } catch (error: any) {
-      console.error("Error creating doctor:", error);
       toast.error("Tạo tài khoản thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });
@@ -233,7 +231,6 @@ export default function Accounts() {
           setSelectedDoctorDetails(response.data);
         }
       } catch (error) {
-        console.error("Error loading doctor details:", error);
         toast.error("Không thể tải thông tin bác sĩ");
       } finally {
         setLoadingDoctorDetails(false);
@@ -256,7 +253,6 @@ export default function Accounts() {
           toast.error("Không thể tải thông tin bác sĩ");
         }
       } catch (error) {
-        console.error("Error loading doctor details:", error);
         toast.error("Không thể tải thông tin bác sĩ");
       } finally {
         setLoadingDoctorDetails(false);
@@ -304,7 +300,6 @@ export default function Accounts() {
         });
       }
     } catch (error: any) {
-      console.error("Error updating doctor:", error);
       toast.error("Cập nhật thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });
@@ -343,7 +338,6 @@ export default function Accounts() {
         }
       }
     } catch (error: any) {
-      console.error("Error toggling user active:", error);
       toast.error(`Không thể ${action} tài khoản`, {
         description: error.message || "Có lỗi xảy ra",
       });

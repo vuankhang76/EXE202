@@ -10,6 +10,7 @@ interface HomeState {
   weekendBookingSettings: Record<number, boolean>;
   lastUpdated: number | null;
   cacheExpiration: number;
+  isInitialLoad: boolean; // Track if initial data load has been triggered
 }
 
 const initialState: HomeState = {
@@ -20,6 +21,7 @@ const initialState: HomeState = {
   weekendBookingSettings: {},
   lastUpdated: null,
   cacheExpiration: 15 * 60 * 1000, // 15 minutes cache
+  isInitialLoad: false,
 };
 
 const homeSlice = createSlice({
@@ -28,6 +30,9 @@ const homeSlice = createSlice({
   reducers: {
     setClinicLoading(state, action: PayloadAction<boolean>) {
       state.clinicsLoading = action.payload;
+      if (action.payload) {
+        state.isInitialLoad = true;
+      }
     },
     setDoctorLoading(state, action: PayloadAction<boolean>) {
       state.doctorsLoading = action.payload;
@@ -53,6 +58,7 @@ const homeSlice = createSlice({
       state.doctors = [];
       state.weekendBookingSettings = {};
       state.lastUpdated = null;
+      state.isInitialLoad = false;
     },
     setCacheExpiration(state, action: PayloadAction<number>) {
       state.cacheExpiration = action.payload;

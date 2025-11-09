@@ -104,7 +104,6 @@ export default function Patients() {
           );
         }
       } catch (error) {
-        console.error("Error loading records:", error);
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
         dispatch(clearPatientData());
       } finally {

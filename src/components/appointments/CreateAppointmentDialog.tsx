@@ -99,7 +99,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
           
           await paymentTransactionService.createPaymentTransaction(paymentData);
         } catch (paymentError) {
-          console.error('Failed to create payment transaction:', paymentError);
 
         }
       }
@@ -346,7 +345,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         address: ''
       });
     } catch (error: any) {
-      console.error('Error registering patient:', error);
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký bệnh nhân');
     } finally {
       setIsRegistering(false);
@@ -372,7 +370,6 @@ export default function CreateAppointmentDialog({ onSuccess }: CreateAppointment
         setSlotDurationMinutes(configResponse.data.defaultSlotDurationMinutes);
       }
     } catch (error) {
-      console.error('Error loading services and settings:', error);
     } finally {
       setLoadingServices(false);
     }

@@ -67,7 +67,6 @@ export default function CreateTenantDialog({
             setUsers(admins);
           }
         } catch (error) {
-          console.error("Error loading users:", error);
         } finally {
           setLoadingUsers(false);
         }
@@ -112,7 +111,6 @@ export default function CreateTenantDialog({
         });
       }
     } catch (error: any) {
-      console.error("Error creating tenant:", error);
       toast.error("Tạo phòng khám thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });

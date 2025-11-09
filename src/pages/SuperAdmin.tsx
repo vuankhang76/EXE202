@@ -40,7 +40,6 @@ export default function SuperAdmin() {
         setTotalAdmins(usersResponse.data.totalCount || adminCount);
       }
     } catch (error) {
-      console.error("Error loading stats:", error);
       toast.error("Không thể tải thống kê");
     } finally {
       setLoading(false);

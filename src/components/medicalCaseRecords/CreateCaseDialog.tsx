@@ -76,7 +76,6 @@ export default function CreateCaseDialog({
         setAppointments(appointmentsRes.data.data || []);
       }
     } catch (error) {
-      console.error("Error loading data:", error);
     }
   };
 
@@ -127,7 +126,6 @@ export default function CreateCaseDialog({
         onSuccess?.();
       }
     } catch (error) {
-      console.error("Error creating case:", error);
       toast.error("Có lỗi xảy ra khi tạo ca bệnh");
     } finally {
       setLoading(false);

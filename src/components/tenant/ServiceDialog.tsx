@@ -127,7 +127,6 @@ export function ServiceDialog({
         }
       }
     } catch (error: any) {
-      console.error("Error saving service:", error);
       toast.error(error.response?.data?.message || "Có lỗi xảy ra");
     } finally {
       setSaving(false);

@@ -83,8 +83,8 @@ export default function Appointments() {
           searchTerm: filtersToUse.searchTerm || undefined,
           status: filtersToUse.statusFilter && filtersToUse.statusFilter !== 'all' ? filtersToUse.statusFilter : undefined,
           type: filtersToUse.typeFilter && filtersToUse.typeFilter !== 'all' ? filtersToUse.typeFilter : undefined,
-          fromDate: filtersToUse.fromDate || undefined,
-          toDate: filtersToUse.toDate || undefined,
+          fromDate: filtersToUse.fromDate ? `${filtersToUse.fromDate}T00:00:00+07:00` : undefined,
+          toDate: filtersToUse.toDate ? `${filtersToUse.toDate}T23:59:59+07:00` : undefined,
           tenantId,
         };
 
@@ -151,7 +151,6 @@ export default function Appointments() {
           );
         }
       } catch (error) {
-        console.error('Error loading appointments:', error);
         dispatch(clearAppointmentData());
       } finally {
         dispatch(setLoading(false));
@@ -195,7 +194,6 @@ export default function Appointments() {
       const statsData = await appointmentService.getAppointmentStats(tenantId);
       dispatch(setStats(statsData));
     } catch (error) {
-      console.error('Error loading stats:', error);
       dispatch(
         setStats({
           total: 0,
@@ -253,7 +251,6 @@ export default function Appointments() {
         loadAppointments(currentPage);
         loadStats();
       } catch (error) {
-        console.error('Error changing status:', error);
         toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
       }
     },
@@ -285,7 +282,6 @@ export default function Appointments() {
         toast.error('Không thể tải thông tin lịch hẹn');
       }
     } catch (error) {
-      console.error('Error loading appointment:', error);
       toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
     }
   }, []);
@@ -300,7 +296,6 @@ export default function Appointments() {
         toast.error('Không thể tải thông tin lịch hẹn');
       }
     } catch (error) {
-      console.error('Error loading appointment:', error);
       toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
     }
   }, []);

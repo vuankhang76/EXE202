@@ -46,7 +46,6 @@ export function ServiceManagementTab({ tenantId, canEdit }: ServiceManagementTab
         toast.error("Không thể tải danh sách dịch vụ");
       }
     } catch (error) {
-      console.error("Error loading services:", error);
       toast.error("Có lỗi xảy ra khi tải dịch vụ");
     } finally {
       dispatch(setLoadingServices(false));
@@ -81,7 +80,6 @@ export function ServiceManagementTab({ tenantId, canEdit }: ServiceManagementTab
         toast.error(response.message || "Không thể xóa dịch vụ");
       }
     } catch (error) {
-      console.error("Error deleting service:", error);
       toast.error("Có lỗi xảy ra khi xóa dịch vụ");
     } finally {
       setDeleting(false);

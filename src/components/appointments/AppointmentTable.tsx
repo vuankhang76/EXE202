@@ -173,7 +173,6 @@ export default function AppointmentTable({
           return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <CheckCircle className="h-4 w-4 text-green-500" /> }];
         case AppointmentStatus.CANCELLED:
           return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <XCircle className="h-4 w-4 text-red-500" /> }];
-        case AppointmentStatus.NO_SHOW:
         case AppointmentStatus.RESCHEDULED:
           return [{ value: currentStatus, label: getStatusLabel(currentStatus), icon: <AlertTriangle className="h-4 w-4 text-orange-500" /> }];
         default:
@@ -219,9 +218,10 @@ export default function AppointmentTable({
 
   const renderActionButtons = (appointment: AppointmentDto) => {
     const { appointmentId, status } = appointment;
-    const isEditDisabled = status === AppointmentStatus.COMPLETED ||
-      status === AppointmentStatus.CANCELLED ||
-      status === AppointmentStatus.NO_SHOW;
+    const isEditDisabled =
+      status === AppointmentStatus.COMPLETED ||
+      status === AppointmentStatus.CANCELLED;
+
     return (
       <div className="flex gap-1">
         <Button
