@@ -13,7 +13,7 @@ import {
 import { apiUtils } from '@/api/axios';
 
 class ConversationService {
-  private readonly baseUrl = '/conversations';
+  private readonly baseUrl = '/Conversations';
 
   // Create conversation
   async createConversation(data: CreateConversationDTO): Promise<ApiResponse<ConversationDTO>> {
@@ -27,7 +27,7 @@ class ConversationService {
     if (patientId) params.patientId = patientId;
     if (isClosed !== undefined) params.isClosed = isClosed;
 
-    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(this.baseUrl, { params });
+    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(this.baseUrl, params);
     return response.data;
   }
 
@@ -64,7 +64,7 @@ class ConversationService {
 
   // Get messages
   async getMessages(conversationId: number, query: MessageQueryDTO): Promise<ApiResponse<MessageListResponseDTO>> {
-    const response = await apiUtils.get<ApiResponse<MessageListResponseDTO>>(`${this.baseUrl}/${conversationId}/messages`, { params: query });
+    const response = await apiUtils.get<ApiResponse<MessageListResponseDTO>>(`${this.baseUrl}/${conversationId}/messages`, query);
     return response.data;
   }
 
@@ -80,24 +80,45 @@ class ConversationService {
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
-    const response = await apiUtils.get<ApiResponse<ChatStatsDTO>>(`${this.baseUrl}/stats`, { params });
+    const response = await apiUtils.get<ApiResponse<ChatStatsDTO>>(`${this.baseUrl}/stats`, params);
     return response.data;
   }
 
   // Patient APIs
+  // Create conversation with clinic (patient side)
+  async createPatientConversationWithClinic(patientId: number, tenantId: number): Promise<ApiResponse<ConversationDTO>> {
+    const response = await apiUtils.post<ApiResponse<ConversationDTO>>(
+      `${this.baseUrl}/patient/${patientId}/clinics/${tenantId}`,
+      {}
+    );
+    return response.data;
+  }
+
+  // Get patient conversation detail
+  async getPatientConversationDetail(patientId: number, conversationId: number): Promise<ApiResponse<ConversationDTO>> {
+    const response = await apiUtils.get<ApiResponse<ConversationDTO>>(
+      `${this.baseUrl}/patient/${patientId}/conversations/${conversationId}`
+    );
+    return response.data;
+  }
+
   // Send patient message
-  async sendPatientMessage(patientId: number, data: FormData): Promise<ApiResponse<MessageDTO>> {
-    const response = await apiUtils.post<ApiResponse<MessageDTO>>(`${this.baseUrl}/patient/${patientId}/messages`, data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+  async sendPatientMessage(patientId: number, conversationId: number, data: FormData): Promise<ApiResponse<MessageDTO>> {
+    const response = await apiUtils.post<ApiResponse<MessageDTO>>(
+      `${this.baseUrl}/patient/${patientId}/conversations/${conversationId}/messages`, 
+      data, 
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data;
   }
 
   // Get patient conversations
   async getPatientConversations(patientId: number): Promise<ApiResponse<ConversationListDTO[]>> {
-    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(`${this.baseUrl}/patient/${patientId}`);
+    const response = await apiUtils.get<ApiResponse<ConversationListDTO[]>>(`${this.baseUrl}/patient/${patientId}/conversations`);
     return response.data;
   }
 
@@ -109,7 +130,7 @@ class ConversationService {
   ): Promise<ApiResponse<MessageListResponseDTO>> {
     const response = await apiUtils.get<ApiResponse<MessageListResponseDTO>>(
       `${this.baseUrl}/patient/${patientId}/conversations/${conversationId}/messages`,
-      { params: query }
+      query
     );
     return response.data;
   }
@@ -126,14 +147,13 @@ class ConversationService {
     return formData;
   }
 
-  createPatientMessageFormData(conversationId: number, content?: string, attachment?: File): FormData {
+  createPatientMessageFormData(content?: string, attachment?: File): FormData {
     const formData = new FormData();
-    formData.append('conversationId', conversationId.toString());
     if (content) {
-      formData.append('content', content);
+      formData.append('Content', content);
     }
     if (attachment) {
-      formData.append('attachment', attachment);
+      formData.append('Attachment', attachment);
     }
     return formData;
   }

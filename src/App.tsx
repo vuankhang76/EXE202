@@ -12,9 +12,11 @@ const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/authenticate/Login'))
 const PatientAuth = lazy(() => import('./pages/authenticate/PatientAuth'))
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
-const PatientAppointments = lazy(() => import('./pages/patient/Appointments'))
 const CreateAppointment = lazy(() => import('./pages/patient/CreateAppointment'))
 const PaymentPage = lazy(() => import('./pages/patient/PaymentPage'))
+const PatientChat = lazy(() => import('./pages/patient/PatientChat'))
+const ClinicConversations = lazy(() => import('./pages/ClinicConversations'))
+const ClinicChat = lazy(() => import('./pages/ClinicChat'))
 const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
@@ -95,7 +97,7 @@ function App() {
             } />
             <Route path="/patient/appointments" element={
               <ProtectedRoute allowedUserTypes={['patient']}>
-                <PatientAppointments />
+                <PatientDashboard />
               </ProtectedRoute>
             } />
             <Route path="/patient/appointments/create" element={
@@ -106,6 +108,16 @@ function App() {
             <Route path="/patient/payment" element={
               <ProtectedRoute allowedUserTypes={['patient']}>
                 <PaymentPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/conversations" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/chat/:conversationId" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientChat />
               </ProtectedRoute>
             } />
 
@@ -142,6 +154,16 @@ function App() {
           <Route path="/clinic/consultations" element={
             <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
               <Consultations />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/conversations" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <ClinicConversations />
+            </ProtectedRoute>
+          } />
+          <Route path="/clinic/chat/:conversationId" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <ClinicChat />
             </ProtectedRoute>
           } />
           <Route path="/clinic/accounts" element={

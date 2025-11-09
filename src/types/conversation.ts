@@ -31,6 +31,7 @@ export interface ConversationListDTO {
   messageCount: number;
   unreadCount: number;
   patientName?: string;
+  tenantName?: string;
   lastMessagePreview?: string;
 }
 
@@ -42,17 +43,21 @@ export interface UpdateConversationStatusDTO {
 export interface MessageDTO extends BaseEntity {
   messageId: number;
   conversationId: number;
-  senderType: 'User' | 'Patient';
+  senderType?: 'User' | 'Patient';
   senderUserId?: number;
+  senderUserName?: string;
   senderPatientId?: number;
+  senderPatientName?: string;
   content?: string;
   attachmentUrl?: string;
   attachmentName?: string;
   attachmentSize?: number;
-  isRead: boolean;
+  isRead?: boolean;
   readAt?: string;
+  sentAt?: string;
+  isFromPatient?: boolean;
   // Additional info
-  senderName?: string;
+  senderName?: string; // For backward compatibility
 }
 
 export interface SendMessageDTO {

@@ -8,8 +8,10 @@ import ClinicIntroBooking from '@/components/clinic/ClinicIntroBooking';
 import DoctorList from '@/components/clinic/DoctorList';
 import ClinicDetailSkeleton from '@/components/clinic/ClinicDetailSkeleton';
 import tenantService from '@/services/tenantService';
+import conversationService from '@/services/conversationService';
 import type { TenantDto, DoctorDto } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function ClinicDetail() {
     const { id } = useParams<{ id: string }>();
@@ -19,6 +21,7 @@ export default function ClinicDetail() {
     const [clinic, setClinic] = useState<TenantDto | null>(null);
     const [doctors, setDoctors] = useState<DoctorDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [creatingChat, setCreatingChat] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -82,6 +85,47 @@ export default function ClinicDetail() {
         });
     };
 
+    const handleStartChat = async () => {
+        if (!currentUser || userType !== 'patient') {
+            navigate('/login', {
+                state: {
+                    from: `/clinics/${id}`,
+                    message: 'Vui lòng đăng nhập để chat với phòng khám'
+                }
+            });
+            return;
+        }
+
+        if (!id) return;
+
+        const patientIdNum = currentUser.userId ? parseInt(currentUser.userId) : null;
+        
+        if (!patientIdNum) {
+            toast.error('Không tìm thấy thông tin bệnh nhân. Vui lòng đăng nhập lại.');
+            return;
+        }
+
+        setCreatingChat(true);
+        try {
+            const response = await conversationService.createPatientConversationWithClinic(
+                patientIdNum,
+                parseInt(id)
+            );
+
+            if (response.success && response.data) {
+                toast.success('Đã tạo cuộc trò chuyện');
+                navigate(`/patient/chat/${response.data.conversationId}`);
+            } else {
+                toast.error(response.message || 'Không thể tạo cuộc trò chuyện');
+            }
+        } catch (error: any) {
+            console.error('Error creating chat:', error);
+            toast.error('Không thể tạo cuộc trò chuyện. Vui lòng thử lại.');
+        } finally {
+            setCreatingChat(false);
+        }
+    };
+
     if (loading) {
         return (
             <>
@@ -107,7 +151,12 @@ export default function ClinicDetail() {
         <div className="min-h-screen bg-gray-50">
             <Header />
             <ClinicHeader clinic={clinic} />
-            <ClinicIntroBooking clinic={clinic} onBookAppointment={handleBookAppointment} />
+            <ClinicIntroBooking 
+                clinic={clinic} 
+                onBookAppointment={handleBookAppointment}
+                onStartChat={handleStartChat}
+                creatingChat={creatingChat}
+            />
             <DoctorList doctors={doctors} />
             <Footer />
         </div>

@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
-import { Calendar, User, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Calendar, User, LogOut, MessageCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 import {
   DropdownMenu,
@@ -14,7 +14,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, userType, logout } = useAuth();
+  const isHomePage = location.pathname === '/';
 
   const handleLogout = async () => {
     await logout();
@@ -29,6 +31,10 @@ export default function Header() {
     navigate('/patient/dashboard');
   };
 
+  const handleNavigateToConversations = () => {
+    navigate('/patient/conversations');
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
@@ -40,18 +46,37 @@ export default function Header() {
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Tính năng
-            </Link>
-            <Link to="/#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Phòng khám
-            </Link>
-            <Link to="/#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Cách thức
-            </Link>
-            <Link to="/#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Về chúng tôi
-            </Link>
+            {isHomePage ? (
+              <>
+                <a href="#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Tính năng
+                </a>
+                <a href="#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Phòng khám
+                </a>
+                <a href="#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Cách thức
+                </a>
+                <a href="#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Về chúng tôi
+                </a>
+              </>
+            ) : (
+              <>
+                <Link to="/#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Tính năng
+                </Link>
+                <Link to="/#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Phòng khám
+                </Link>
+                <Link to="/#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Cách thức
+                </Link>
+                <Link to="/#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Về chúng tôi
+                </Link>
+              </>
+            )}
             
             {currentUser && userType === 'patient' ? (
               <DropdownMenu>
@@ -85,6 +110,17 @@ export default function Header() {
                   >
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleNavigateToConversations();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Hội thoại</span>
                   </button>
                   <DropdownMenuSeparator />
                   <button
@@ -142,6 +178,17 @@ export default function Header() {
                   >
                     <Calendar className="h-4 w-4" />
                     <span>Lịch hẹn</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleNavigateToConversations();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-gray-100 rounded-sm cursor-pointer text-left"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Hội thoại</span>
                   </button>
                   <DropdownMenuSeparator />
                   <button
