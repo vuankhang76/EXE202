@@ -72,6 +72,13 @@ class PatientService {
     } as PatientLoginDto);
     return response.data;
   }
+
+  // Search patients in tenant (for staff)
+  async searchPatientsInTenant(tenantId: number, searchTerm: string, limit: number = 10): Promise<ApiResponse<ClinicPatientDto[]>> {
+    const params: any = { searchTerm, limit };
+    const response = await apiUtils.get<ApiResponse<ClinicPatientDto[]>>(`/Tenants/${tenantId}/patients/search`, params);
+    return response.data;
+  }
 }
 
 export default new PatientService();

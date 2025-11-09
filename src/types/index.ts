@@ -1,7 +1,7 @@
 // Export all types from their respective modules
 export * from './common';
 export * from './auth';
-export * from './appointment'
+export * from './appointment';
 export * from './patient';
 export * from './patientAccount';
 export * from './user';

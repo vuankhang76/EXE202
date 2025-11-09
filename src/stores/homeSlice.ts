@@ -48,6 +48,21 @@ const homeSlice = createSlice({
     setWeekendBookingSettings(state, action: PayloadAction<Record<number, boolean>>) {
       state.weekendBookingSettings = action.payload;
     },
+    setDoctors(state, action: PayloadAction<DoctorDto[]>) {
+      state.doctors = action.payload;
+      state.lastUpdated = Date.now();
+    },
+    setClinicsAndSettings(
+      state,
+      action: PayloadAction<{
+        clinics: TenantDto[];
+        weekendBookingSettings: Record<number, boolean>;
+      }>
+    ) {
+      state.clinics = action.payload.clinics;
+      state.weekendBookingSettings = action.payload.weekendBookingSettings;
+      state.lastUpdated = Date.now();
+    },
     clearHomeData(state) {
       state.clinics = [];
       state.doctors = [];
@@ -65,6 +80,8 @@ export const {
   setDoctorLoading,
   setHomeData,
   setWeekendBookingSettings,
+  setDoctors,
+  setClinicsAndSettings,
   clearHomeData,
   setCacheExpiration,
 } = homeSlice.actions;

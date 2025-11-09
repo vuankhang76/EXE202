@@ -1,4 +1,4 @@
-import { Phone, ChevronRight } from 'lucide-react';
+import { Phone, ChevronRight, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { TenantDto } from '@/types';
 import { formatPhoneNumber } from '@/utils/formatPhone';
@@ -6,9 +6,11 @@ import { formatPhoneNumber } from '@/utils/formatPhone';
 interface ClinicIntroBookingProps {
   clinic: TenantDto;
   onBookAppointment: () => void;
+  onStartChat?: () => void;
+  creatingChat?: boolean;
 }
 
-export default function ClinicIntroBooking({ clinic, onBookAppointment }: ClinicIntroBookingProps) {
+export default function ClinicIntroBooking({ clinic, onBookAppointment, onStartChat, creatingChat }: ClinicIntroBookingProps) {
   return (
     <section className="py-12 bg-gray-50">
       <div className="grid grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto gap-8">
@@ -33,7 +35,7 @@ export default function ClinicIntroBooking({ clinic, onBookAppointment }: Clinic
               Đặt lịch hẹn với bác sĩ chuyên khoa tại {clinic.name} ngay hôm nay. 
               Chúng tôi luôn sẵn sàng chăm sóc sức khỏe của bạn.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="grid sm:flex-row gap-4 justify-center">
               <Button
                 onClick={onBookAppointment}
                 className="bg-red-500 hover:bg-red-600 text-white px-8"
@@ -42,6 +44,18 @@ export default function ClinicIntroBooking({ clinic, onBookAppointment }: Clinic
                 Đặt lịch khám ngay
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Button>
+              {onStartChat && (
+                <Button
+                  onClick={onStartChat}
+                  variant="outline"
+                  size="lg"
+                  className="px-8 border-blue-500 text-blue-500 hover:bg-blue-50"
+                  disabled={creatingChat}
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  {creatingChat ? 'Đang tạo...' : 'Chat với phòng khám'}
+                </Button>
+              )}
               {clinic.phone && (
                 <Button
                   variant="outline"
