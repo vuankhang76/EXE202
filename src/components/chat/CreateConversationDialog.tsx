@@ -4,9 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import patientService from '@/services/patientService';
 import conversationService from '@/services/conversationService';
 import type { ClinicPatientDto } from '@/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Search, MessageCircle, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -50,7 +50,7 @@ export default function CreateConversationDialog({ open, onOpenChange }: CreateC
     }
   };
 
-  const handleCreateConversation = async (patientId: number) => {
+  const handleCreateConversation = async (patientId: number, patientName: string) => {
     if (!tenantId) {
       toast.error('Thiếu thông tin clinic');
       return;
@@ -58,7 +58,10 @@ export default function CreateConversationDialog({ open, onOpenChange }: CreateC
 
     setCreating(true);
     try {
-      const response = await conversationService.createConversation({ patientId });
+      const response = await conversationService.createConversation({ 
+        patientId,
+        title: `Tư vấn với ${patientName}`
+      });
 
       if (response.success && response.data) {
         toast.success('Đã tạo cuộc trò chuyện');
@@ -124,7 +127,7 @@ export default function CreateConversationDialog({ open, onOpenChange }: CreateC
               <div className="divide-y">
                 {patients.map((patient) => (
                   <div
-                    key={patient.clinicPatientId}
+                    key={patient.patientId}
                     className="flex items-center justify-between p-4 hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-3">
@@ -133,10 +136,10 @@ export default function CreateConversationDialog({ open, onOpenChange }: CreateC
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-900">
-                          {patient.patientName || 'Chưa có tên'}
+                          {patient.fullName || 'Chưa có tên'}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          {patient.phoneNumber || 'Chưa có SĐT'}
+                          {patient.primaryPhoneE164 || 'Chưa có SĐT'}
                         </p>
                         {patient.dateOfBirth && (
                           <p className="text-xs text-gray-500">
@@ -147,7 +150,7 @@ export default function CreateConversationDialog({ open, onOpenChange }: CreateC
                     </div>
                     <Button
                       size="sm"
-                      onClick={() => handleCreateConversation(patient.patientId)}
+                      onClick={() => handleCreateConversation(patient.patientId, patient.fullName || 'Bệnh nhân')}
                       disabled={creating}
                     >
                       {creating ? (

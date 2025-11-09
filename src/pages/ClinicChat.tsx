@@ -5,7 +5,7 @@ import conversationService from '@/services/conversationService';
 import type { ConversationDTO, MessageDTO } from '@/types/conversation';
 import MessageList from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { ArrowLeft, MessageCircle, Loader2, XCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -44,7 +44,7 @@ export default function ClinicChat() {
       // Load messages
       const messagesResponse = await conversationService.getMessages(
         parseInt(conversationId),
-        { page: 1, pageSize: 20 }
+        { pageNumber: 1, pageSize: 20 }
       );
 
       if (messagesResponse.success && messagesResponse.data) {
@@ -73,7 +73,7 @@ export default function ClinicChat() {
       const nextPage = page + 1;
       const messagesResponse = await conversationService.getMessages(
         parseInt(conversationId),
-        { page: nextPage, pageSize: 20 }
+        { pageNumber: nextPage, pageSize: 20 }
       );
 
       if (messagesResponse.success && messagesResponse.data) {

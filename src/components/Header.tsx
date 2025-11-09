@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, User, LogOut, MessageCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 import {
@@ -14,7 +14,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, userType, logout } = useAuth();
+  const isHomePage = location.pathname === '/';
 
   const handleLogout = async () => {
     await logout();
@@ -44,18 +46,37 @@ export default function Header() {
             </span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Tính năng
-            </Link>
-            <Link to="/#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Phòng khám
-            </Link>
-            <Link to="/#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Cách thức
-            </Link>
-            <Link to="/#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
-              Về chúng tôi
-            </Link>
+            {isHomePage ? (
+              <>
+                <a href="#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Tính năng
+                </a>
+                <a href="#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Phòng khám
+                </a>
+                <a href="#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Cách thức
+                </a>
+                <a href="#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Về chúng tôi
+                </a>
+              </>
+            ) : (
+              <>
+                <Link to="/#features" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Tính năng
+                </Link>
+                <Link to="/#clinics" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Phòng khám
+                </Link>
+                <Link to="/#how-it-works" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Cách thức
+                </Link>
+                <Link to="/#about" className="text-gray-600 hover:text-red-500 transition-colors font-medium">
+                  Về chúng tôi
+                </Link>
+              </>
+            )}
             
             {currentUser && userType === 'patient' ? (
               <DropdownMenu>

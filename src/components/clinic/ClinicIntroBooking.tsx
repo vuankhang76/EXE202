@@ -35,7 +35,7 @@ export default function ClinicIntroBooking({ clinic, onBookAppointment, onStartC
               Đặt lịch hẹn với bác sĩ chuyên khoa tại {clinic.name} ngay hôm nay. 
               Chúng tôi luôn sẵn sàng chăm sóc sức khỏe của bạn.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="grid sm:flex-row gap-4 justify-center">
               <Button
                 onClick={onBookAppointment}
                 className="bg-red-500 hover:bg-red-600 text-white px-8"

@@ -1,6 +1,7 @@
-import { useState, useRef, FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import type { FormEvent } from 'react';
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
 import { Send, Paperclip, X } from 'lucide-react';
 import { toast } from 'sonner';
 

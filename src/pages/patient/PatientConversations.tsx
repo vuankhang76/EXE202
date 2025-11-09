@@ -6,7 +6,7 @@ import type { ConversationListDTO } from '@/types/conversation';
 import ConversationListItem from '@/components/chat/ConversationListItem';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { MessageCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 

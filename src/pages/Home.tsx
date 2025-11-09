@@ -7,7 +7,7 @@ import { tenantSettingService } from '@/services/tenantSettingService';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Footer from '@/components/Footer';
-import HomeHeader from '@/components/home/HomeHeader';
+import Header from '@/components/Header';
 import HeroSection from '@/components/home/HeroSection';
 import FeaturesSection from '@/components/home/FeaturesSection';
 import HowItWorksSection from '@/components/home/HowItWorksSection';
@@ -22,7 +22,8 @@ import {
 import {
   setClinicLoading,
   setDoctorLoading,
-  setHomeData,
+  setDoctors,
+  setClinicsAndSettings,
 } from '@/stores/homeSlice';
 
 // Skeleton components
@@ -103,9 +104,8 @@ export default function Home() {
           return acc;
         }, {} as Record<number, boolean>);
         
-        dispatch(setHomeData({
+        dispatch(setClinicsAndSettings({
           clinics: clinicsList,
-          doctors,
           weekendBookingSettings: settingsMap,
         }));
       }
@@ -114,7 +114,7 @@ export default function Home() {
     } finally {
       dispatch(setClinicLoading(false));
     }
-  }, [dispatch, doctors]);
+  }, [dispatch]);
 
   const loadDoctors = useCallback(async () => {
     dispatch(setDoctorLoading(true));
@@ -138,18 +138,15 @@ export default function Home() {
         
         const verifiedDoctors = allDoctors.filter(doctor => doctor.isVerified === true);
         
-        dispatch(setHomeData({
-          clinics,
-          doctors: verifiedDoctors,
-          weekendBookingSettings,
-        }));
+        // Use setDoctors action to update only doctors
+        dispatch(setDoctors(verifiedDoctors));
       }
     } catch (error) {
       console.error('Error loading doctors:', error);
     } finally {
       dispatch(setDoctorLoading(false));
     }
-  }, [dispatch, clinics, weekendBookingSettings]);
+  }, [dispatch]);
 
   useEffect(() => {
     // Check if we have valid cached data
@@ -190,7 +187,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <HomeHeader />
+      <Header />
       <main className="flex-grow">
         <HeroSection />
         <FeaturesSection />

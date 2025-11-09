@@ -7,7 +7,7 @@ import MessageList from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { ArrowLeft, MessageCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -60,7 +60,7 @@ export default function PatientChat() {
       const messagesResponse = await conversationService.getPatientMessages(
         patientId,
         parseInt(conversationId),
-        { page: 1, pageSize: 20 }
+        { pageNumber: 1, pageSize: 20 }
       );
 
       if (messagesResponse.success && messagesResponse.data) {
@@ -103,7 +103,7 @@ export default function PatientChat() {
       const messagesResponse = await conversationService.getPatientMessages(
         patientId,
         parseInt(conversationId),
-        { page: nextPage, pageSize: 20 }
+        { pageNumber: nextPage, pageSize: 20 }
       );
 
       if (messagesResponse.success && messagesResponse.data) {

@@ -11,7 +11,6 @@ import tenantService from '@/services/tenantService';
 import conversationService from '@/services/conversationService';
 import type { TenantDto, DoctorDto } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClinicDetail() {

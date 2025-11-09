@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import AdminLayout from "@/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { MessageCircle, Video, Phone, ArrowRight, Loader2 } from "lucide-react"
 import conversationService from "@/services/conversationService"
 import type { ConversationListDTO } from "@/types/conversation"
@@ -14,7 +14,7 @@ export default function Consultations() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalMessages: 0,
-    unreadMessages: 0,
+    activeConversations: 0,
     totalConversations: 0,
     closedConversations: 0,
   })
@@ -75,14 +75,14 @@ export default function Consultations() {
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/clinic/conversations')}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Tin nhắn mới
+                  Đang hoạt động
                 </CardTitle>
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.unreadMessages}</div>
+                <div className="text-2xl font-bold">{stats.activeConversations}</div>
                 <p className="text-xs text-muted-foreground">
-                  Tin nhắn chưa đọc
+                  Cuộc trò chuyện đang hoạt động
                 </p>
               </CardContent>
             </Card>
