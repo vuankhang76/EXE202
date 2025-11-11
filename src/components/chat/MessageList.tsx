@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import type { MessageDTO } from '@/types/conversation';
 import MessageBubble from './MessageBubble';
 import { Loader2 } from 'lucide-react';
@@ -20,18 +20,7 @@ export default function MessageList({
   hasMore,
   onLoadMore,
 }: MessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleScroll = () => {
     if (!messagesContainerRef.current || !hasMore || loading) return;
@@ -44,14 +33,11 @@ export default function MessageList({
 
   const isOwnMessage = (message: MessageDTO) => {
     if (currentUserType === 'Patient') {
-      // Check using isFromPatient flag from backend
       if (message.isFromPatient !== undefined) {
         return message.isFromPatient;
       }
-      // Fallback to old logic
       return message.senderType === 'Patient' && message.senderPatientId === currentUserId;
     } else {
-      // For staff/user
       if (message.isFromPatient !== undefined) {
         return !message.isFromPatient;
       }
@@ -82,7 +68,7 @@ export default function MessageList({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 space-y-2"
+      className="message-list-container flex-1 overflow-y-auto p-4 space-y-2"
     >
       {hasMore && (
         <div className="flex justify-center py-2">
@@ -106,7 +92,6 @@ export default function MessageList({
           isOwn={isOwnMessage(message)}
         />
       ))}
-      <div ref={messagesEndRef} />
     </div>
   );
 }

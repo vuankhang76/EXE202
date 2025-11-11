@@ -12,9 +12,11 @@ export interface AppointmentDto {
   doctorSpecialty?: string;
   doctorLicenseNumber?: string;
   doctorPhone?: string;
+  doctorAvatarUrl?: string;
   
   tenantId: number;
   tenantName?: string;
+  tenantLogoUrl?: string;
   
   startAt: string;
   endAt: string;

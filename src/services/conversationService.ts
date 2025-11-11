@@ -74,6 +74,12 @@ class ConversationService {
     return response.data;
   }
 
+  // Mark messages as read
+  async markMessagesAsRead(conversationId: number): Promise<ApiResponse<boolean>> {
+    const response = await apiUtils.put<ApiResponse<boolean>>(`${this.baseUrl}/${conversationId}/messages/mark-read`, {});
+    return response.data;
+  }
+
   // Get chat stats
   async getChatStats(fromDate?: string, toDate?: string): Promise<ApiResponse<ChatStatsDTO>> {
     const params: any = {};

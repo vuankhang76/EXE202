@@ -115,6 +115,11 @@ function App() {
                 <PatientDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/patient/profile" element={
+              <ProtectedRoute allowedUserTypes={['patient']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/patient/chat/:conversationId" element={
               <ProtectedRoute allowedUserTypes={['patient']}>
                 <PatientChat />

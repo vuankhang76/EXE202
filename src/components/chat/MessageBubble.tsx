@@ -86,12 +86,12 @@ export default function MessageBubble({ message, isOwn }: MessageBubbleProps) {
 
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-[70%] ${isOwn ? 'order-2' : 'order-1'}`}>
+      <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>
         {!isOwn && (
           <div className="text-xs text-gray-600 mb-1 px-1">{getSenderName()}</div>
         )}
         <div
-          className={`rounded-2xl px-4 py-2 ${
+          className={`rounded-2xl px-4 py-2 inline-block ${
             isOwn
               ? 'bg-blue-500 text-white rounded-br-sm'
               : 'bg-gray-200 text-gray-800 rounded-bl-sm'
@@ -100,7 +100,7 @@ export default function MessageBubble({ message, isOwn }: MessageBubbleProps) {
           {message.content && <p className="whitespace-pre-wrap break-words">{message.content}</p>}
           {renderAttachment()}
         </div>
-        <div className={`text-xs text-gray-500 mt-1 px-1 ${isOwn ? 'text-right' : 'text-left'}`}>
+        <div className={`text-xs text-gray-500 mt-1 px-1`}>
           {formatTime(getTimeStamp())}
         </div>
       </div>

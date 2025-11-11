@@ -38,26 +38,33 @@ export default function AppointmentFilters({
   onSearch,
   onAdvancedFilters
 }: AppointmentFiltersProps) {
-  // Convert string to Date for display
   const fromDateObj = fromDate ? new Date(fromDate) : undefined;
   const toDateObj = toDate ? new Date(toDate) : undefined;
 
   const handleFromDateChange = (date: Date | undefined) => {
-    if (date && toDateObj && date > toDateObj) {
-      toast.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
-      return;
+    if (date && toDateObj) {
+      const fromDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const toDateOnly = new Date(toDateObj.getFullYear(), toDateObj.getMonth(), toDateObj.getDate());
+      
+      if (fromDateOnly > toDateOnly) {
+        toast.error("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
+        return;
+      }
     }
-    // Format as YYYY-MM-DD to avoid timezone issues
     const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
     onFromDateChange(dateString);
   };
 
   const handleToDateChange = (date: Date | undefined) => {
-    if (date && fromDateObj && date < fromDateObj) {
-      toast.error("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu");
-      return;
+    if (date && fromDateObj) {
+      const toDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const fromDateOnly = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), fromDateObj.getDate());
+      
+      if (toDateOnly < fromDateOnly) {
+        toast.error("Ngày kết thúc không thể nhỏ hơn ngày bắt đầu");
+        return;
+      }
     }
-    // Format as YYYY-MM-DD to avoid timezone issues
     const dateString = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : undefined;
     onToDateChange(dateString);
   };

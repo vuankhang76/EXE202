@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Stethoscope } from 'lucide-react';
 import type { TenantDto } from '@/types';
 import tenantService from '@/services/tenantService';
+import doctorService from '@/services/doctorService';
 import { tenantSettingService } from '@/services/tenantSettingService';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +22,9 @@ import {
 } from '@/stores/hooks';
 import {
   setClinicLoading,
+  setDoctorLoading,
   setClinicsAndSettings,
+  setDoctors,
 } from '@/stores/homeSlice';
 
 // Skeleton components
@@ -91,7 +94,10 @@ export default function Home() {
     
     // Set loading states
     dispatch(setClinicLoading(true));
+    dispatch(setDoctorLoading(true));
+    
     try {
+      // Load clinics
       const response = await tenantService.getTenants(1, 20);
       if (response.success && response.data) {
         const clinicsList = response.data.data || [];
@@ -124,6 +130,19 @@ export default function Home() {
       console.error('Error loading clinics:', error);
     } finally {
       dispatch(setClinicLoading(false));
+    }
+
+    try {
+      // Load doctors
+      const doctorsResponse = await doctorService.getAllDoctors(1, 20);
+      if (doctorsResponse.success && doctorsResponse.data) {
+        dispatch(setDoctors(doctorsResponse.data.data || []));
+      }
+    } catch (error) {
+      console.error('Error loading doctors:', error);
+    } finally {
+      dispatch(setDoctorLoading(false));
+      isLoadingRef.current = false;
     }
   }, [dispatch]);
 

@@ -101,14 +101,13 @@ const appointmentSlice = createSlice({
       state,
       action: PayloadAction<{
         appointments: AppointmentDto[];
-        stats: AppointmentStats;
         totalPages: number;
         totalCount: number;
         currentPage: number;
       }>
     ) {
       state.appointments = action.payload.appointments;
-      state.stats = action.payload.stats;
+      // Don't overwrite stats here - stats should be updated separately via setStats
       state.totalPages = action.payload.totalPages;
       state.totalCount = action.payload.totalCount;
       state.currentPage = action.payload.currentPage;
