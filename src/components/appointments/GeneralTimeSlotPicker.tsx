@@ -97,7 +97,6 @@ export default function GeneralTimeSlotPicker({
     const startISO = `${dateStr}T${slot.time}:00`;
     const endISO = `${dateStr}T${slot.endTime}:00`;
     
-    console.log('Selected slot:', { dateStr, startISO, endISO });
     onTimeSlotSelect(startISO, endISO);
   };
 

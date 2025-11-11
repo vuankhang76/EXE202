@@ -46,7 +46,6 @@ export function isTimeWithinRange(
 
     return startValid && endValid;
   } catch (error) {
-    console.error('Error validating time range:', error);
     return false;
   }
 }

@@ -5,7 +5,6 @@ export default function PatientAppointments() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to dashboard
     navigate('/patient/dashboard');
   }, [navigate]);
 

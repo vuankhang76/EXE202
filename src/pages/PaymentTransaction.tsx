@@ -85,16 +85,9 @@ export default function PaymentTransaction() {
             filtersToUse.method && filtersToUse.method !== "all"
               ? filtersToUse.method
               : undefined,
-          fromDate: filtersToUse.fromDate
-            ? filtersToUse.fromDate instanceof Date
-              ? filtersToUse.fromDate.toISOString()
-              : filtersToUse.fromDate
-            : undefined,
-          toDate: filtersToUse.toDate
-            ? filtersToUse.toDate instanceof Date
-              ? filtersToUse.toDate.toISOString()
-              : filtersToUse.toDate
-            : undefined,
+          fromDate: filtersToUse.fromDate ? `${filtersToUse.fromDate}T00:00:00+07:00` : undefined,
+          toDate: filtersToUse.toDate ? `${filtersToUse.toDate}T23:59:59+07:00` : undefined,
+          searchTerm: filtersToUse.searchTerm || undefined,
         };
 
         const [paymentsResult, statsResult] = await Promise.all([
@@ -125,7 +118,6 @@ export default function PaymentTransaction() {
           );
         }
       } catch (error) {
-        console.error("Error loading data:", error);
         toast.error("Có lỗi xảy ra khi tải dữ liệu");
         dispatch(clearPaymentData());
       } finally {

@@ -6,17 +6,9 @@ export interface PatientDto extends BaseEntity {
   dateOfBirth?: string;
   gender?: string;
   primaryPhoneE164: string;
-  secondaryPhoneE164?: string;
   email?: string;
   address?: string;
-  emergencyContact?: string;
   emergencyPhoneE164?: string;
-  bloodType?: string;
-  allergies?: string;
-  medicalHistory?: string;
-  currentMedications?: string;
-  insuranceInfo?: string;
-  preferredLanguage?: string;
   isActive: boolean;
 }
 
@@ -28,13 +20,7 @@ export interface PatientRegistrationDto {
   secondaryPhoneE164?: string;
   email?: string;
   address?: string;
-  emergencyContact?: string;
   emergencyPhoneE164?: string;
-  bloodType?: string;
-  allergies?: string;
-  medicalHistory?: string;
-  currentMedications?: string;
-  insuranceInfo?: string;
   preferredLanguage?: string;
 }
 
@@ -42,17 +28,9 @@ export interface PatientUpdateDto {
   fullName?: string;
   dateOfBirth?: string;
   gender?: string;
-  secondaryPhoneE164?: string;
   email?: string;
   address?: string;
-  emergencyContact?: string;
   emergencyPhoneE164?: string;
-  bloodType?: string;
-  allergies?: string;
-  medicalHistory?: string;
-  currentMedications?: string;
-  insuranceInfo?: string;
-  preferredLanguage?: string;
 }
 
 export interface PatientLoginDto {

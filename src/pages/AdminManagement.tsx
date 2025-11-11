@@ -53,7 +53,6 @@ export default function AdminManagement() {
         setAdminTotalCount(0);
       }
     } catch (error) {
-      console.error("Error loading admins:", error);
       toast.error("Không thể tải danh sách admin");
       setAdmins([]);
     } finally {
@@ -68,7 +67,6 @@ export default function AdminManagement() {
         setTenants(response.data.data || []);
       }
     } catch (error) {
-      console.error("Error loading tenants:", error);
     }
   };
 

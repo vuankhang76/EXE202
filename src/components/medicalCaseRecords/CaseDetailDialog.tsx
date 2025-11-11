@@ -115,7 +115,6 @@ export default function CaseDetailDialog({
         });
       }
     } catch (error) {
-      console.error("Error loading case detail:", error);
       toast.error("Có lỗi xảy ra khi tải chi tiết");
     } finally {
       setLoading(false);

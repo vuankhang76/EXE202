@@ -12,9 +12,11 @@ export interface AppointmentDto {
   doctorSpecialty?: string;
   doctorLicenseNumber?: string;
   doctorPhone?: string;
+  doctorAvatarUrl?: string;
   
   tenantId: number;
   tenantName?: string;
+  tenantLogoUrl?: string;
   
   startAt: string;
   endAt: string;
@@ -85,7 +87,6 @@ export const AppointmentStatus = {
   IN_PROGRESS: 'InProgress',
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
-  NO_SHOW: 'NoShow',
   RESCHEDULED: 'Rescheduled'
 } as const;
 
@@ -113,8 +114,6 @@ export const getStatusColor = (status: string): string => {
       return 'bg-gray-100 text-gray-800';
     case AppointmentStatus.CANCELLED:
       return 'bg-red-100 text-red-800';
-    case AppointmentStatus.NO_SHOW:
-      return 'bg-orange-100 text-orange-800';
     case AppointmentStatus.RESCHEDULED:
       return 'bg-purple-100 text-purple-800';
     default:
@@ -136,8 +135,6 @@ export const getStatusLabel = (status: string): string => {
       return 'Hoàn thành';
     case AppointmentStatus.CANCELLED:
       return 'Đã hủy';
-    case AppointmentStatus.NO_SHOW:
-      return 'Không đến';
     case AppointmentStatus.RESCHEDULED:
       return 'Đã hoãn';
     default:

@@ -218,7 +218,6 @@ class AppointmentService {
         cancelled: appointments.filter(a => a.status === 'Cancelled').length,
       };
     } catch (error) {
-      console.error('Error getting appointment stats:', error);
       return { total: 0, pending: 0, confirmed: 0, inProgress: 0, completed: 0, cancelled: 0 };
     }
   }

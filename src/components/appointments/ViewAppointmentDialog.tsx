@@ -148,7 +148,6 @@ export default function ViewAppointmentDialog({
                                     <User className="h-5 w-5 text-blue-600" />
                                     <h3 className="font-semibold text-lg text-blue-900">Thông tin bệnh nhân</h3>
                                 </div>
-
                                 <div className="space-y-3">
                                     <div>
                                         <Label className="text-xs text-muted-foreground">Họ và tên</Label>

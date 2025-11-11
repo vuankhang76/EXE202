@@ -1,4 +1,4 @@
-import { Calendar, Clock, Shield, Stethoscope, Activity, Heart, Award } from 'lucide-react';
+import { Calendar, Clock, Shield, Stethoscope, Heart, Award } from 'lucide-react';
 import { Card, CardContent } from '../ui/Card';
 
 const features = [
@@ -21,11 +21,6 @@ const features = [
     icon: Shield,
     title: 'Bảo mật thông tin',
     description: 'Thông tin sức khỏe của bạn được bảo vệ an toàn tuyệt đối'
-  },
-  {
-    icon: Activity,
-    title: 'Theo dõi sức khỏe',
-    description: 'Quản lý hồ sơ sức khỏe, đơn thuốc và kết quả xét nghiệm tập trung'
   },
   {
     icon: Heart,

@@ -43,7 +43,6 @@ export function usePatientSearch(tenantId: number) {
         setPatients([]);
       }
     } catch (error) {
-      console.error('Error searching patients:', error);
       setPatients([]);
     } finally {
       setIsLoading(false);

@@ -36,21 +36,16 @@ export default function Dashboard() {
   const loading = useDashboardLoading();
 
   useEffect(() => {
-    // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
-      // Use cached data, no need to reload
       return;
     }
 
-    // Load fresh data if cache is invalid or expired
     loadDashboardData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdated, cacheExpiration]);
 
   const loadDashboardData = async () => {
     dispatch(setLoading(true));
     try {
-      // Load all data in parallel for faster loading
       const [overviewResult, ordersResult, analyticsResult] = await Promise.all([
         dashboardService.getDashboardOverview(),
         dashboardService.getRecentOrders(10),
@@ -60,24 +55,6 @@ export default function Dashboard() {
       const overviewData = overviewResult.success ? overviewResult.data : null;
       const ordersData = ordersResult.success ? ordersResult.data : [];
       const analyticsData = analyticsResult.success ? analyticsResult.data : null;
-      
-      // Development logging only
-      if (import.meta.env.DEV) {
-        console.log('📊 Dashboard Overview Data:', overviewData);
-        console.log('🔍 Keys in overview:', overviewData ? Object.keys(overviewData) : []);
-        console.log('📅 revenueByDay:', overviewData?.revenueByDay);
-        console.log('🏥 serviceRevenue:', overviewData?.serviceRevenue);
-        console.log('👨‍⚕️ consultationsByDay:', overviewData?.consultationsByDay);
-      }
-
-      if (analyticsData) {
-        if (import.meta.env.DEV) {
-          console.log('📈 Revenue Analytics:', analyticsData);
-          console.log('🔍 revenueByMonth entries:', Object.keys(analyticsData.revenueByMonth || {}).length);
-          console.log('🔍 topServices entries:', Object.keys(analyticsData.topServices || {}).length);
-          console.log('🔍 serviceRevenueDistribution entries:', Object.keys(analyticsData.serviceRevenueDistribution || {}).length);
-        }
-      }
 
       dispatch(setDashboardData({
         overview: overviewData ?? null,
@@ -89,7 +66,6 @@ export default function Dashboard() {
         toast.error('Không thể tải đầy đủ dữ liệu dashboard');
       }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
       toast.error('Không thể tải dữ liệu dashboard');
       dispatch(clearDashboardData());
     } finally {
@@ -125,72 +101,48 @@ export default function Dashboard() {
       }));
   }, [revenueAnalytics?.serviceRevenueDistribution]);
 
-  // Data for Interactive Area Chart - Revenue trends with date
   const getRevenueInteractiveData = useMemo(() => {
-    // Try to use daily data first from overview (preferred for time-based chart)
     if (overview?.revenueByDay && Object.keys(overview.revenueByDay).length > 0) {
       const entries = Object.entries(overview.revenueByDay);
       
-      // Fill missing dates with 0 revenue for continuous chart
       const revenueMap = new Map(entries.map(([day, revenue]) => [day, revenue]));
       
-      // Find date range from fromDate to toDate (default last 90 days)
       const toDate = overview.toDate ? new Date(overview.toDate) : new Date();
       const fromDate = overview.fromDate ? new Date(overview.fromDate) : new Date(toDate.getTime() - 90 * 24 * 60 * 60 * 1000);
       
-      // Generate all dates in range
       const result = [];
       const currentDate = new Date(fromDate);
       
       while (currentDate <= toDate) {
-        const dateStr = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+        const dateStr = currentDate.toISOString().split('T')[0];
         result.push({
           date: dateStr,
-          revenue: revenueMap.get(dateStr) || 0, // Use 0 if no revenue that day
+          revenue: revenueMap.get(dateStr) || 0,
         });
         currentDate.setDate(currentDate.getDate() + 1);
-      }
-      
-      if (import.meta.env.DEV) {
-        console.log("💰 Revenue Interactive Data (daily):", result);
-        console.log("💰 Total days:", result.length);
-        console.log("💰 First item detail:", result[0]);
-        console.log("💰 Last item detail:", result[result.length - 1]);
-        console.log("💰 Days with revenue:", entries.length);
       }
       return result;
     }
     
-    // Fallback to monthly data if daily data not available
     if (!revenueAnalytics?.revenueByMonth) {
-      if (import.meta.env.DEV) console.log("⚠️ No revenueByMonth in analytics and no revenueByDay in overview");
       return [];
     }
     const entries = Object.entries(revenueAnalytics.revenueByMonth);
     
     if (entries.length === 0) {
-      if (import.meta.env.DEV) console.log("⚠️ revenueByMonth is empty - no completed appointments with services found");
       return [];
     }
     
-    // Month format from backend is "YYYY-MM" (e.g., "2025-10")
     const result = entries.map(([month, revenue]) => ({
-      date: `${month}-01`, // Append "-01" to make it a valid date: "2025-10-01"
+      date: `${month}-01`,
       revenue,
     }));
-    
-    if (import.meta.env.DEV) {
-      console.log("💰 Revenue Interactive Data (monthly):", result);
-      console.log("💰 First item detail:", result[0]);
-      console.log("💰 Date value:", result[0]?.date);
-      console.log("💰 Revenue value:", result[0]?.revenue);
-    }
+
     return result;
   }, [overview?.revenueByDay, revenueAnalytics?.revenueByMonth]);
 
   const getServiceRevenuePieData = useMemo(() => {
     if (!revenueAnalytics?.serviceRevenueDistribution) {
-      if (import.meta.env.DEV) console.log('⚠️ No serviceRevenueDistribution in analytics');
       return [];
     }
     const data = Object.entries(revenueAnalytics.serviceRevenueDistribution)
@@ -199,7 +151,6 @@ export default function Dashboard() {
         name: service,
         value: revenue,
       }));
-    if (import.meta.env.DEV) console.log('🥧 Pie Chart Data:', data);
     return data;
   }, [revenueAnalytics?.serviceRevenueDistribution]);
 
@@ -266,7 +217,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Interactive Bar Chart - Doanh thu theo ngày với filter */}
         <InteractiveBarChart
           title="Xu hướng doanh thu"
           description="Theo dõi doanh thu theo thời gian"
@@ -276,7 +226,6 @@ export default function Dashboard() {
           ]}
         />
 
-        {/* Biểu đồ doanh thu - Row đầu tiên */}
         <div className="grid gap-4 lg:grid-cols-2">
           <Charts
             title="Doanh thu theo tháng"
@@ -300,7 +249,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Biểu đồ dịch vụ */}
         <div className="grid gap-4 lg:grid-cols-2">
           <Charts
             title="Dịch vụ được sử dụng nhiều nhất"
@@ -363,7 +311,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Orders Table */}
         <RecentOrdersTable orders={recentOrders} />
       </div>
     </AdminLayout>

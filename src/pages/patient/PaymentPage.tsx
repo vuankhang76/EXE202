@@ -48,7 +48,6 @@ export default function PaymentPage() {
       const appointmentResponse = await appointmentService.createAppointment(state.appointmentData);
       
       if (!appointmentResponse.success || !appointmentResponse.data) {
-        console.error('Appointment creation failed:', appointmentResponse);
         toast.error(appointmentResponse.message || 'Không thể tạo lịch hẹn. Vui lòng thử lại.');
         return;
       }
@@ -69,7 +68,6 @@ export default function PaymentPage() {
       const paymentResponse = await paymentTransactionService.createPaymentTransaction(paymentData);
       
       if (!paymentResponse.success) {
-        console.error('Failed to create payment transaction:', paymentResponse.message, paymentResponse.errors);
         toast.error('Lịch hẹn đã được tạo nhưng không thể tạo giao dịch thanh toán. Vui lòng thanh toán tại phòng khám.');
         navigate('/patient/appointments');
         return;
@@ -78,7 +76,6 @@ export default function PaymentPage() {
       toast.success('Đặt lịch thành công!');
       navigate('/patient/appointments');
     } catch (error: any) {
-      console.error('Error creating appointment/payment:', error);
       toast.error(error.response?.data?.message || 'Đã xảy ra lỗi khi đặt lịch và thanh toán');
     } finally {
       setLoading(false);

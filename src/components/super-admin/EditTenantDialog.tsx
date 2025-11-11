@@ -65,17 +65,14 @@ export default function EditTenantDialog({
       if (open && tenant) {
         setLoadingUsers(true);
         try {
-          // Get users from this tenant
           const response = await userService.getUsers(tenant.tenantId, 1, 1000);
           if (response.success && response.data) {
-            // Filter only ClinicAdmin users
             const admins = (response.data.data || []).filter(
               (u: UserDto) => u.role === 'ClinicAdmin'
             );
             setUsers(admins);
           }
         } catch (error) {
-          console.error("Error loading users:", error);
         } finally {
           setLoadingUsers(false);
         }
@@ -102,7 +99,6 @@ export default function EditTenantDialog({
         });
       }
     } catch (error: any) {
-      console.error("Error updating tenant:", error);
       toast.error("Cập nhật phòng khám thất bại", {
         description: error.message || "Có lỗi xảy ra",
       });

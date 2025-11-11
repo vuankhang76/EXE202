@@ -8,8 +8,8 @@ import type {
 interface PaymentFilters {
   status: string;
   method: string;
-  fromDate: Date | undefined;
-  toDate: Date | undefined;
+  fromDate: string | undefined;
+  toDate: string | undefined;
   searchTerm: string;
 }
 

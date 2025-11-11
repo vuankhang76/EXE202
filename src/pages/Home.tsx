@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Stethoscope } from 'lucide-react';
-import type { TenantDto, DoctorDto } from '@/types';
+import type { TenantDto } from '@/types';
 import tenantService from '@/services/tenantService';
+import doctorService from '@/services/doctorService';
 import { tenantSettingService } from '@/services/tenantSettingService';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -22,8 +23,8 @@ import {
 import {
   setClinicLoading,
   setDoctorLoading,
-  setDoctors,
   setClinicsAndSettings,
+  setDoctors,
 } from '@/stores/homeSlice';
 
 // Skeleton components
@@ -67,6 +68,7 @@ export default function Home() {
     weekendBookingSettings,
     lastUpdated,
     cacheExpiration,
+    isInitialLoad,
   } = useHomeData();
   const clinicsLoading = useHomeClinicLoading();
   const doctorsLoading = useHomeDoctorLoading();
@@ -75,12 +77,27 @@ export default function Home() {
   const [currentDoctorSlide, setCurrentDoctorSlide] = useState(0);
   const itemsPerView = 4;
 
+  // Prevent multiple API calls with a ref flag
+  const isLoadingRef = useRef(false);
+
   const maxSlide = Math.max(0, clinics.length - itemsPerView);
   const maxDoctorSlide = Math.max(0, doctors.length - itemsPerView);
 
-  const loadClinics = useCallback(async () => {
+  // Load both clinics and doctors data together to avoid circular dependencies
+  const loadHomeData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      return;
+    }
+    
+    isLoadingRef.current = true;
+    
+    // Set loading states
     dispatch(setClinicLoading(true));
+    dispatch(setDoctorLoading(true));
+    
     try {
+      // Load clinics
       const response = await tenantService.getTenants(1, 20);
       if (response.success && response.data) {
         const clinicsList = response.data.data || [];
@@ -114,50 +131,35 @@ export default function Home() {
     } finally {
       dispatch(setClinicLoading(false));
     }
-  }, [dispatch]);
 
-  const loadDoctors = useCallback(async () => {
-    dispatch(setDoctorLoading(true));
     try {
-      const clinicsResponse = await tenantService.getTenants(1, 100);
-      if (clinicsResponse.success && clinicsResponse.data) {
-        const allClinics = clinicsResponse.data.data || [];
-        const allDoctorsPromises = allClinics.map(clinic => 
-          tenantService.getTenantDoctors(clinic.tenantId)
-        );
-        
-        const doctorsResponses = await Promise.all(allDoctorsPromises);
-        const allDoctors: DoctorDto[] = [];
-        
-        doctorsResponses.forEach(response => {
-          if (response.success && response.data) {
-            const doctorsList = response.data.data || [];
-            allDoctors.push(...doctorsList);
-          }
-        });
-        
-        const verifiedDoctors = allDoctors.filter(doctor => doctor.isVerified === true);
-        
-        // Use setDoctors action to update only doctors
-        dispatch(setDoctors(verifiedDoctors));
+      // Load doctors
+      const doctorsResponse = await doctorService.getAllDoctors(1, 20);
+      if (doctorsResponse.success && doctorsResponse.data) {
+        dispatch(setDoctors(doctorsResponse.data.data || []));
       }
     } catch (error) {
       console.error('Error loading doctors:', error);
     } finally {
       dispatch(setDoctorLoading(false));
+      isLoadingRef.current = false;
     }
   }, [dispatch]);
 
   useEffect(() => {
+    // Skip if already loaded or currently loading
+    if (isInitialLoad || isLoadingRef.current) {
+      return;
+    }
+    
     // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
       return;
     }
 
-    // Load fresh data if cache is invalid or expired
-    loadClinics();
-    loadDoctors();
-  }, [lastUpdated, cacheExpiration, loadClinics, loadDoctors]);
+    // Load all data at once
+    loadHomeData();
+  }, [lastUpdated, cacheExpiration, loadHomeData, isInitialLoad]);
 
   const formatSchedule = (clinic: TenantDto) => {
     const schedule = [];

@@ -52,10 +52,7 @@ export function InteractiveBarChart({
 
   // Debug logging
   React.useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log(`📊 [${title}] Received data:`, data);
-      console.log(`📊 [${title}] Data length:`, data.length);
-    }
+
   }, [data, title]);
 
   const filteredData = React.useMemo(() => {
@@ -70,16 +67,10 @@ export function InteractiveBarChart({
       const itemDate = new Date(item.date)
       return itemDate >= startDate
     })
+  
     
-    if (import.meta.env.DEV) {
-      console.log(`📊 Filtered data (${timeRange}):`, filtered);
-      console.log(`📊 Filter range: ${startDate.toISOString()} to ${now.toISOString()}`);
-    }
-    
-    // If filter results in empty data but we have data available, show all data
     if (filtered.length === 0 && data.length > 0) {
       if (import.meta.env.DEV) {
-        console.log(`⚠️ No data in selected range, showing all available data instead`);
       }
       return data;
     }

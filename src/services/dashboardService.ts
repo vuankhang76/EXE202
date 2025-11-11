@@ -28,7 +28,6 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard overview:', error);
       throw error;
     }
   }
@@ -54,7 +53,6 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard charts:', error);
       throw error;
     }
   }
@@ -76,7 +74,6 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching revenue analytics:', error);
       throw error;
     }
   }
@@ -91,7 +88,6 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching recent orders:', error);
       throw error;
     }
   }
@@ -106,7 +102,6 @@ class DashboardService {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard widgets:', error);
       throw error;
     }
   }

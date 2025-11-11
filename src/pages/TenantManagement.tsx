@@ -47,7 +47,6 @@ export default function TenantManagement() {
         setTenantTotalCount(0);
       }
     } catch (error) {
-      console.error("Error loading tenants:", error);
       toast.error("Không thể tải danh sách phòng khám");
       setTenants([]);
     } finally {

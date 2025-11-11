@@ -88,13 +88,13 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
           onChange={handleFileSelect}
           accept="image/*,.pdf,.doc,.docx"
         />
-        
         <Button
           type="button"
           variant="outline"
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || sending}
+          className='h-11'
         >
           <Paperclip className="w-5 h-5" />
         </Button>
@@ -104,11 +104,12 @@ export default function MessageInput({ onSend, disabled }: MessageInputProps) {
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)"
-          className="flex-1 min-h-[44px] max-h-[120px] resize-none"
+          className="flex-1 min-h-11 max-h-[120px] resize-none"
           disabled={disabled || sending}
+          
         />
 
-        <Button type="submit" size="icon" disabled={disabled || sending || (!content.trim() && !file)}>
+        <Button className='h-11' type="submit" size="icon" disabled={disabled || sending || (!content.trim() && !file)}>
           <Send className="w-5 h-5" />
         </Button>
       </div>

@@ -32,6 +32,7 @@ export interface ConversationListDTO {
   unreadCount: number;
   patientName?: string;
   tenantName?: string;
+  tenantThumbnailUrl?: string;
   lastMessagePreview?: string;
 }
 

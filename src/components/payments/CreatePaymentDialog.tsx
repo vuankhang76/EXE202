@@ -81,7 +81,6 @@ export default function CreatePaymentDialog({ onSuccess }: CreatePaymentDialogPr
           setAppointments(filteredAppointments);
         }
       } catch (error) {
-        console.error('Error loading appointments:', error);
       } finally {
         setLoadingAppointments(false);
       }

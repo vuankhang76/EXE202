@@ -27,14 +27,12 @@ export function ServiceSelector({ tenantId, selectedServiceId, onServiceSelect }
       const response = await serviceService.getTenantServices(tenantId);
       
       if (response.success && response.data) {
-        // Only show active services
         const activeServices = response.data.filter(s => s.isActive);
         setServices(activeServices);
       } else {
         setError(response.message || "Không thể tải danh sách dịch vụ");
       }
     } catch (err: any) {
-      console.error("Error loading services:", err);
       setError(err.response?.data?.message || "Có lỗi xảy ra khi tải danh sách dịch vụ");
     } finally {
       setLoading(false);

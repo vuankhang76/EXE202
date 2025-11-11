@@ -45,6 +45,7 @@ export interface PaymentTransactionFilterDto extends BaseQueryDto, DateRangeFilt
   method?: string;
   minAmount?: number;
   maxAmount?: number;
+  searchTerm?: string;
 }
 
 export interface RefundRequestDto {

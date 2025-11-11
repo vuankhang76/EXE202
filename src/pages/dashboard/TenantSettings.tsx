@@ -115,7 +115,7 @@ export default function TenantSettings() {
         dispatch(setBookingConfig(response.data));
       }
     } catch (error) {
-      console.error("Error loading booking config:", error);
+      // Error loading booking config
     }
   }, [currentUser?.tenantId, dispatch]);
 
@@ -131,7 +131,7 @@ export default function TenantSettings() {
         dispatch(setServices(response.data));
       }
     } catch (error) {
-      console.error("Error loading services:", error);
+      // Error loading services
     } finally {
       dispatch(setLoadingServices(false));
     }
@@ -206,7 +206,6 @@ export default function TenantSettings() {
         });
       }
     } catch (error: any) {
-      console.error("Error uploading thumbnail:", error);
       toast.error("Upload thất bại", {
         description: error.message || "Không thể upload ảnh",
       });
@@ -329,8 +328,6 @@ export default function TenantSettings() {
         });
       }
     } catch (error: any) {
-      console.error("Error updating tenant:", error);
-
       if (!error.toastShown) {
         const errorMessage =
           error.response?.data?.errors?.length > 0
@@ -392,8 +389,6 @@ export default function TenantSettings() {
         });
       }
     } catch (error: any) {
-      console.error("Error updating booking settings:", error);
-      
       if (error.response?.status === 500) {
         try {
           const tenantId = parseInt(currentUser.tenantId!);
@@ -417,12 +412,12 @@ export default function TenantSettings() {
             return;
           }
         } catch (retryError) {
-          console.error('Retry failed:', retryError);
+          // Retry failed
         }
       }
       
       toast.error("Cập nhật thất bại", {
-        description: error.response?.data?.message || error.message || "Không thể cập nhật cài đặt lịch khám. Vui lòng kiểm tra console để biết thêm chi tiết.",
+        description: error.response?.data?.message || error.message || "Không thể cập nhật cài đặt lịch khám.",
       });
     } finally {
       dispatch(setSavingBooking(false));

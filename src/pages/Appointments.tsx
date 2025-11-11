@@ -77,14 +77,36 @@ export default function Appointments() {
         const filtersToUse = customFilters || appliedFilters;
         const pageSizeToUse = customPageSize !== undefined ? customPageSize : pageSize;
 
+        // Format dates for API - include time to get full day range
+        const formatDateForApi = (dateString?: string, isEndDate: boolean = false) => {
+          if (!dateString) return undefined;
+          
+          // If it's already in YYYY-MM-DD format
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            // Add time component: start of day or end of day
+            return isEndDate 
+              ? `${dateString}T23:59:59` 
+              : `${dateString}T00:00:00`;
+          }
+          
+          // If it's a full ISO string, extract date and add time
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return undefined;
+          
+          const dateOnly = date.toISOString().split('T')[0];
+          return isEndDate 
+            ? `${dateOnly}T23:59:59` 
+            : `${dateOnly}T00:00:00`;
+        };
+
         const filter = {
           pageNumber: page,
           pageSize: pageSizeToUse,
           searchTerm: filtersToUse.searchTerm || undefined,
           status: filtersToUse.statusFilter && filtersToUse.statusFilter !== 'all' ? filtersToUse.statusFilter : undefined,
           type: filtersToUse.typeFilter && filtersToUse.typeFilter !== 'all' ? filtersToUse.typeFilter : undefined,
-          fromDate: filtersToUse.fromDate || undefined,
-          toDate: filtersToUse.toDate || undefined,
+          fromDate: formatDateForApi(filtersToUse.fromDate, false),
+          toDate: formatDateForApi(filtersToUse.toDate, true),
           tenantId,
         };
 
@@ -133,7 +155,6 @@ export default function Appointments() {
           dispatch(
             setAppointmentData({
               appointments: items,
-              stats,
               totalPages,
               totalCount,
               currentPage: page,
@@ -143,7 +164,6 @@ export default function Appointments() {
           dispatch(
             setAppointmentData({
               appointments: [],
-              stats,
               totalPages: 0,
               totalCount: 0,
               currentPage: page,
@@ -151,7 +171,6 @@ export default function Appointments() {
           );
         }
       } catch (error) {
-        console.error('Error loading appointments:', error);
         dispatch(clearAppointmentData());
       } finally {
         dispatch(setLoading(false));
@@ -165,7 +184,6 @@ export default function Appointments() {
       appliedFilters.toDate,
       pageSize,
       checkTenantId,
-      stats,
       dispatch,
     ]
   );
@@ -195,7 +213,6 @@ export default function Appointments() {
       const statsData = await appointmentService.getAppointmentStats(tenantId);
       dispatch(setStats(statsData));
     } catch (error) {
-      console.error('Error loading stats:', error);
       dispatch(
         setStats({
           total: 0,
@@ -253,7 +270,6 @@ export default function Appointments() {
         loadAppointments(currentPage);
         loadStats();
       } catch (error) {
-        console.error('Error changing status:', error);
         toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
       }
     },
@@ -285,7 +301,6 @@ export default function Appointments() {
         toast.error('Không thể tải thông tin lịch hẹn');
       }
     } catch (error) {
-      console.error('Error loading appointment:', error);
       toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
     }
   }, []);
@@ -300,7 +315,6 @@ export default function Appointments() {
         toast.error('Không thể tải thông tin lịch hẹn');
       }
     } catch (error) {
-      console.error('Error loading appointment:', error);
       toast.error('Có lỗi xảy ra khi tải thông tin lịch hẹn');
     }
   }, []);
