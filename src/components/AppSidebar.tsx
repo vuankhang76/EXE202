@@ -8,7 +8,10 @@ import {
   Home,
   Settings,
   Building2,
-  Users
+  Users,
+  DollarSign,
+  Receipt,
+  TrendingUp
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -57,6 +60,22 @@ const navigationData = {
       title: "Quản lý tài khoản",
       url: "/clinic/accounts",
       icon: UserCog,
+    },
+    {
+      title: "Tài chính",
+      icon: DollarSign,
+      items: [
+        {
+          title: "Giao dịch",
+          url: "/clinic/finance/transactions",
+          icon: Receipt,
+        },
+        {
+          title: "Doanh thu",
+          url: "/clinic/finance/revenue",
+          icon: TrendingUp,
+        },
+      ],
     },
     {
       title: "Cài đặt phòng khám",

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, QrCode } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,6 +31,7 @@ interface PaymentTableProps {
   onCompletePayment: (paymentId: number) => void;
   onFailPayment: (paymentId: number) => void;
   onDeletePayment: (paymentId: number) => void;
+  onShowPaymentQR?: (payment: PaymentTransactionDto) => void;
   onPageChange: (page: number) => void;
   onRowsPerPageChange: (rows: number) => void;
 }
@@ -52,30 +53,55 @@ const formatPhone = (phone?: string) => {
   return phone;
 };
 
-const renderActionButtons = (payment: PaymentTransactionDto, onCompletePayment: (paymentId: number) => void, onFailPayment: (paymentId: number) => void, onDeletePayment: (paymentId: number) => void) => {
+const renderActionButtons = (
+  payment: PaymentTransactionDto,
+  onCompletePayment: (paymentId: number) => void,
+  onFailPayment: (paymentId: number) => void,
+  onDeletePayment: (paymentId: number) => void,
+  onShowPaymentQR?: (payment: PaymentTransactionDto) => void
+) => {
+  const isPending = payment.status === "PENDING";
+  const isBankTransfer = payment.method === "BANK_TRANSFER";
+
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap">
+      {/* Nút thanh toán QR cho BANK_TRANSFER và PENDING */}
+      {isPending && isBankTransfer && onShowPaymentQR && (
+        <Button
+          size="sm"
+          variant="default"
+          onClick={() => onShowPaymentQR(payment)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <QrCode className="h-4 w-4 mr-1" />
+          Thanh toán
+        </Button>
+      )}
+
+      {/* Nút hoàn thành thủ công (cho admin) */}
       <Button
         size="sm"
         variant="default"
         onClick={() => onCompletePayment(payment.paymentId)}
-        disabled={payment.status !== "PENDING"}
+        disabled={!isPending}
         className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
       >
         <CheckCircle className="h-4 w-4 mr-1" />
         Hoàn thành
       </Button>
+
       <Button
         size="sm"
         variant="outline"
         onClick={() => onFailPayment(payment.paymentId)}
-        disabled={payment.status !== "PENDING"}
+        disabled={!isPending}
         className="disabled:cursor-not-allowed"
       >
         <XCircle className="h-4 w-4 mr-1" />
         Thất bại
       </Button>
-      {payment.status === "PENDING" && (
+
+      {isPending && (
         <Button
           size="sm"
           variant="ghost"
@@ -98,6 +124,7 @@ export default function PaymentTable({
   onCompletePayment,
   onFailPayment,
   onDeletePayment,
+  onShowPaymentQR,
   onPageChange,
   onRowsPerPageChange,
 }: PaymentTableProps) {
@@ -191,7 +218,7 @@ export default function PaymentTable({
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          {renderActionButtons(payment, onCompletePayment, onFailPayment, onDeletePayment)}
+                          {renderActionButtons(payment, onCompletePayment, onFailPayment, onDeletePayment, onShowPaymentQR)}
                         </TableCell>
                       </TableRow>
                     ))}

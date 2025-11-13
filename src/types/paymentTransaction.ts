@@ -18,6 +18,20 @@ export interface PaymentTransactionDto extends BaseEntity {
   appointmentType?: string;
   appointmentDate?: string;
   doctorName?: string;
+  // SePay webhook fields
+  gateway?: string;
+  sepayId?: number;
+  transactionDate?: string;
+  accountNumber?: string;
+  subAccount?: string;
+  transferType?: string;
+  transferAmount?: number;
+  accumulated?: number;
+  code?: string;
+  content?: string;
+  description?: string;
+  referenceCode?: string;
+  completedAt?: string;
 }
 
 // Create Payment Transaction

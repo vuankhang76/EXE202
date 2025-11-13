@@ -34,7 +34,6 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 function TenantAuthRedirect() {
   const { currentUser, userType } = useAuth();
   if (currentUser && userType === 'tenant') {
-    // Check if user is SystemAdmin
     if (currentUser.role === 'SystemAdmin') {
       return <Navigate to="/super-admin" replace />;
     }
@@ -50,7 +49,6 @@ function HomeRedirect() {
   const { currentUser, userType } = useAuth();
   
   if (currentUser && userType === 'tenant') {
-    // Check if user is SystemAdmin
     if (currentUser.role === 'SystemAdmin') {
       return <Navigate to="/super-admin" replace />;
     }

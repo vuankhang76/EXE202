@@ -7,11 +7,13 @@ import PaymentStats from "@/components/payments/PaymentStats";
 import PaymentFilters from "@/components/payments/PaymentFilters";
 import PaymentTable from "@/components/payments/PaymentTable";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import SepayQRDialog from "@/components/payments/SepayQRDialog";
 import { paymentTransactionService } from "@/services/paymentTransactionService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type {
   PaymentTransactionFilterDto,
+  PaymentTransactionDto,
 } from "@/types/paymentTransaction";
 import {
   useAppDispatch,
@@ -56,6 +58,14 @@ export default function PaymentTransaction() {
   }>({
     isOpen: false,
     paymentId: null,
+  });
+
+  const [qrDialog, setQrDialog] = useState<{
+    isOpen: boolean;
+    payment: PaymentTransactionDto | null;
+  }>({
+    isOpen: false,
+    payment: null,
   });
 
   const loadData = useCallback(
@@ -175,6 +185,19 @@ export default function PaymentTransaction() {
     });
   };
 
+  const handleShowPaymentQR = (payment: PaymentTransactionDto) => {
+    setQrDialog({
+      isOpen: true,
+      payment,
+    });
+  };
+
+  const handlePaymentCompleted = () => {
+    toast.success("Thanh toán thành công!");
+    setQrDialog({ isOpen: false, payment: null });
+    loadData(currentPage); // Refresh data
+  };
+
   const handleSearch = () => {
     const newFilters = {
       status: filters.status,
@@ -275,8 +298,16 @@ export default function PaymentTransaction() {
         onCompletePayment={handleCompletePayment}
         onFailPayment={handleFailPayment}
         onDeletePayment={handleDeletePayment}
+        onShowPaymentQR={handleShowPaymentQR}
         onPageChange={loadData}
         onRowsPerPageChange={handleRowsPerPageChange}
+      />
+
+      <SepayQRDialog
+        isOpen={qrDialog.isOpen}
+        payment={qrDialog.payment}
+        onClose={() => setQrDialog({ isOpen: false, payment: null })}
+        onPaymentCompleted={handlePaymentCompleted}
       />
 
       <ConfirmDialog
