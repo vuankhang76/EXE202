@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { CheckCircle, XCircle, Trash2, QrCode } from "lucide-react";
+import { QrCode } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -28,9 +28,6 @@ interface PaymentTableProps {
   totalPages: number;
   totalCount: number;
   rowsPerPage: number;
-  onCompletePayment: (paymentId: number) => void;
-  onFailPayment: (paymentId: number) => void;
-  onDeletePayment: (paymentId: number) => void;
   onShowPaymentQR?: (payment: PaymentTransactionDto) => void;
   onPageChange: (page: number) => void;
   onRowsPerPageChange: (rows: number) => void;
@@ -53,65 +50,21 @@ const formatPhone = (phone?: string) => {
   return phone;
 };
 
-const renderActionButtons = (
-  payment: PaymentTransactionDto,
-  onCompletePayment: (paymentId: number) => void,
-  onFailPayment: (paymentId: number) => void,
-  onDeletePayment: (paymentId: number) => void,
-  onShowPaymentQR?: (payment: PaymentTransactionDto) => void
-) => {
-  const isPending = payment.status === "PENDING";
-  const isBankTransfer = payment.method === "BANK_TRANSFER";
+const calculateAge = (dateOfBirth?: string): number | null => {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
 
-  return (
-    <div className="flex gap-2 flex-wrap">
-      {/* Nút thanh toán QR cho BANK_TRANSFER và PENDING */}
-      {isPending && isBankTransfer && onShowPaymentQR && (
-        <Button
-          size="sm"
-          variant="default"
-          onClick={() => onShowPaymentQR(payment)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <QrCode className="h-4 w-4 mr-1" />
-          Thanh toán
-        </Button>
-      )}
-
-      {/* Nút hoàn thành thủ công (cho admin) */}
-      <Button
-        size="sm"
-        variant="default"
-        onClick={() => onCompletePayment(payment.paymentId)}
-        disabled={!isPending}
-        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        <CheckCircle className="h-4 w-4 mr-1" />
-        Hoàn thành
-      </Button>
-
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => onFailPayment(payment.paymentId)}
-        disabled={!isPending}
-        className="disabled:cursor-not-allowed"
-      >
-        <XCircle className="h-4 w-4 mr-1" />
-        Thất bại
-      </Button>
-
-      {isPending && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onDeletePayment(payment.paymentId)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  );
+const getGenderLabel = (gender?: string): string => {
+  if (!gender) return "N/A";
+  return gender === "MALE" ? "Nam" : gender === "FEMALE" ? "Nữ" : "Khác";
 };
 
 export default function PaymentTable({
@@ -121,9 +74,6 @@ export default function PaymentTable({
   totalPages,
   totalCount,
   rowsPerPage,
-  onCompletePayment,
-  onFailPayment,
-  onDeletePayment,
   onShowPaymentQR,
   onPageChange,
   onRowsPerPageChange,
@@ -150,15 +100,16 @@ export default function PaymentTable({
                     <TableRow>
                       <TableHead className="min-w-[80px]">Mã GD</TableHead>
                       <TableHead className="min-w-[100px]">Lịch hẹn</TableHead>
-                      <TableHead className="min-w-[120px]">Điện thoại</TableHead>
                       <TableHead className="min-w-[120px]">Bệnh nhân</TableHead>
+                      <TableHead className="min-w-[100px]">Giới tính</TableHead>
+                      <TableHead className="min-w-[80px]">Tuổi</TableHead>
+                      <TableHead className="min-w-[120px]">Điện thoại</TableHead>
                       <TableHead className="min-w-[120px]">Bác sĩ</TableHead>
-                      <TableHead className="min-w-[100px]">Loại</TableHead>
                       <TableHead className="min-w-[100px]">Số tiền</TableHead>
                       <TableHead className="min-w-[120px]">Phương thức</TableHead>
                       <TableHead className="min-w-[120px]">Trạng thái</TableHead>
                       <TableHead className="min-w-[140px]">Ngày tạo</TableHead>
-                      <TableHead className="min-w-[180px]">Thao tác</TableHead>
+                      <TableHead className="min-w-[150px]">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -179,15 +130,20 @@ export default function PaymentTable({
                           )}
                         </TableCell>
                         <TableCell>
-                          <div>{formatPhone(payment.patientPhone)}</div>
-                        </TableCell>
-                        <TableCell>
                           <div className="font-medium">
                             {payment.patientName}
                           </div>
                         </TableCell>
+                        <TableCell>
+                          {getGenderLabel(payment.patientGender)}
+                        </TableCell>
+                        <TableCell>
+                          {calculateAge(payment.patientDateOfBirth) ?? "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          <div>{formatPhone(payment.patientPhone)}</div>
+                        </TableCell>
                         <TableCell>{payment.doctorName}</TableCell>
-                        <TableCell>{payment.appointmentType}</TableCell>
                         <TableCell>
                           <div className="font-semibold">
                             {formatCurrency(payment.amount, payment.currency)}
@@ -218,7 +174,17 @@ export default function PaymentTable({
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          {renderActionButtons(payment, onCompletePayment, onFailPayment, onDeletePayment, onShowPaymentQR)}
+                          {payment.status === "PENDING" && payment.method === "BANK_TRANSFER" && onShowPaymentQR && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => onShowPaymentQR(payment)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <QrCode className="h-4 w-4 mr-1" />
+                              Thanh toán
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

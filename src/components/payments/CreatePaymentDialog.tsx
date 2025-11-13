@@ -18,7 +18,6 @@ import { paymentTransactionService } from '@/services/paymentTransactionService'
 import appointmentService from '@/services/appointmentService';
 import { Combobox } from '@/components/ui/Combobox';
 import { useAuth } from '@/contexts/AuthContext';
-import { PAYMENT_METHODS } from '@/types/paymentTransaction';
 import type { PaymentTransactionCreateDto } from '@/types/paymentTransaction';
 import type { AppointmentDto } from '@/types/appointment';
 import { format } from 'date-fns';

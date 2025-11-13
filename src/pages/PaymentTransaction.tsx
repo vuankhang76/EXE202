@@ -6,7 +6,6 @@ import CreatePaymentDialog from "@/components/payments/CreatePaymentDialog";
 import PaymentStats from "@/components/payments/PaymentStats";
 import PaymentFilters from "@/components/payments/PaymentFilters";
 import PaymentTable from "@/components/payments/PaymentTable";
-import ConfirmDialog from "@/components/ConfirmDialog";
 import SepayQRDialog from "@/components/payments/SepayQRDialog";
 import { paymentTransactionService } from "@/services/paymentTransactionService";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,14 +50,6 @@ export default function PaymentTransaction() {
   const loading = usePaymentLoading();
   const filters = usePaymentFilters();
   const appliedFilters = usePaymentAppliedFilters();
-
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    paymentId: number | null;
-  }>({
-    isOpen: false,
-    paymentId: null,
-  });
 
   const [qrDialog, setQrDialog] = useState<{
     isOpen: boolean;
@@ -152,39 +143,6 @@ export default function PaymentTransaction() {
     loadData(currentPage);
   };
 
-  const handleCompletePayment = async (paymentId: number) => {
-    try {
-      const result = await paymentTransactionService.completePayment(paymentId);
-      if (result.success) {
-        toast.success("Đã hoàn thành giao dịch");
-        loadData(currentPage);
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi hoàn thành giao dịch");
-    }
-  };
-
-  const handleFailPayment = async (paymentId: number) => {
-    try {
-      const result = await paymentTransactionService.failPayment(paymentId, {
-        reason: "Đánh dấu thất bại bởi quản trị viên",
-      });
-      if (result.success) {
-        toast.success("Đã đánh dấu giao dịch thất bại");
-        loadData(currentPage);
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi đánh dấu thất bại");
-    }
-  };
-
-  const handleDeletePayment = async (paymentId: number) => {
-    setConfirmDialog({
-      isOpen: true,
-      paymentId,
-    });
-  };
-
   const handleShowPaymentQR = (payment: PaymentTransactionDto) => {
     setQrDialog({
       isOpen: true,
@@ -215,23 +173,6 @@ export default function PaymentTransaction() {
     dispatch(setPageSize(newSize));
     loadData(1, undefined, newSize);
   }, [dispatch, loadData]);
-
-  const handleConfirmDelete = async () => {
-    if (confirmDialog.paymentId === null) return;
-
-    try {
-      const result = await paymentTransactionService.deletePaymentTransaction(
-        confirmDialog.paymentId
-      );
-      if (result.success) {
-        toast.success("Đã xóa giao dịch");
-        setConfirmDialog({ isOpen: false, paymentId: null });
-        loadData(currentPage);
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi xóa giao dịch");
-    }
-  };
 
   const filteredPayments = payments.filter((payment) => {
     if (!filters.searchTerm) return true;
@@ -295,9 +236,6 @@ export default function PaymentTransaction() {
         totalPages={totalPages}
         totalCount={totalCount}
         rowsPerPage={pageSize}
-        onCompletePayment={handleCompletePayment}
-        onFailPayment={handleFailPayment}
-        onDeletePayment={handleDeletePayment}
         onShowPaymentQR={handleShowPaymentQR}
         onPageChange={loadData}
         onRowsPerPageChange={handleRowsPerPageChange}
@@ -308,17 +246,6 @@ export default function PaymentTransaction() {
         payment={qrDialog.payment}
         onClose={() => setQrDialog({ isOpen: false, payment: null })}
         onPaymentCompleted={handlePaymentCompleted}
-      />
-
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        title="Xóa giao dịch"
-        description={`Bạn có chắc chắn muốn xóa giao dịch #${confirmDialog.paymentId}?`}
-        confirmText="Xóa"
-        cancelText="Hủy"
-        variant="destructive"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setConfirmDialog({ isOpen: false, paymentId: null })}
       />
     </AdminLayout>
   );

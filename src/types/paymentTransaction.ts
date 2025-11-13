@@ -8,6 +8,8 @@ export interface PaymentTransactionDto extends BaseEntity {
   patientId: number;
   patientName?: string;
   patientPhone?: string;
+  patientGender?: string;
+  patientDateOfBirth?: string;
   appointmentId?: number;
   amount: number;
   currency: string;
