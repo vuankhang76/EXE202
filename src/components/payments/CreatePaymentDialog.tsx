@@ -39,7 +39,7 @@ export default function CreatePaymentDialog({ onSuccess }: CreatePaymentDialogPr
     appointmentId: undefined,
     amount: 0,
     currency: 'VND',
-    method: 'CASH',
+    method: 'BANK_TRANSFER', // Only bank transfer available
     providerRef: '',
   });
 
@@ -250,23 +250,14 @@ export default function CreatePaymentDialog({ onSuccess }: CreatePaymentDialogPr
                 />
               </div>
 
+              {/* Method is fixed to BANK_TRANSFER - no selection needed */}
               <div className="space-y-2">
-                <Label className="required">Phương thức</Label>
-                <Select
-                  value={formData.method}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, method: value }))}
-                >
-                  <SelectTrigger className="w-full truncate">
-                    <SelectValue className="block truncate" placeholder="Chọn phương thức..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method.value} value={method.value}>
-                        {method.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Phương thức thanh toán</Label>
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <span className="text-2xl">🏦</span>
+                  <span className="font-medium text-blue-900">Chuyển khoản ngân hàng</span>
+                </div>
+                <p className="text-xs text-gray-500">Phương thức duy nhất được hỗ trợ</p>
               </div>
 
               <div className="space-y-2">

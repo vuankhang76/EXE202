@@ -107,9 +107,7 @@ export default function SepayQRDialog({
         <DialogHeader>
           <DialogTitle>Thanh toán qua chuyển khoản ngân hàng</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-6">
-          {/* Payment Status */}
           {paymentStatus === "COMPLETED" && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
@@ -121,7 +119,6 @@ export default function SepayQRDialog({
           )}
 
           <div className="grid md:grid-cols-2 gap-6">
-            {/* QR Code Section */}
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-3">Quét mã QR để thanh toán</p>
@@ -150,8 +147,6 @@ export default function SepayQRDialog({
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-3">Thông tin chuyển khoản</h3>
-                
-                {/* Amount */}
                 <div className="bg-blue-50 rounded-lg p-4 mb-4">
                   <p className="text-sm text-gray-600">Số tiền cần thanh toán</p>
                   <p className="text-2xl font-bold text-blue-600">
@@ -161,14 +156,6 @@ export default function SepayQRDialog({
 
                 {/* Bank Details */}
                 <div className="space-y-3">
-                  {/* VA Warning */}
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
-                    <p className="text-xs text-blue-600 font-semibold mb-1">⚠️ Tài khoản ảo (Virtual Account)</p>
-                    <p className="text-xs text-gray-600">
-                      Nội dung CK phải bắt đầu bằng: <span className="font-mono font-bold text-orange-600">SEVQR TKP235</span>
-                    </p>
-                  </div>
-
                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="text-xs text-gray-600">Ngân hàng</p>
@@ -211,11 +198,10 @@ export default function SepayQRDialog({
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 border-2 border-orange-300 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1">
                       <p className="text-xs text-gray-600 mb-1 font-semibold">Nội dung chuyển khoản</p>
-                      <p className="font-bold text-orange-600 font-mono break-all text-base">{transferContent}</p>
-                      <p className="text-xs text-orange-600 mt-2 font-medium">⚠️ Phải có "SEVQR TKP235" ở đầu</p>
+                      <p className="font-bold font-mono break-all text-base">{transferContent}</p>
                     </div>
                     <Button
                       variant="ghost"
