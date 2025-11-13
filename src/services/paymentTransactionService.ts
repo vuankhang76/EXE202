@@ -85,6 +85,16 @@ class PaymentTransactionService {
     return response.data;
   }
 
+  // Get latest payment transaction by appointment
+  async getLatestAppointmentPaymentTransaction(appointmentId: number, skipGlobalLoading = false): Promise<ApiResponse<PaymentTransactionDto>> {
+    const response = await apiUtils.get<ApiResponse<PaymentTransactionDto>>(
+      `${this.baseUrl}/appointment/${appointmentId}/latest`,
+      undefined,
+      { skipGlobalLoading }
+    );
+    return response.data;
+  }
+
   // Process payment (create and process transaction)
   async processPayment(data: PaymentTransactionCreateDto): Promise<ApiResponse<PaymentTransactionDto>> {
     const response = await apiUtils.post<ApiResponse<PaymentTransactionDto>>(`${this.baseUrl}/process`, data);

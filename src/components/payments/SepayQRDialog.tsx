@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/types/paymentTransaction";
 import { useState, useEffect } from "react";
 import { paymentTransactionService } from "@/services/paymentTransactionService";
+import { paymentSignalRService, type PaymentCompletedEvent } from "@/services/paymentSignalRService";
 import type { PaymentTransactionDto } from "@/types/paymentTransaction";
 
 interface SepayQRDialogProps {
@@ -22,29 +23,50 @@ export default function SepayQRDialog({
 }: SepayQRDialogProps) {
   const [checking, setChecking] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(payment?.status || "PENDING");
+  const [hasNotified, setHasNotified] = useState(false); // Prevent duplicate notifications
 
-  // Auto-check payment status every 5 seconds
+  // Setup SignalR real-time payment notifications
   useEffect(() => {
-    if (!payment || !isOpen || paymentStatus === "COMPLETED") return;
+    if (!payment || !isOpen || !payment.appointmentId || paymentStatus === "COMPLETED") return;
 
-    const interval = setInterval(async () => {
+    // Reset notification flag when dialog opens
+    setHasNotified(false);
+
+    // Connect to SignalR and subscribe to appointment
+    const setupSignalR = async () => {
       try {
-        const result = await paymentTransactionService.getPaymentTransactionById(payment.paymentId);
-        if (result.success && result.data) {
-          setPaymentStatus(result.data.status);
-          if (result.data.status === "COMPLETED") {
-            toast.success("Thanh toán thành công! 🎉");
-            onPaymentCompleted?.();
-            setTimeout(() => onClose(), 2000);
+        await paymentSignalRService.connect();
+        
+        // Subscribe and listen for payment completion
+        await paymentSignalRService.subscribeToAppointment(
+          payment.appointmentId!,
+          (data: PaymentCompletedEvent) => {
+            console.log('Payment completed event received:', data);
+            
+            // Only process if not already notified
+            if (!hasNotified && data.status === "COMPLETED") {
+              setPaymentStatus(data.status);
+              setHasNotified(true);
+              toast.success("Thanh toán thành công! 🎉");
+              onPaymentCompleted?.();
+              setTimeout(() => onClose(), 2000);
+            }
           }
-        }
+        );
       } catch (error) {
-        console.error("Error checking payment status:", error);
+        console.error('Error setting up SignalR:', error);
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
-  }, [isOpen, paymentStatus, payment?.paymentId, onPaymentCompleted, onClose]);
+    setupSignalR();
+
+    // Cleanup: unsubscribe when dialog closes
+    return () => {
+      if (payment.appointmentId) {
+        paymentSignalRService.unsubscribeFromAppointment(payment.appointmentId);
+      }
+    };
+  }, [isOpen, payment?.appointmentId]); // Remove paymentStatus, onPaymentCompleted, onClose from deps
 
   // Early return nếu payment null - SAU tất cả hooks
   if (!payment) {
@@ -81,18 +103,31 @@ export default function SepayQRDialog({
   };
 
   const handleCheckStatus = async () => {
+    if (!payment.appointmentId) {
+      toast.error("Không tìm thấy thông tin lịch hẹn");
+      return;
+    }
+
     setChecking(true);
     try {
-      const result = await paymentTransactionService.getPaymentTransactionById(payment.paymentId);
+      const result = await paymentTransactionService.getLatestAppointmentPaymentTransaction(
+        payment.appointmentId,
+        true
+      );
       if (result.success && result.data) {
-        setPaymentStatus(result.data.status);
-        if (result.data.status === "COMPLETED") {
+        const newStatus = result.data.status;
+        setPaymentStatus(newStatus);
+        
+        if (newStatus === "COMPLETED" && !hasNotified) {
+          setHasNotified(true);
           toast.success("Thanh toán thành công! 🎉");
           onPaymentCompleted?.();
           setTimeout(() => onClose(), 2000);
-        } else {
+        } else if (newStatus !== "COMPLETED") {
           toast.info("Chưa nhận được thanh toán");
         }
+      } else {
+        toast.info("Chưa có giao dịch thanh toán nào");
       }
     } catch (error) {
       toast.error("Không thể kiểm tra trạng thái");
