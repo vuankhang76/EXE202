@@ -124,6 +124,18 @@ const appointmentSlice = createSlice({
     setCacheExpiration(state, action: PayloadAction<number>) {
       state.cacheExpiration = action.payload;
     },
+    updateAppointmentStatus(
+      state,
+      action: PayloadAction<{ appointmentId: number; newStatus: string }>
+    ) {
+      const { appointmentId, newStatus } = action.payload;
+      const appointment = state.appointments.find(
+        (apt) => apt.appointmentId === appointmentId
+      );
+      if (appointment) {
+        appointment.status = newStatus;
+      }
+    },
   },
 });
 
@@ -140,6 +152,7 @@ export const {
   clearAppointmentData,
   setCacheExpiration,
   setPageSize,
+  updateAppointmentStatus,
 } = appointmentSlice.actions;
 
 export default appointmentSlice.reducer;

@@ -9,6 +9,7 @@ import { Mars, Venus } from "lucide-react";
 import TableSkeleton from "../ui/TableSkeleton";
 import TablePagination from "../ui/TablePagination";
 import { CheckCircle, XCircle, Clock, Loader, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface AppointmentTableProps {
   appointments?: AppointmentDto[];
@@ -38,6 +39,42 @@ export default function AppointmentTable({
   onRowsPerPageChange
 }: AppointmentTableProps) {
   const safeAppointments = appointments || [];
+  
+  // Local state để track status changes cho instant UI update
+  const [localStatuses, setLocalStatuses] = useState<Record<number, string>>({});
+
+  // Reset local statuses khi appointments thay đổi từ server
+  useEffect(() => {
+    setLocalStatuses({});
+  }, [appointments]);
+
+  const getDisplayStatus = (appointmentId: number, originalStatus: string) => {
+    return localStatuses[appointmentId] ?? originalStatus;
+  };
+
+  const handleStatusChange = async (appointmentId: number, newStatus: string) => {
+    // Update local state ngay lập tức
+    setLocalStatuses(prev => ({ ...prev, [appointmentId]: newStatus }));
+    
+    try {
+      // Gọi API ở background
+      await onStatusChange(appointmentId, newStatus);
+      
+      // Xóa local override sau khi API success (để dùng data từ server)
+      setLocalStatuses(prev => {
+        const updated = { ...prev };
+        delete updated[appointmentId];
+        return updated;
+      });
+    } catch (error) {
+      // Revert nếu API fail
+      setLocalStatuses(prev => {
+        const updated = { ...prev };
+        delete updated[appointmentId];
+        return updated;
+      });
+    }
+  };
 
   const formatTime = (timeString: string) => {
     if (!timeString || timeString === 'Invalid Date') return 'N/A';
@@ -147,7 +184,10 @@ export default function AppointmentTable({
   };
 
   const renderStatusSelect = (appointment: AppointmentDto) => {
-    const { status, appointmentId } = appointment;
+    const { status: originalStatus, appointmentId } = appointment;
+    
+    // Dùng local status nếu có, nếu không dùng original
+    const status = getDisplayStatus(appointmentId, originalStatus);
   
     const getAvailableStatuses = (currentStatus: string) => {
       switch (currentStatus) {
@@ -191,7 +231,7 @@ export default function AppointmentTable({
     return (
       <Select
         value={status}
-        onValueChange={(newStatus) => onStatusChange(appointmentId, newStatus)}
+        onValueChange={(newStatus) => handleStatusChange(appointmentId, newStatus)}
         disabled={isDisabled}
       >
         <SelectTrigger className={`w-full rounded-full ${cancelledStyle}`}>

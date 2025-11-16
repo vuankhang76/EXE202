@@ -8,6 +8,8 @@ export interface PaymentTransactionDto extends BaseEntity {
   patientId: number;
   patientName?: string;
   patientPhone?: string;
+  patientGender?: string;
+  patientDateOfBirth?: string;
   appointmentId?: number;
   amount: number;
   currency: string;
@@ -18,6 +20,20 @@ export interface PaymentTransactionDto extends BaseEntity {
   appointmentType?: string;
   appointmentDate?: string;
   doctorName?: string;
+  // SePay webhook fields
+  gateway?: string;
+  sepayId?: number;
+  transactionDate?: string;
+  accountNumber?: string;
+  subAccount?: string;
+  transferType?: string;
+  transferAmount?: number;
+  accumulated?: number;
+  code?: string;
+  content?: string;
+  description?: string;
+  referenceCode?: string;
+  completedAt?: string;
 }
 
 // Create Payment Transaction
@@ -80,12 +96,7 @@ export interface FailPaymentDto {
 }
 
 export const PAYMENT_METHODS = [
-  { value: 'CASH', label: 'Tiền mặt', category: 'cash', icon: '💵' },
   { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng', category: 'bank', icon: '🏦' },
-  { value: 'MOMO', label: 'Ví MoMo', category: 'ewallet', icon: '📱' },
-  { value: 'ZALOPAY', label: 'Ví ZaloPay', category: 'ewallet', icon: '📱' },
-  { value: 'VNPAY', label: 'VNPay', category: 'ewallet', icon: '💳' },
-  { value: 'CARD', label: 'Thẻ tín dụng/ghi nợ', category: 'card', icon: '💳' },
 ] as const;
 
 // Payment Status Options
@@ -115,19 +126,14 @@ export const getPaymentStatusColor = (status: string): string => {
 
 // Filter available payment methods based on tenant settings
 export const getAvailablePaymentMethods = (config?: {
-  cashEnabled?: boolean;
   bankTransferEnabled?: boolean;
-  eWalletEnabled?: boolean;
 }) => {
   if (!config) return PAYMENT_METHODS;
-
-  return PAYMENT_METHODS.filter(method => {
-    if (method.category === 'cash') return config.cashEnabled !== false; // Always enabled by default
-    if (method.category === 'bank') return config.bankTransferEnabled === true;
-    if (method.category === 'ewallet') return config.eWalletEnabled === true;
-    if (method.category === 'card') return true; // Card always available
-    return true;
-  });
+  
+  // Always return BANK_TRANSFER (only method available)
+  return PAYMENT_METHODS.filter(method => 
+    method.category === 'bank' && config.bankTransferEnabled !== false
+  );
 };
 
 // Format currency

@@ -114,12 +114,10 @@ export default function Patients() {
   );
 
   useEffect(() => {
-    // Check if we have valid cached data
     if (isCacheValid(lastUpdated, cacheExpiration)) {
       return;
     }
 
-    // Load fresh data if cache is invalid or expired
     loadRecords(1);
   }, [lastUpdated, cacheExpiration, loadRecords]);
 

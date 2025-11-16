@@ -21,7 +21,7 @@ const ClinicDetail = lazy(() => import('./pages/ClinicDetail'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TenantSettings = lazy(() => import('./pages/dashboard/TenantSettings'))
 const DoctorProfileEdit = lazy(() => import('./pages/DoctorProfileEdit'))
-const Patients = lazy(() => import('./pages/Patients'))   
+const Patients = lazy(() => import('./pages/MedicalCaseRecord'))   
 const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/PaymentTransaction'))
 const Consultations = lazy(() => import('./pages/Consultations'))
@@ -34,7 +34,6 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 function TenantAuthRedirect() {
   const { currentUser, userType } = useAuth();
   if (currentUser && userType === 'tenant') {
-    // Check if user is SystemAdmin
     if (currentUser.role === 'SystemAdmin') {
       return <Navigate to="/super-admin" replace />;
     }
@@ -50,7 +49,6 @@ function HomeRedirect() {
   const { currentUser, userType } = useAuth();
   
   if (currentUser && userType === 'tenant') {
-    // Check if user is SystemAdmin
     if (currentUser.role === 'SystemAdmin') {
       return <Navigate to="/super-admin" replace />;
     }

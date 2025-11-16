@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/Badge';
 import type { RecentOrder } from '@/types/dashboard';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-
+import {  getTypeLabel } from '@/types/appointment';
 interface RecentOrdersTableProps {
   orders: RecentOrder[];
   className?: string;
@@ -83,7 +83,7 @@ export default function RecentOrdersTable({ orders, className }: RecentOrdersTab
                 <TableCell className="font-medium">#{order.orderId}</TableCell>
                 <TableCell>{order.customerName}</TableCell>
                 <TableCell>{order.doctorName}</TableCell>
-                <TableCell>{order.serviceType}</TableCell>
+                <TableCell>{getTypeLabel(order.serviceType)}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusBadgeVariant(order.status)}>
                     {getStatusLabel(order.status)}
