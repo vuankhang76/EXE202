@@ -28,6 +28,7 @@ import {
   setAppliedFilters,
   clearAppointmentData,
   setPageSize,
+  updateAppointmentStatus,
 } from "@/stores/appointmentSlice";
 
 export default function Appointments() {
@@ -243,37 +244,74 @@ export default function Appointments() {
 
   const handleStatusChange = useCallback(
     async (id: number, newStatus: string) => {
+      // Handle cancellation prompt first
+      let cancelReason: string | null | undefined = undefined;
+      if (newStatus === 'Cancelled') {
+        cancelReason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
+        if (cancelReason === null) {
+          // User cancelled the prompt, don't proceed
+          return;
+        }
+      }
+      
+      // Optimistic update - cập nhật UI ngay lập tức
+      dispatch(updateAppointmentStatus({ appointmentId: id, newStatus }));
+      
+      // Hiển thị toast ngay lập tức để user thấy feedback
+      let toastMessage = '';
+      
+      switch (newStatus) {
+        case 'Confirmed':
+          toastMessage = 'Đang xác nhận lịch hẹn...';
+          break;
+        case 'InProgress':
+          toastMessage = 'Đang bắt đầu khám...';
+          break;
+        case 'Completed':
+          toastMessage = 'Đang hoàn thành lịch hẹn...';
+          break;
+        case 'Cancelled':
+          toastMessage = 'Đang hủy lịch hẹn...';
+          break;
+        default:
+          toast.info('Trạng thái không thay đổi');
+          loadAppointments(currentPage);
+          return;
+      }
+      
+      // Show loading toast
+      const loadingToast = toast.loading(toastMessage);
+      
       try {
+        // Gọi API trong background
         switch (newStatus) {
           case 'Confirmed':
             await appointmentService.confirmAppointment(id);
-            toast.success('Xác nhận lịch hẹn thành công!');
+            toast.success('Xác nhận lịch hẹn thành công!', { id: loadingToast });
             break;
           case 'InProgress':
             await appointmentService.startAppointment(id);
-            toast.success('Bắt đầu khám thành công!');
+            toast.success('Bắt đầu khám thành công!', { id: loadingToast });
             break;
           case 'Completed':
             await appointmentService.completeAppointment(id);
-            toast.success('Hoàn thành lịch hẹn thành công!');
+            toast.success('Hoàn thành lịch hẹn thành công!', { id: loadingToast });
             break;
           case 'Cancelled':
-            const reason = prompt('Nhập lý do hủy lịch hẹn (tùy chọn):');
-            await appointmentService.cancelAppointment(id, reason || undefined);
-            toast.success('Hủy lịch hẹn thành công!');
+            await appointmentService.cancelAppointment(id, cancelReason || undefined);
+            toast.success('Hủy lịch hẹn thành công!', { id: loadingToast });
             break;
-          default:
-            toast.info('Trạng thái không thay đổi');
-            return;
         }
 
-        loadAppointments(currentPage);
+        // Chỉ reload stats thôi, không cần reload appointments vì đã update optimistically
         loadStats();
       } catch (error) {
-        toast.error('Có lỗi xảy ra khi thay đổi trạng thái');
+        toast.error('Có lỗi xảy ra khi thay đổi trạng thái', { id: loadingToast });
+        // Revert optimistic update nếu API fail
+        loadAppointments(currentPage);
       }
     },
-    [currentPage, loadAppointments, loadStats]
+    [dispatch, currentPage, loadAppointments, loadStats]
   );
 
   const handleRefresh = useCallback(() => {

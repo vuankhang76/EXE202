@@ -50,23 +50,6 @@ const formatPhone = (phone?: string) => {
   return phone;
 };
 
-const calculateAge = (dateOfBirth?: string): number | null => {
-  if (!dateOfBirth) return null;
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-};
-
-const getGenderLabel = (gender?: string): string => {
-  if (!gender) return "N/A";
-  return gender === "MALE" ? "Nam" : gender === "FEMALE" ? "Nữ" : "Khác";
-};
-
 export default function PaymentTable({
   payments,
   loading,
@@ -101,8 +84,6 @@ export default function PaymentTable({
                       <TableHead className="min-w-[80px]">Mã GD</TableHead>
                       <TableHead className="min-w-[100px]">Lịch hẹn</TableHead>
                       <TableHead className="min-w-[120px]">Bệnh nhân</TableHead>
-                      <TableHead className="min-w-[100px]">Giới tính</TableHead>
-                      <TableHead className="min-w-[80px]">Tuổi</TableHead>
                       <TableHead className="min-w-[120px]">Điện thoại</TableHead>
                       <TableHead className="min-w-[120px]">Bác sĩ</TableHead>
                       <TableHead className="min-w-[100px]">Số tiền</TableHead>
@@ -133,12 +114,6 @@ export default function PaymentTable({
                           <div className="font-medium">
                             {payment.patientName}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {getGenderLabel(payment.patientGender)}
-                        </TableCell>
-                        <TableCell>
-                          {calculateAge(payment.patientDateOfBirth) ?? "N/A"}
                         </TableCell>
                         <TableCell>
                           <div>{formatPhone(payment.patientPhone)}</div>

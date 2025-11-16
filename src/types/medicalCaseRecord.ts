@@ -16,6 +16,8 @@ export interface MedicalCaseRecordDto {
   createdAt: string;
   updatedAt?: string;
   patientName?: string;
+  dateOfBirth?: string;
+  gender?: string;
   doctorName?: string;
   tenantName?: string;
   appointmentStartAt?: string;
