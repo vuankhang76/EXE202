@@ -106,6 +106,26 @@ const navigationData = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { currentUser } = useAuth();
   const isSystemAdmin = currentUser?.role === 'SystemAdmin';
+  const isFinanceRole = currentUser?.role === 'Finance';
+
+  const financeOnlyNav = [
+    {
+      title: "Tài chính",
+      icon: DollarSign,
+      items: [
+        {
+          title: "Giao dịch",
+          url: "/clinic/finance/transactions",
+          icon: Receipt,
+        },
+        {
+          title: "Doanh thu",
+          url: "/clinic/finance/revenue",
+          icon: TrendingUp,
+        },
+      ],
+    },
+  ];
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -115,6 +135,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {isSystemAdmin ? (
           <NavMain label="Quản trị hệ thống" items={navigationData.superAdminNav} />
+        ) : isFinanceRole ? (
+          <NavMain label="Tài chính" items={financeOnlyNav} />
         ) : (
           <>
             <NavMain label="Dịch vụ chăm sóc" items={navigationData.navMain} />

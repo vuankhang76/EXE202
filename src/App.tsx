@@ -26,6 +26,8 @@ const Appointments = lazy(() => import('./pages/Appointments'))
 const Orders = lazy(() => import('./pages/PaymentTransaction'))
 const Consultations = lazy(() => import('./pages/Consultations'))
 const Accounts = lazy(() => import('./pages/Accounts'))
+const Transactions = lazy(() => import('./pages/finance/Transactions'))
+const Revenue = lazy(() => import('./pages/finance/Revenue'))
 const SuperAdmin = lazy(() => import('./pages/SuperAdmin'))
 const TenantManagement = lazy(() => import('./pages/TenantManagement'))
 const AdminManagement = lazy(() => import('./pages/AdminManagement'))
@@ -172,6 +174,18 @@ function App() {
           <Route path="/clinic/accounts" element={
             <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
               <Accounts />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/clinic/finance/transactions" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Transactions />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/clinic/finance/revenue" element={
+            <ProtectedRoute allowedUserTypes={['tenant']} excludeRoles={['SystemAdmin']}>
+              <Revenue />
             </ProtectedRoute>
           } />
 
