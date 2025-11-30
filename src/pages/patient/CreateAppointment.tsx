@@ -156,9 +156,8 @@ export default function CreateAppointment() {
 
   const handleDoctorSelect = (doctor: DoctorDto) => {
     setSelectedDoctor(doctor);
-    if (!appointmentType) {
-      setAppointmentType(AppointmentType.CLINIC);
-    }
+    // Automatically set appointment type to CLINIC
+    setAppointmentType(AppointmentType.CLINIC);
     
     setIsDoctorCollapsed(true);
   };
@@ -168,7 +167,6 @@ export default function CreateAppointment() {
     setEndTime(end);
 
     setSelectedDoctor(null);
-    setAppointmentType(null);
     setIsTimeCollapsed(true);
     setIsDoctorCollapsed(false);
 
@@ -576,50 +574,7 @@ export default function CreateAppointment() {
                 </div>
               )}
 
-              {selectedService &&
-                selectedDate &&
-                startTime &&
-                selectedDoctor && (
-                  <div className="bg-white p-6 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md animate-in fade-in slide-in-from-top-4 duration-500">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-sm">
-                        5
-                      </span>
-                      Hình thức khám
-                      {appointmentType && (
-                        <span className="ml-2 text-green-600 text-sm">✓</span>
-                      )}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() =>
-                          setAppointmentType(AppointmentType.CLINIC)
-                        }
-                        className={`p-4 border-2 rounded-lg transition-all ${
-                          appointmentType === AppointmentType.CLINIC
-                            ? "border-red-500 bg-red-50 shadow-sm"
-                            : "border-gray-200 hover:border-red-300 hover:shadow-sm"
-                        }`}
-                      >
-                        <p className="font-medium text-gray-900">
-                          🏥 Khám tại phòng khám
-                        </p>
-                      </button>
-                      <button
-                        onClick={() =>
-                          setAppointmentType(AppointmentType.ONLINE)
-                        }
-                        className={`p-4 border-2 rounded-lg transition-all ${
-                          appointmentType === AppointmentType.ONLINE
-                            ? "border-red-500 bg-red-50 shadow-sm"
-                            : "border-gray-200 hover:border-red-300 hover:shadow-sm"
-                        }`}
-                      >
-                        <p className="font-medium text-gray-900">💻 Khám online</p>
-                      </button>
-                    </div>
-                  </div>
-                )}
+
 
               {selectedService &&
                 selectedDate &&
@@ -736,19 +691,17 @@ export default function CreateAppointment() {
                       </div>
                     )}
 
-                    {selectedDoctor && appointmentType && (
+                    {selectedDoctor && (
                       <div className="pt-4 border-t border-gray-200">
                         <p className="text-sm text-gray-600">Hình thức</p>
                         <p className="font-medium text-gray-900">
-                          {appointmentType === AppointmentType.CLINIC
-                            ? "🏥 Khám tại phòng khám"
-                            : "💻 Khám online"}
+                          🏥 Khám tại phòng khám
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {selectedDoctor && startTime && endTime && appointmentType && (
+                  {selectedDoctor && startTime && endTime && (
                     <Button
                       onClick={handleSubmit}
                       disabled={!canSubmit}

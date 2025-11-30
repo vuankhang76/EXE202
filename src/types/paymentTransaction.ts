@@ -36,7 +36,6 @@ export interface PaymentTransactionDto extends BaseEntity {
   completedAt?: string;
 }
 
-// Create Payment Transaction
 export interface PaymentTransactionCreateDto {
   tenantId: number;
   patientId: number;
@@ -47,7 +46,6 @@ export interface PaymentTransactionCreateDto {
   providerRef?: string;
 }
 
-// Update Payment Transaction
 export interface PaymentTransactionUpdateDto {
   status: string; // "Pending", "Completed", "Failed", "Refunded"
   providerRef?: string;
@@ -99,15 +97,12 @@ export const PAYMENT_METHODS = [
   { value: 'BANK_TRANSFER', label: 'Chuyển khoản ngân hàng', category: 'bank', icon: '🏦' },
 ] as const;
 
-// Payment Status Options
 export const PAYMENT_STATUS = [
   { value: 'PENDING', label: 'Chờ xử lý', color: 'bg-yellow-100 text-yellow-800' },
   { value: 'COMPLETED', label: 'Hoàn thành', color: 'bg-green-100 text-green-800' },
   { value: 'FAILED', label: 'Thất bại', color: 'bg-red-100 text-red-800' },
-  { value: 'REFUNDED', label: 'Đã hoàn tiền', color: 'bg-blue-100 text-blue-800' },
 ] as const;
 
-// Helper functions
 export const getPaymentMethodLabel = (method: string): string => {
   return PAYMENT_METHODS.find(m => m.value === method)?.label || method;
 };
@@ -124,7 +119,6 @@ export const getPaymentStatusColor = (status: string): string => {
   return PAYMENT_STATUS.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-800';
 };
 
-// Filter available payment methods based on tenant settings
 export const getAvailablePaymentMethods = (config?: {
   bankTransferEnabled?: boolean;
 }) => {
@@ -136,7 +130,6 @@ export const getAvailablePaymentMethods = (config?: {
   );
 };
 
-// Format currency
 export const formatCurrency = (amount: number, currency: string = 'VND'): string => {
   if (currency === 'VND') {
     return new Intl.NumberFormat('vi-VN', {

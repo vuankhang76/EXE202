@@ -4,40 +4,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Calendar } from "@/components/ui/Calendar";
 import { PAYMENT_STATUS, PAYMENT_METHODS } from "@/types/paymentTransaction";
-import { Search, Calendar as CalendarIcon, Settings } from "lucide-react";
+import { Search, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { toast } from "sonner";
 
-interface PaymentFiltersProps {
+interface TransactionFiltersProps {
   searchTerm: string;
   statusFilter: string;
-  typeFilter: string;
+  methodFilter: string;
   fromDate: string | undefined;
   toDate: string | undefined;
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
-  onTypeFilterChange: (value: string) => void;
+  onMethodFilterChange: (value: string) => void;
   onFromDateChange: (date: string | undefined) => void;
   onToDateChange: (date: string | undefined) => void;
   onSearch: () => void;
-  onAdvancedFilters?: () => void;
 }
 
-export default function PaymentFilters({
+export default function TransactionFilters({
   searchTerm,
   statusFilter,
-  typeFilter,
+  methodFilter,
   fromDate,
   toDate,
   onSearchChange,
   onStatusFilterChange,
-  onTypeFilterChange,
+  onMethodFilterChange,
   onFromDateChange,
   onToDateChange,
   onSearch,
-  onAdvancedFilters
-}: PaymentFiltersProps) {
+}: TransactionFiltersProps) {
   const fromDateObj = fromDate ? new Date(fromDate) : undefined;
   const toDateObj = toDate ? new Date(toDate) : undefined;
 
@@ -147,7 +145,7 @@ export default function PaymentFilters({
       </div>
 
       <div className="shrink-0">
-        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+        <Select value={methodFilter} onValueChange={onMethodFilterChange}>
           <SelectTrigger className="h-10 truncate w-[180px]">
             <SelectValue placeholder="Phương thức thanh toán" />
           </SelectTrigger>
@@ -166,17 +164,6 @@ export default function PaymentFilters({
         <Search className="h-4 w-4 mr-2" />
         Tìm kiếm
       </Button>
-
-      {onAdvancedFilters && (
-        <Button 
-          variant="outline" 
-          onClick={onAdvancedFilters} 
-          className="h-10 px-4 shrink-0"
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Nâng cao
-        </Button>
-      )}
     </div>
   );
 }
