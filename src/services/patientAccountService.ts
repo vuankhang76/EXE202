@@ -1,4 +1,4 @@
-import { 
+import {
   type PatientAccountRegisterDto,
   type PatientAccountLoginDto,
   type PatientAccountLoginByPhoneDto,
@@ -76,6 +76,29 @@ class PatientAccountService {
   async getByEmail(email: string): Promise<ApiResponse<PatientAccountResponseDto>> {
     const response = await apiUtils.get<ApiResponse<PatientAccountResponseDto>>(
       `${this.baseUrl}/by-email/${encodeURIComponent(email)}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Lấy tất cả patient accounts (cho Super Admin)
+   */
+  async getAllPatientAccounts(
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    searchTerm?: string
+  ): Promise<ApiResponse<any>> {
+    const params = new URLSearchParams({
+      pageNumber: pageNumber.toString(),
+      pageSize: pageSize.toString()
+    });
+
+    if (searchTerm) {
+      params.append('searchTerm', searchTerm);
+    }
+
+    const response = await apiUtils.get<ApiResponse<any>>(
+      `${this.baseUrl}/all?${params}`
     );
     return response.data;
   }

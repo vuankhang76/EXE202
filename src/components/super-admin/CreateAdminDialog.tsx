@@ -89,7 +89,6 @@ export default function CreateAdminDialog({
         toast.success("Tạo tài khoản admin thành công");
         onOpenChange(false);
         onSuccess();
-        // Reset form
         setFormData({
           fullName: "",
           email: "",

@@ -96,7 +96,7 @@ const navigationData = {
       icon: Building2,
     },
     {
-      title: "Quản lý Admin",
+      title: "Quản lý người dùng",
       url: "/super-admin/admins",
       icon: Users,
     },
