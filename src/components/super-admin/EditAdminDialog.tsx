@@ -42,6 +42,7 @@ export default function EditAdminDialog({
     email: "",
     phoneE164: "",
     isActive: true,
+    role: "ClinicAdmin" as "SystemAdmin" | "ClinicAdmin",
   });
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function EditAdminDialog({
         email: admin.email,
         phoneE164: admin.phoneE164 || "",
         isActive: admin.isActive,
+        role: admin.role === "SystemAdmin" ? "SystemAdmin" : "ClinicAdmin",
       });
     }
   }, [admin]);
@@ -67,6 +69,7 @@ export default function EditAdminDialog({
         email: formData.email,
         phoneE164: formData.phoneE164 || undefined,
         isActive: formData.isActive,
+        role: formData.role,
       };
 
       const response = await userService.updateUser(admin.userId, updateData);
@@ -109,12 +112,21 @@ export default function EditAdminDialog({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Vai trò</Label>
-              <Input
-                value={admin.role === "SystemAdmin" ? "SystemAdmin" : "ClinicAdmin"}
-                disabled
-                className="bg-gray-50"
-              />
+              <Label htmlFor="role">Vai trò</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, role: value as "SystemAdmin" | "ClinicAdmin" })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn vai trò" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SystemAdmin">SystemAdmin</SelectItem>
+                  <SelectItem value="ClinicAdmin">ClinicAdmin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
