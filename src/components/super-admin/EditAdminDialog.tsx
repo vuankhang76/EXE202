@@ -111,7 +111,7 @@ export default function EditAdminDialog({
             <div className="space-y-2">
               <Label>Vai trò</Label>
               <Input
-                value={admin.role === "SystemAdmin" ? "System Admin" : "Clinic Admin"}
+                value={admin.role === "SystemAdmin" ? "SystemAdmin" : "ClinicAdmin"}
                 disabled
                 className="bg-gray-50"
               />
